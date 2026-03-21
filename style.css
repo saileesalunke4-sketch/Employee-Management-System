@@ -280,3 +280,39 @@ button[type="submit"]:hover {
 .form-card .field input::placeholder {
     color: #aaa;
 }
+
+.form-card {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    overflow-x: auto;
+}
+
+.emp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.emp-table th {
+    background: #1a5276;
+    color: white;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 500;
+}
+
+.emp-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+}
+
+.emp-table tr:hover {
+    background: #f8fafc;
+}
+
+.emp-table tr:nth-child(even) {
+    background: #f5f8ff;
+}

@@ -256,74 +256,174 @@ require 'db.php';
             </div>
         </div>
 
-        <!-- Salary -->
-        <div id="salary" class="section">
-            <div class="form-card">
-                <h3 class="section-title">Salary Records</h3>
-                <table class="emp-table">
-                    <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Basic Pay</th>
-                            <th>Allowances</th>
-                            <th>Deductions</th>
-                            <th>Net Pay</th>
-                            <th>Month</th>
-                            <th>Year</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+        
+       <!-- Salary -->
+<div id="salary" class="section">
+    <div class="form-card">
+        <h3 class="section-title">Add Salary</h3>
+        <form action="save_salary.php" method="POST">
+            <div class="form-grid">
+                <div class="field">
+                    <label>Select Employee</label>
+                    <select name="emp_id">
                     <?php
-                        $result = mysqli_query($conn, "SELECT s.*, e.first_name, e.last_name FROM salary s JOIN employees e ON s.emp_id = e.emp_id ORDER BY s.year DESC");
+                        $result = mysqli_query($conn, "SELECT e.emp_id, e.first_name, e.last_name FROM employees e");
                         while($row = mysqli_fetch_assoc($result)){
-                            echo "<tr>
-                                <td>{$row['first_name']} {$row['last_name']}</td>
-                                <td>{$row['basic_pay']}</td>
-                                <td>{$row['allowances']}</td>
-                                <td>{$row['deductions']}</td>
-                                <td>{$row['net_pay']}</td>
-                                <td>{$row['month']}</td>
-                                <td>{$row['year']}</td>
-                            </tr>";
+                            echo "<option value='{$row['emp_id']}'>{$row['first_name']} {$row['last_name']}</option>";
                         }
                     ?>
-                    </tbody>
-                </table>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Basic Pay</label>
+                    <input type="number" name="basic_pay" placeholder="Basic Pay" required>
+                </div>
+                <div class="field">
+                    <label>Allowances</label>
+                    <input type="number" name="allowances" placeholder="Allowances" required>
+                </div>
+                <div class="field">
+                    <label>Deductions</label>
+                    <input type="number" name="deductions" placeholder="Deductions" required>
+                </div>
+                <div class="field">
+                    <label>Month</label>
+                    <select name="month">
+                        <option>January</option>
+                        <option>February</option>
+                        <option>March</option>
+                        <option>April</option>
+                        <option>May</option>
+                        <option>June</option>
+                        <option>July</option>
+                        <option>August</option>
+                        <option>September</option>
+                        <option>October</option>
+                        <option>November</option>
+                        <option>December</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Year</label>
+                    <input type="number" name="year" value="2026" required>
+                </div>
             </div>
-        </div>
+            <button type="submit" class="submit-btn">Add Salary</button>
+        </form>
+
+        <h3 class="section-title" style="margin-top:30px;">Salary Records</h3>
+        <table class="emp-table">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Basic Pay</th>
+                    <th>Allowances</th>
+                    <th>Deductions</th>
+                    <th>Net Pay</th>
+                    <th>Month</th>
+                    <th>Year</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php
+                $result = mysqli_query($conn, "SELECT s.*, e.first_name, e.last_name 
+                                               FROM salary s 
+                                               JOIN employees e ON s.emp_id = e.emp_id
+                                               ORDER BY s.year DESC");
+                while($row = mysqli_fetch_assoc($result)){
+                    echo "<tr>
+                        <td>{$row['first_name']} {$row['last_name']}</td>
+                        <td>{$row['basic_pay']}</td>
+                        <td>{$row['allowances']}</td>
+                        <td>{$row['deductions']}</td>
+                        <td>{$row['net_pay']}</td>
+                        <td>{$row['month']}</td>
+                        <td>{$row['year']}</td>
+                    </tr>";
+                }
+            ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
         <!-- Tasks -->
-        <div id="tasks" class="section">
-            <div class="form-card">
-                <h3 class="section-title">Task Records</h3>
-                <table class="emp-table">
-                    <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Task</th>
-                            <th>Target Date</th>
-                            <th>Status</th>
-                            <th>Hours</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+       <!-- Tasks -->
+<div id="tasks" class="section">
+    <div class="form-card">
+        <h3 class="section-title">Assign Task</h3>
+        <form action="save_task.php" method="POST">
+            <div class="form-grid">
+                <div class="field">
+                    <label>Select Employee</label>
+                    <select name="emp_id">
                     <?php
-                        $result = mysqli_query($conn, "SELECT t.*, e.first_name, e.last_name FROM tasks t JOIN employees e ON t.emp_id = e.emp_id ORDER BY t.target_date DESC");
+                        $result = mysqli_query($conn, "SELECT e.emp_id, e.first_name, e.last_name FROM employees e");
                         while($row = mysqli_fetch_assoc($result)){
-                            echo "<tr>
-                                <td>{$row['first_name']} {$row['last_name']}</td>
-                                <td>{$row['task_name']}</td>
-                                <td>{$row['target_date']}</td>
-                                <td>{$row['status']}</td>
-                                <td>{$row['hours_worked']}</td>
-                            </tr>";
+                            echo "<option value='{$row['emp_id']}'>{$row['first_name']} {$row['last_name']}</option>";
                         }
                     ?>
-                    </tbody>
-                </table>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Task Name</label>
+                    <input type="text" name="task_name" placeholder="Task Name" required>
+                </div>
+                <div class="field">
+                    <label>Description</label>
+                    <input type="text" name="description" placeholder="Description" required>
+                </div>
+                <div class="field">
+                    <label>Target Date</label>
+                    <input type="date" name="target_date" required>
+                </div>
+                <div class="field">
+                    <label>Status</label>
+                    <select name="status">
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Hours Worked</label>
+                    <input type="number" name="hours_worked" placeholder="Hours" required>
+                </div>
             </div>
-        </div>
+            <button type="submit" class="submit-btn">Assign Task</button>
+        </form>
 
+        <h3 class="section-title" style="margin-top:30px;">Task Records</h3>
+        <table class="emp-table">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Task</th>
+                    <th>Description</th>
+                    <th>Target Date</th>
+                    <th>Status</th>
+                    <th>Hours</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php
+                $result = mysqli_query($conn, "SELECT t.*, e.first_name, e.last_name 
+                                               FROM tasks t 
+                                               JOIN employees e ON t.emp_id = e.emp_id
+                                               ORDER BY t.target_date DESC");
+                while($row = mysqli_fetch_assoc($result)){
+                    echo "<tr>
+                        <td>{$row['first_name']} {$row['last_name']}</td>
+                        <td>{$row['task_name']}</td>
+                        <td>{$row['description']}</td>
+                        <td>{$row['target_date']}</td>
+                        <td>{$row['status']}</td>
+                        <td>{$row['hours_worked']}</td>
+                    </tr>";
+                }
+            ?>
+            </tbody>
+        </table>
     </div>
 </div>
 

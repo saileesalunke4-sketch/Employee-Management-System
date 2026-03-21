@@ -24,5 +24,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         header("Location: index.php?error=1");
         exit();
     }
-}
+
+    } else
+     {
+    header("Location: emp_dashboard.php");
+     }
+
+ 
 ?>
