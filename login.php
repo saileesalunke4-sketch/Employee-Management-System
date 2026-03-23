@@ -12,10 +12,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
     if($user && password_verify($password, $user['password'])){
         $_SESSION['user'] = $user;
+        
         if($user['role'] == 'admin'){
             header("Location: admin_dashboard.php");
         } elseif($user['role'] == 'super_admin'){
-            header("Location: admin_dashboard.php");
+            header("Location: super_admin_dashboard.php");
         } else {
             header("Location: emp_dashboard.php");
         }
@@ -24,11 +25,5 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         header("Location: index.php?error=1");
         exit();
     }
-
-    } else
-     {
-    header("Location: emp_dashboard.php");
-     }
-
- 
+}
 ?>

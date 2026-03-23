@@ -168,8 +168,7 @@ require 'db.php';
                     </thead>
                     <tbody>
                     <?php
-                        $result = mysqli_query($conn, "SELECT u.id, u.name, u.email, u.role, e.designation, e.contact FROM users u LEFT JOIN employees e ON u.id = e.user_id");
-                        while($row = mysqli_fetch_assoc($result)){
+                        $result = mysqli_query($conn, "SELECT u.id, u.name, u.email, u.role, e.designation, e.contact FROM users u LEFT JOIN employees e ON u.id = e.user_id WHERE u.role='employee'");                        while($row = mysqli_fetch_assoc($result)){
                             echo "<tr>
                                 <td>{$row['id']}</td>
                                 <td>{$row['name']}</td>
@@ -347,7 +346,7 @@ require 'db.php';
     </div>
 </div>
 
-        <!-- Tasks -->
+       
        <!-- Tasks -->
 <div id="tasks" class="section">
     <div class="form-card">
