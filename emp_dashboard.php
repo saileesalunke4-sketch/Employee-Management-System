@@ -17,6 +17,7 @@ $emp_id = $emp['emp_id'];
 <head>
     <title>Employee Dashboard - EMS</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="dashboard">
@@ -80,6 +81,27 @@ $emp_id = $emp['emp_id'];
                     ?></p>
                 </div>
             </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:24px;">
+            
+            <!-- Attendance Chart -->
+            <div style="background:white; padding:24px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+                <h3 style="font-size:14px; color:#60a5fa; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid #eee;">
+                    Monthly Attendance
+                </h3>
+                <canvas id="attendanceChart"></canvas>
+            </div>
+
+            <!-- Leave Chart -->
+            <div style="background:white; padding:24px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+                <h3 style="font-size:14px; color:#60a5fa; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid #eee;">
+                    Monthly Leaves
+                </h3>
+                <canvas id="leaveChart"></canvas>
+            </div>
+
         </div>
 
         <!-- Attendance Section -->
@@ -301,6 +323,85 @@ $emp_id = $emp['emp_id'];
 
     </div>
 </div>
+
+<?php
+    // Attendance data - count present days per month
+    $att_data = array_fill(0, 12, 0);
+    $att_result = mysqli_query($conn, "SELECT MONTH(date) as mon, COUNT(*) as cnt 
+                                       FROM attendance 
+                                       WHERE emp_id='$emp_id' AND status='present'
+                                       AND YEAR(date) = YEAR(CURDATE())
+                                       GROUP BY MONTH(date)");
+    while($row = mysqli_fetch_assoc($att_result)){
+        $att_data[$row['mon'] - 1] = $row['cnt'];
+    }
+
+    // Leave data - count leaves per month
+    $leave_data = array_fill(0, 12, 0);
+    $leave_result = mysqli_query($conn, "SELECT MONTH(from_date) as mon, COUNT(*) as cnt 
+                                         FROM leaves 
+                                         WHERE emp_id='$emp_id'
+                                         AND YEAR(from_date) = YEAR(CURDATE())
+                                         GROUP BY MONTH(from_date)");
+    while($row = mysqli_fetch_assoc($leave_result)){
+        $leave_data[$row['mon'] - 1] = $row['cnt'];
+    }
+
+    $att_json   = json_encode($att_data);
+    $leave_json = json_encode($leave_data);
+?>
+
+<script>
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Attendance Bar Chart
+new Chart(document.getElementById('attendanceChart'), {
+    type: 'bar',
+    data: {
+        labels: months,
+        datasets: [{
+            label: 'Days Present',
+            data: <?php echo $att_json; ?>,
+            backgroundColor: 'rgba(59,130,246,0.7)',
+            borderColor: '#3b82f6',
+            borderWidth: 1,
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+    }
+});
+
+// Leave Bar Chart
+new Chart(document.getElementById('leaveChart'), {
+    type: 'bar',
+    data: {
+        labels: months,
+        datasets: [{
+            label: 'Leaves Taken',
+            data: <?php echo $leave_json; ?>,
+            backgroundColor: 'rgba(239,68,68,0.7)',
+            borderColor: '#ef4444',
+            borderWidth: 1,
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+    }
+});
+</script>
+
+
 
 <script>
 function showSection(name, el) {
