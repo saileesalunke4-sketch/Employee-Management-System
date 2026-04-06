@@ -25,6 +25,7 @@ require 'db.php';
             <a class="nav-item" onclick="showSection('leaves', this)">Leaves</a>
             <a class="nav-item" onclick="showSection('salary', this)">Salary</a>
             <a class="nav-item" onclick="showSection('tasks', this)">Tasks</a>
+            <a class="nav-item" onclick="showSection('leave_types', this)">Leave Types</a>
         </nav>
         <a href="logout.php" class="logout-btn">Logout</a>
     </div>
@@ -425,6 +426,56 @@ require 'db.php';
         </table>
     </div>
 </div>
+
+<!-- Leave Types Section -->
+        <div id="leave_types" class="section">
+            <div class="form-card">
+                <h3 class="section-title">Add Leave Type</h3>
+                <form action="save_leave_type.php" method="POST">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>Leave Type Name</label>
+                            <input type="text" name="leave_type_name" 
+                            placeholder="e.g. Maternity Leave" required>
+                        </div>
+                        <div class="field">
+                            <label>Total Days Allowed</label>
+                            <input type="number" name="total_days" 
+                            placeholder="e.g. 10" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">Add Leave Type</button>
+                </form>
+
+                <h3 class="section-title" style="margin-top:30px;">All Leave Types</h3>
+                <table class="emp-table">
+                    <thead>
+                        <tr>
+                            <th>Leave Type</th>
+                            <th>Total Days Allowed</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                        $result = mysqli_query($conn, "SELECT * FROM leave_types ORDER BY id ASC");
+                        while($row = mysqli_fetch_assoc($result)){
+                            echo "<tr>
+                                <td>{$row['leave_type_name']}</td>
+                                <td>{$row['total_days']}</td>
+                                <td>
+                                    <a href='delete_leave_type.php?id={$row['id']}' 
+                                    class='reject-btn'
+                                    onclick='return confirm(\"Are you sure you want to delete this leave type?\")'>
+                                    Delete</a>
+                                </td>
+                            </tr>";
+                        }
+                    ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
 <script>
 function showSection(name, el) {

@@ -162,6 +162,9 @@ $emp_id = $emp['emp_id'];
             </div>
         </div>
 
+        
+                     
+
         <!-- Leaves Section -->
         <div id="leaves" class="section">
             <div class="form-card">
@@ -171,10 +174,12 @@ $emp_id = $emp['emp_id'];
                         <div class="field">
                             <label>Leave Type</label>
                             <select name="leave_type">
-                                <option value="sick">Sick Leave</option>
-                                <option value="casual">Casual Leave</option>
-                                <option value="privilege">Privilege Leave</option>
-                                <option value="unpaid">Unpaid Leave</option>
+                               <?php
+                                $lt_result = mysqli_query($conn, "SELECT * FROM leave_types ORDER BY id ASC");
+                                while($lt = mysqli_fetch_assoc($lt_result)){
+                                    echo "<option value='{$lt['leave_type_name']}'>{$lt['leave_type_name']} ({$lt['total_days']} days)</option>";
+                                }
+                            ?>
                             </select>
                         </div>
                         <div class="field">
@@ -192,6 +197,44 @@ $emp_id = $emp['emp_id'];
                     </div>
                     <button type="submit" class="submit-btn">Apply Leave</button>
                 </form>
+
+                <!-- Leave Balance -->
+                <h3 class="section-title" style="margin-top:30px;">My Leave Balance</h3>
+                <table class="emp-table">
+                    <thead>
+                        <tr>
+                            <th>Leave Type</th>
+                            <th>Total Allowed</th>
+                            <th>Used</th>
+                            <th>Remaining</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                        $lt_res = mysqli_query($conn, "SELECT * FROM leave_types ORDER BY id ASC");
+                        while($lt = mysqli_fetch_assoc($lt_res)){
+                            $used_res = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM leaves 
+                                                             WHERE emp_id='$emp_id' 
+                                                             AND leave_type='{$lt['leave_type_name']}'
+                                                             AND status='approved'");
+                            $used_row  = mysqli_fetch_assoc($used_res);
+                            $used      = $used_row['cnt'];
+                            $total     = $lt['total_days'];
+                            $remaining = $total - $used;
+                            if($remaining < 0) $remaining = 0;
+
+                            $color = $remaining == 0 ? 'color:#ef4444;' : 'color:#16a34a;';
+
+                            echo "<tr>
+                                <td>{$lt['leave_type_name']}</td>
+                                <td>{$total}</td>
+                                <td>{$used}</td>
+                                <td style='{$color}'><b>{$remaining}</b></td>
+                            </tr>";
+                        }
+                    ?>
+                    </tbody>
+                </table>
 
                 <h3 class="section-title" style="margin-top:30px;">My Leave Records</h3>
                 <table class="emp-table">
@@ -289,8 +332,11 @@ $emp_id = $emp['emp_id'];
         </div>
 
         <!-- Profile Section -->
+        
         <div id="profile" class="section">
             <div class="form-card">
+
+                <!-- View Profile -->
                 <h3 class="section-title">My Profile</h3>
                 <table class="emp-table">
                     <tr>
@@ -313,16 +359,164 @@ $emp_id = $emp['emp_id'];
                         <td><b>Date of Birth</b></td>
                         <td><?php echo $emp['dob']; ?></td>
                     </tr>
-                    <tr>
+                   <tr>
                         <td><b>Address</b></td>
                         <td><?php echo $emp['address']; ?></td>
                     </tr>
+                    <tr>
+                        <td><b>Religion</b></td>
+                        <td><?php echo $emp['religion']; ?></td>
+                    </tr>
+                    <tr>
+                        <td><b>Caste</b></td>
+                        <td><?php echo $emp['caste']; ?></td>
+                    </tr>
+                    <tr>
+                        <td><b>Sub Caste</b></td>
+                        <td><?php echo $emp['sub_caste']; ?></td>
+                    </tr>
+                    <tr>
+                        <td><b>Permanent Address</b></td>
+                        <td><?php echo $emp['permanent_address']; ?></td>
+                    </tr>
+                    <tr>
+                        <td><b>Common Address</b></td>
+                        <td><?php echo $emp['common_address']; ?></td>
+                    </tr>
                 </table>
+
+                <!-- Upload Documents -->
+                <h3 class="section-title" style="margin-top:30px;">My Documents</h3>
+                <table class="emp-table">
+                    <tr>
+                        <td><b>PAN Card</b></td>
+                        <td>
+                            <?php if($emp['pan_card']): ?>
+                                <a href="uploads/<?php echo $emp['pan_card']; ?>" target="_blank" style="color:#3b82f6;">View PAN Card</a>
+                            <?php else: ?>
+                                <span style="color:#9ca3af;">Not uploaded</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>Aadhar Card</b></td>
+                        <td>
+                            <?php if($emp['aadhar_card']): ?>
+                                <a href="uploads/<?php echo $emp['aadhar_card']; ?>" target="_blank" style="color:#3b82f6;">View Aadhar Card</a>
+                            <?php else: ?>
+                                <span style="color:#9ca3af;">Not uploaded</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><b>Marks Card</b></td>
+                        <td>
+                            <?php if($emp['marks_card']): ?>
+                                <a href="uploads/<?php echo $emp['marks_card']; ?>" target="_blank" style="color:#3b82f6;">View Marks Card</a>
+                            <?php else: ?>
+                                <span style="color:#9ca3af;">Not uploaded</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Upload Form -->
+                <h3 class="section-title" style="margin-top:30px;">Upload Documents</h3>
+                <form action="upload_documents.php" method="POST" enctype="multipart/form-data">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>PAN Card (PDF/Image)</label>
+                            <input type="file" name="pan_card" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="field">
+                            <label>Aadhar Card (PDF/Image)</label>
+                            <input type="file" name="aadhar_card" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                        <div class="field">
+                            <label>Marks Card (PDF/Image)</label>
+                            <input type="file" name="marks_card" accept=".pdf,.jpg,.jpeg,.png">
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">Upload Documents</button>
+                </form>
+
+                <!-- Edit Profile Form -->
+                <h3 class="section-title" style="margin-top:30px;">Edit Profile</h3>
+                <form action="update_profile.php" method="POST">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label>First Name</label>
+                            <input type="text" name="first_name" 
+                            value="<?php echo $emp['first_name']; ?>" required>
+                        </div>
+                        <div class="field">
+                            <label>Last Name</label>
+                            <input type="text" name="last_name" 
+                            value="<?php echo $emp['last_name']; ?>" required>
+                        </div>
+                        <div class="field">
+                            <label>Contact Number</label>
+                            <input type="text" name="contact" 
+                            value="<?php echo $emp['contact']; ?>" required>
+                        </div>
+                        <div class="field">
+                            <label>Designation</label>
+                            <input type="text" name="designation" 
+                            value="<?php echo $emp['designation']; ?>" required>
+                        </div>
+                        <div class="field">
+                            <label>Blood Group</label>
+                            <select name="blood_group">
+                                <?php
+                                $blood_groups = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+                                foreach($blood_groups as $bg){
+                                    $selected = ($emp['blood_group'] == $bg) ? 'selected' : '';
+                                    echo "<option value='$bg' $selected>$bg</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Date of Birth</label>
+                            <input type="date" name="dob" 
+                            value="<?php echo $emp['dob']; ?>" required>
+                        </div>
+                        <div class="field">
+                            <label>Address</label>
+                            <input type="text" name="address" 
+                            value="<?php echo $emp['address']; ?>" required>
+                        </div>
+                        <div class="field">
+                            <label>Religion</label>
+                            <input type="text" name="religion" 
+                            value="<?php echo $emp['religion']; ?>">
+                        </div>
+                        <div class="field">
+                            <label>Caste</label>
+                            <input type="text" name="caste" 
+                            value="<?php echo $emp['caste']; ?>">
+                        </div>
+                        <div class="field">
+                            <label>Sub Caste</label>
+                            <input type="text" name="sub_caste" 
+                            value="<?php echo $emp['sub_caste']; ?>">
+                        </div>
+                        <div class="field">
+                            <label>Permanent Address</label>
+                            <input type="text" name="permanent_address" 
+                            value="<?php echo $emp['permanent_address']; ?>">
+                        </div>
+                        <div class="field">
+                            <label>Common Address</label>
+                            <input type="text" name="common_address" 
+                            value="<?php echo $emp['common_address']; ?>">
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">Update Profile</button>
+                </form>
+
             </div>
         </div>
-
-    </div>
-</div>
 
 <?php
     // Attendance data - count present days per month
