@@ -1,0 +1,16 @@
+# Auto detect text files and normalize to LF
+* text=auto
+
+# Force specific file types
+*.php text
+*.js text
+*.css text
+*.html text
+*.md text
+
+# Keep binary files untouched
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
