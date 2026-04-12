@@ -44,14 +44,18 @@ $att = mysqli_fetch_assoc($att_res);
             </select>
         </div>
 
-        <div class="field">
-            <label>Check In Time</label>
-            <input type="time" name="check_in" value="<?php echo $att['check_in']; ?>">
+       <div class="field">
+            <label style="display:block;font-size:12px;color:#888;margin-bottom:6px;">Check In Time</label>
+            <input type="time" name="check_in" 
+                   value="<?php echo substr($att['check_in'], 0, 5); ?>"
+                   style="width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;">
         </div>
 
-        <div class="field">
-            <label>Check Out Time</label>
-            <input type="time" name="check_out" value="<?php echo $att['check_out']; ?>">
+        <div class="field" style="margin-top:16px;">
+            <label style="display:block;font-size:12px;color:#888;margin-bottom:6px;">Check Out Time</label>
+            <input type="time" name="check_out" 
+                   value="<?php echo substr($att['check_out'], 0, 5); ?>"
+                   style="width:100%;padding:10px 14px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;">
         </div>
 
         <button type="submit" class="submit-btn" style="margin-top:16px;">Update Attendance</button>
