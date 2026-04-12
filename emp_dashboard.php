@@ -11,7 +11,6 @@ $emp_result = mysqli_query($conn, "SELECT * FROM employees WHERE user_id='$user_
 $emp = mysqli_fetch_assoc($emp_result);
 $emp_id = $emp['emp_id'];
 
-// Profile photo fetch
 $photo_res = mysqli_query($conn, "SELECT profile_photo FROM users WHERE id='$user_id'");
 $photo_row = mysqli_fetch_assoc($photo_res);
 $profile_photo = $photo_row['profile_photo'] ?? '';
@@ -22,6 +21,28 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
     <title>Employee Dashboard - EMS</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+    .notif-wrapper { position: relative; }
+    .notif-bell { font-size: 20px; cursor: pointer; position: relative; display: inline-block; padding: 4px 8px; border-radius: 8px; transition: background 0.2s; }
+    .notif-bell:hover { background: rgba(59,130,246,0.1); }
+    .notif-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 42px; width: 320px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 999; overflow: hidden; border: 1px solid #e5e7eb; }
+    .notif-dropdown.open { display: block; animation: slideDown 0.2s ease; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .notif-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; font-size: 14px; font-weight: 600; color: #1a1a2e; background: #f8fafc; }
+    .notif-list { max-height: 320px; overflow-y: auto; }
+    .notif-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #f5f5f5; transition: background 0.2s; }
+    .notif-item:hover { background: #f8fafc; }
+    .notif-item.notif-new { background: #eff6ff; }
+    .notif-icon { font-size: 18px; flex-shrink: 0; }
+    .notif-text { flex: 1; font-size: 13px; color: #374151; line-height: 1.6; }
+    .notif-type { background: #dbeafe; color: #1d4ed8; font-size: 11px; padding: 1px 7px; border-radius: 20px; font-weight: 600; }
+    .notif-dot { width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+    .notif-empty { text-align: center; padding: 30px; color: #9ca3af; font-size: 13px; }
+    .topbar-right { display: flex; align-items: center; gap: 16px; }
+    .five-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+    </style>
 </head>
 <body>
 <div class="dashboard">
@@ -55,19 +76,51 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
         <div class="topbar">
             <h2 id="page-title">Dashboard</h2>
             <div class="topbar-right">
+                <?php
+                $emp_notif_res  = mysqli_query($conn, "SELECT * FROM notifications WHERE emp_id='$emp_id' ORDER BY created_at DESC LIMIT 10");
+                $emp_unread_res = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM notifications WHERE emp_id='$emp_id' AND is_read=0");
+                $emp_unread_row = mysqli_fetch_assoc($emp_unread_res);
+                $emp_unread_count = $emp_unread_row['cnt'];
+                ?>
+                <div class="notif-wrapper" id="notifWrapper">
+                    <div class="notif-bell" onclick="toggleNotif()">
+                        &#128276;
+                        <?php if($emp_unread_count > 0): ?>
+                            <span class="notif-badge"><?php echo $emp_unread_count; ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="notif-dropdown" id="notifDropdown">
+                        <div class="notif-header">
+                            <span>My Notifications</span>
+                            <?php if($emp_unread_count > 0): ?>
+                                <a href="mark_notifications_read.php" style="font-size:11px;color:#3b82f6;text-decoration:none;padding:4px 10px;border-radius:20px;border:1px solid #3b82f6;">Mark all read</a>
+                            <?php endif; ?>
+                        </div>
+                        <div class="notif-list">
+                        <?php
+                            $has_notif = false;
+                            while($n = mysqli_fetch_assoc($emp_notif_res)){
+                                $has_notif = true;
+                                $is_new = ($n['is_read'] == 0) ? 'notif-new' : '';
+                                echo "<div class='notif-item {$is_new}'>
+                                    <div class='notif-icon'>&#128203;</div>
+                                    <div class='notif-text'>
+                                        <span class='notif-type'>{$n['leave_type']}</span><br>
+                                        <small>{$n['reason']}</small><br>
+                                        <small style='color:#9ca3af;'>&#128197; {$n['from_date']}</small>
+                                    </div>
+                                    ".($n['is_read']==0?"<span class='notif-dot'></span>":"")."
+                                </div>";
+                            }
+                            if(!$has_notif) echo "<div class='notif-empty'>No notifications yet</div>";
+                        ?>
+                        </div>
+                    </div>
+                </div>
+
                 <?php if(!empty($profile_photo) && file_exists('uploads/'.$profile_photo)): ?>
                     <img src="uploads/<?php echo htmlspecialchars($profile_photo); ?>"
-                         onclick="showSection('profile', document.querySelector('[onclick*=profile]'))"
-                         style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6;cursor:pointer;"
-                         title="My Profile">
-                <?php else: ?>
-                    <div onclick="showSection('profile', document.querySelector('[onclick*=profile]'))"
-                         style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);
-                                display:flex;align-items:center;justify-content:center;
-                                color:white;font-weight:bold;font-size:15px;cursor:pointer;"
-                         title="My Profile">
-                        <?php echo strtoupper(substr($_SESSION['user']['name'],0,1)); ?>
-                    </div>
+                         style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6;">
                 <?php endif; ?>
                 <div class="user-info">Welcome, <?php echo $_SESSION['user']['name']; ?></div>
             </div>
@@ -75,22 +128,43 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
 
         <!-- Dashboard Section -->
         <div id="dashboard" class="section active">
-            <div class="cards">
+
+            <!-- 5 Cards -->
+            <div class="five-cards">
                 <div class="card">
                     <h3>My Attendance</h3>
-                    <p class="num"><?php $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM attendance WHERE emp_id='$emp_id'"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p>
+                    <p class="num"><?php
+                        $res = mysqli_query($conn,"SELECT COUNT(*) as total FROM attendance WHERE emp_id='$emp_id'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
                 </div>
                 <div class="card">
                     <h3>My Leaves</h3>
-                    <p class="num"><?php $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM leaves WHERE emp_id='$emp_id'"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p>
+                    <p class="num"><?php
+                        $res = mysqli_query($conn,"SELECT COUNT(*) as total FROM leaves WHERE emp_id='$emp_id'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
                 </div>
                 <div class="card">
                     <h3>My Tasks</h3>
-                    <p class="num"><?php $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM tasks WHERE emp_id='$emp_id'"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p>
+                    <p class="num"><?php
+                        $res = mysqli_query($conn,"SELECT COUNT(*) as total FROM tasks WHERE emp_id='$emp_id'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
                 </div>
                 <div class="card">
                     <h3>Pending Leaves</h3>
-                    <p class="num"><?php $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM leaves WHERE emp_id='$emp_id' AND status='pending'"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p>
+                    <p class="num"><?php
+                        $res = mysqli_query($conn,"SELECT COUNT(*) as total FROM leaves WHERE emp_id='$emp_id' AND status='pending'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
+                <div class="card">
+                    <h3>WFH This Month</h3>
+                    <p class="num"><?php
+                        $res = mysqli_query($conn,"SELECT COUNT(*) as total FROM attendance WHERE emp_id='$emp_id' AND status='work_from_home' AND MONTH(date)=MONTH(CURDATE()) AND YEAR(date)=YEAR(CURDATE())");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
                 </div>
             </div>
 
@@ -127,14 +201,32 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                     </div>
                     <button type="submit" class="submit-btn">Add Attendance</button>
                 </form>
+
                 <h3 class="section-title" style="margin-top:30px;">My Attendance Records</h3>
                 <table class="emp-table">
-                    <thead><tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Status</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
                     <tbody>
                     <?php
-                        $result=mysqli_query($conn,"SELECT * FROM attendance WHERE emp_id='$emp_id' ORDER BY date DESC");
-                        while($row=mysqli_fetch_assoc($result)){
-                            echo "<tr><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td><td>{$row['status']}</td></tr>";
+                        $result = mysqli_query($conn,"SELECT * FROM attendance WHERE emp_id='$emp_id' ORDER BY date DESC");
+                        while($row = mysqli_fetch_assoc($result)){
+                            $type = ($row['status'] == 'work_from_home')
+                                ? "<span style='background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127968; WFH</span>"
+                                : "<span style='background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127970; Office</span>";
+                            echo "<tr>
+                                <td>{$row['date']}</td>
+                                <td>{$row['check_in']}</td>
+                                <td>{$row['check_out']}</td>
+                                <td>{$row['status']}</td>
+                                <td>{$type}</td>
+                            </tr>";
                         }
                     ?>
                     </tbody>
@@ -150,7 +242,12 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                     <div class="form-grid">
                         <div class="field"><label>Leave Type</label>
                             <select name="leave_type">
-                            <?php $lt_result=mysqli_query($conn,"SELECT * FROM leave_types ORDER BY id ASC"); while($lt=mysqli_fetch_assoc($lt_result)){ echo "<option value='{$lt['leave_type_name']}'>{$lt['leave_type_name']} ({$lt['total_days']} days)</option>"; } ?>
+                            <?php
+                                $lt_result = mysqli_query($conn,"SELECT * FROM leave_types ORDER BY id ASC");
+                                while($lt = mysqli_fetch_assoc($lt_result)){
+                                    echo "<option value='{$lt['leave_type_name']}'>{$lt['leave_type_name']} ({$lt['total_days']} days)</option>";
+                                }
+                            ?>
                             </select>
                         </div>
                         <div class="field"><label>From Date</label><input type="date" name="from_date" required></div>
@@ -159,31 +256,32 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                     </div>
                     <button type="submit" class="submit-btn">Apply Leave</button>
                 </form>
+
                 <h3 class="section-title" style="margin-top:30px;">My Leave Balance</h3>
                 <table class="emp-table">
                     <thead><tr><th>Leave Type</th><th>Total Allowed</th><th>Used</th><th>Remaining</th></tr></thead>
                     <tbody>
                     <?php
-                        $lt_res=mysqli_query($conn,"SELECT * FROM leave_types ORDER BY id ASC");
-                        while($lt=mysqli_fetch_assoc($lt_res)){
-                            $used_res=mysqli_query($conn,"SELECT COUNT(*) as cnt FROM leaves WHERE emp_id='$emp_id' AND leave_type='{$lt['leave_type_name']}' AND status='approved'");
-                            $used_row=mysqli_fetch_assoc($used_res);
-                            $used=$used_row['cnt'];
-                            $total=$lt['total_days'];
-                            $remaining=max(0,$total-$used);
-                            $color=$remaining==0?'color:#ef4444;':'color:#16a34a;';
+                        $lt_res = mysqli_query($conn,"SELECT * FROM leave_types ORDER BY id ASC");
+                        while($lt = mysqli_fetch_assoc($lt_res)){
+                            $used_res = mysqli_query($conn,"SELECT COUNT(*) as cnt FROM leaves WHERE emp_id='$emp_id' AND leave_type='{$lt['leave_type_name']}' AND status='approved'");
+                            $used = mysqli_fetch_assoc($used_res)['cnt'];
+                            $total = $lt['total_days'];
+                            $remaining = max(0, $total - $used);
+                            $color = $remaining == 0 ? 'color:#ef4444;' : 'color:#16a34a;';
                             echo "<tr><td>{$lt['leave_type_name']}</td><td>{$total}</td><td>{$used}</td><td style='{$color}'><b>{$remaining}</b></td></tr>";
                         }
                     ?>
                     </tbody>
                 </table>
+
                 <h3 class="section-title" style="margin-top:30px;">My Leave Records</h3>
                 <table class="emp-table">
                     <thead><tr><th>Leave Type</th><th>From</th><th>To</th><th>Reason</th><th>Status</th></tr></thead>
                     <tbody>
                     <?php
-                        $result=mysqli_query($conn,"SELECT * FROM leaves WHERE emp_id='$emp_id' ORDER BY leave_id DESC");
-                        while($row=mysqli_fetch_assoc($result)){
+                        $result = mysqli_query($conn,"SELECT * FROM leaves WHERE emp_id='$emp_id' ORDER BY leave_id DESC");
+                        while($row = mysqli_fetch_assoc($result)){
                             echo "<tr><td>{$row['leave_type']}</td><td>{$row['from_date']}</td><td>{$row['to_date']}</td><td>{$row['reason']}</td><td>{$row['status']}</td></tr>";
                         }
                     ?>
@@ -200,8 +298,8 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                     <thead><tr><th>Month</th><th>Year</th><th>Basic Pay</th><th>Allowances</th><th>Deductions</th><th>Net Pay</th></tr></thead>
                     <tbody>
                     <?php
-                        $result=mysqli_query($conn,"SELECT * FROM salary WHERE emp_id='$emp_id' ORDER BY year DESC");
-                        while($row=mysqli_fetch_assoc($result)){
+                        $result = mysqli_query($conn,"SELECT * FROM salary WHERE emp_id='$emp_id' ORDER BY year DESC");
+                        while($row = mysqli_fetch_assoc($result)){
                             echo "<tr><td>{$row['month']}</td><td>{$row['year']}</td><td>{$row['basic_pay']}</td><td>{$row['allowances']}</td><td>{$row['deductions']}</td><td>{$row['net_pay']}</td></tr>";
                         }
                     ?>
@@ -215,19 +313,18 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
             <div class="form-card">
                 <h3 class="section-title">My Tasks</h3>
                 <table class="emp-table">
-                    <thead><tr><th>Task</th><th>Description</th><th>Target Date</th><th>Status</th><th>Hours</th><th>Action</th></tr></thead>
+                    <thead><tr><th>Task</th><th>Description</th><th>Target Date</th><th>Status</th><th>Hours</th></tr></thead>
                     <tbody>
                     <?php
-                        $result=mysqli_query($conn,"SELECT * FROM tasks WHERE emp_id='$emp_id' ORDER BY target_date DESC");
-                        while($row=mysqli_fetch_assoc($result)){
-                            $is_done=($row['status']=='completed');
-                            $btn=$is_done
-                                ?"<button disabled style='background:#9ca3af;color:white;border:none;padding:6px 12px;border-radius:6px;'>✓ Done</button>"
-                                :"<form action='notify_task_complete.php' method='POST' onsubmit=\"return confirm('Notify admin this task is complete?')\">
-                                    <input type='hidden' name='task_id' value='{$row['task_id']}'>
-                                    <button type='submit' style='background:#10b981;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;'>✔ Mark Done</button>
-                                  </form>";
-                            echo "<tr><td>{$row['task_name']}</td><td>{$row['description']}</td><td>{$row['target_date']}</td><td>{$row['status']}</td><td>{$row['hours_worked']}</td><td>$btn</td></tr>";
+                        $result = mysqli_query($conn,"SELECT * FROM tasks WHERE emp_id='$emp_id' ORDER BY target_date DESC");
+                        while($row = mysqli_fetch_assoc($result)){
+                            echo "<tr>
+                                <td>{$row['task_name']}</td>
+                                <td>{$row['description']}</td>
+                                <td>{$row['target_date']}</td>
+                                <td>{$row['status']}</td>
+                                <td>{$row['hours_worked']}</td>
+                            </tr>";
                         }
                     ?>
                     </tbody>
@@ -238,6 +335,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
         <!-- Profile Section -->
         <div id="profile" class="section">
             <div class="form-card">
+
                 <h3 class="section-title">Profile Photo</h3>
                 <?php if(!empty($profile_photo) && file_exists('uploads/'.$profile_photo)): ?>
                     <img src="uploads/<?php echo htmlspecialchars($profile_photo); ?>"
@@ -305,6 +403,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                     </div>
                     <button type="submit" class="submit-btn">Update Profile</button>
                 </form>
+
             </div>
         </div>
 
@@ -312,29 +411,40 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
 </div><!-- /dashboard -->
 
 <?php
-    $att_data=array_fill(0,12,0);
-    $att_result=mysqli_query($conn,"SELECT MONTH(date) as mon, COUNT(*) as cnt FROM attendance WHERE emp_id='$emp_id' AND status='present' AND YEAR(date)=YEAR(CURDATE()) GROUP BY MONTH(date)");
-    while($row=mysqli_fetch_assoc($att_result)) $att_data[$row['mon']-1]=$row['cnt'];
+    $att_data = array_fill(0,12,0);
+    $att_result = mysqli_query($conn,"SELECT MONTH(date) as mon, COUNT(*) as cnt FROM attendance WHERE emp_id='$emp_id' AND status='present' AND YEAR(date)=YEAR(CURDATE()) GROUP BY MONTH(date)");
+    while($row = mysqli_fetch_assoc($att_result)) $att_data[$row['mon']-1] = $row['cnt'];
 
-    $leave_data=array_fill(0,12,0);
-    $leave_result=mysqli_query($conn,"SELECT MONTH(from_date) as mon, COUNT(*) as cnt FROM leaves WHERE emp_id='$emp_id' AND YEAR(from_date)=YEAR(CURDATE()) GROUP BY MONTH(from_date)");
-    while($row=mysqli_fetch_assoc($leave_result)) $leave_data[$row['mon']-1]=$row['cnt'];
+    $leave_data = array_fill(0,12,0);
+    $leave_result = mysqli_query($conn,"SELECT MONTH(from_date) as mon, COUNT(*) as cnt FROM leaves WHERE emp_id='$emp_id' AND YEAR(from_date)=YEAR(CURDATE()) GROUP BY MONTH(from_date)");
+    while($row = mysqli_fetch_assoc($leave_result)) $leave_data[$row['mon']-1] = $row['cnt'];
 
-    $att_json=json_encode($att_data);
-    $leave_json=json_encode($leave_data);
+    $att_json   = json_encode($att_data);
+    $leave_json = json_encode($leave_data);
 ?>
+
 <script>
-const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 new Chart(document.getElementById('attendanceChart'),{
-    type:'bar',data:{labels:months,datasets:[{label:'Days Present',data:<?php echo $att_json;?>,backgroundColor:'rgba(59,130,246,0.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]},
+    type:'bar',
+    data:{labels:months,datasets:[{label:'Days Present',data:<?php echo $att_json;?>,backgroundColor:'rgba(59,130,246,0.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]},
     options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
 });
 new Chart(document.getElementById('leaveChart'),{
-    type:'bar',data:{labels:months,datasets:[{label:'Leaves Taken',data:<?php echo $leave_json;?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},
+    type:'bar',
+    data:{labels:months,datasets:[{label:'Leaves Taken',data:<?php echo $leave_json;?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},
     options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
 });
-</script>
-<script>
+
+function toggleNotif() {
+    document.getElementById('notifDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+    const wrapper = document.getElementById('notifWrapper');
+    if(wrapper && !wrapper.contains(e.target)){
+        document.getElementById('notifDropdown').classList.remove('open');
+    }
+});
 function showSection(name, el) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -342,13 +452,12 @@ function showSection(name, el) {
     el.classList.add('active');
     document.getElementById('page-title').innerText = el.innerText;
 }
-let timeLeft=1800;
-function formatTime(s){ return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
-function resetTimer(){ timeLeft=1800; }
-['mousemove','keydown','click','scroll'].forEach(e=>document.addEventListener(e,resetTimer,{passive:true}));
+let timeLeft = 1800;
+function resetTimer(){ timeLeft = 1800; }
+['mousemove','keydown','click','scroll'].forEach(e => document.addEventListener(e, resetTimer, {passive:true}));
 setInterval(()=>{
     timeLeft--;
-    if(timeLeft<=0){ alert('Session expired. Logging out...'); window.location.href='logout.php'; }
+    if(timeLeft <= 0){ alert('Session expired. Logging out...'); window.location.href='logout.php'; }
 },1000);
 </script>
 </body>

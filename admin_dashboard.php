@@ -17,6 +17,29 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
     <title>Admin Dashboard - EMS</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+    .notif-wrapper { position: relative; }
+    .notif-bell { font-size: 20px; cursor: pointer; position: relative; display: inline-block; padding: 4px 8px; border-radius: 8px; transition: background 0.2s; }
+    .notif-bell:hover { background: rgba(59,130,246,0.1); }
+    .notif-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 42px; width: 340px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 999; overflow: hidden; border: 1px solid #e5e7eb; }
+    .notif-dropdown.open { display: block; animation: slideDown 0.2s ease; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .notif-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; font-size: 14px; font-weight: 600; color: #1a1a2e; background: #f8fafc; }
+    .mark-read-btn { font-size: 11px; color: #3b82f6; text-decoration: none; padding: 4px 10px; border-radius: 20px; border: 1px solid #3b82f6; transition: all 0.2s; }
+    .mark-read-btn:hover { background: #3b82f6; color: white; }
+    .notif-list { max-height: 360px; overflow-y: auto; }
+    .notif-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #f5f5f5; position: relative; transition: background 0.2s; }
+    .notif-item:hover { background: #f8fafc; }
+    .notif-item.notif-new { background: #eff6ff; }
+    .notif-icon { font-size: 20px; margin-top: 2px; flex-shrink: 0; }
+    .notif-text { flex: 1; font-size: 13px; color: #374151; line-height: 1.6; }
+    .notif-type { background: #dbeafe; color: #1d4ed8; font-size: 11px; padding: 1px 7px; border-radius: 20px; font-weight: 600; }
+    .notif-reason { color: #9ca3af; font-style: italic; }
+    .notif-dot { width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+    .notif-empty { text-align: center; padding: 30px; color: #9ca3af; font-size: 13px; }
+    </style>
 </head>
 <body>
 <div class="dashboard">
@@ -35,6 +58,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
             <a class="nav-item" onclick="showSection('salary', this)">Salary</a>
             <a class="nav-item" onclick="showSection('tasks', this)">Tasks</a>
             <a class="nav-item" onclick="showSection('leave_types', this)">Leave Types</a>
+            <a class="nav-item" onclick="showSection('my_profile', this)">My Profile</a>
         </nav>
         <a href="logout.php" class="logout-btn">Logout</a>
         <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,0.07);">
@@ -50,13 +74,56 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
         <div class="topbar">
             <h2 id="page-title">Dashboard</h2>
             <div class="topbar-right">
+                <?php
+                    $unread_res=mysqli_query($conn,"SELECT COUNT(*) as cnt FROM notifications WHERE is_read=0");
+                    $unread_row=mysqli_fetch_assoc($unread_res);
+                    $unread_count=$unread_row['cnt'];
+                    $all_notif=mysqli_query($conn,"SELECT * FROM notifications ORDER BY created_at DESC LIMIT 15");
+                ?>
+                <div class="notif-wrapper" id="notifWrapper">
+                    <div class="notif-bell" onclick="toggleNotif()">
+                        &#128276;
+                        <?php if($unread_count>0): ?>
+                            <span class="notif-badge"><?php echo $unread_count; ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="notif-dropdown" id="notifDropdown">
+                        <div class="notif-header">
+                            <span>Notifications</span>
+                            <?php if($unread_count>0): ?>
+                                <a href="mark_notifications_read.php" class="mark-read-btn">Mark all read</a>
+                            <?php endif; ?>
+                        </div>
+                        <div class="notif-list">
+                        <?php
+                            $has_notif=false;
+                            while($n=mysqli_fetch_assoc($all_notif)){
+                                $has_notif=true;
+                                $is_new=($n['is_read']==0)?'notif-new':'';
+                                echo "<div class='notif-item {$is_new}'>
+                                    <div class='notif-icon'>&#128203;</div>
+                                    <div class='notif-text'>
+                                        <strong>{$n['emp_name']}</strong> — <span class='notif-type'>{$n['leave_type']}</span><br>
+                                        <small>&#128197; {$n['from_date']} to {$n['to_date']}</small><br>
+                                        <small class='notif-reason'>Reason: {$n['reason']}</small>
+                                    </div>
+                                    ".($n['is_read']==0?"<span class='notif-dot'></span>":"")."
+                                </div>";
+                            }
+                            if(!$has_notif) echo "<div class='notif-empty'>No notifications yet</div>";
+                        ?>
+                        </div>
+                    </div>
+                </div>
                 <?php if(!empty($profile_photo) && file_exists('uploads/'.$profile_photo)): ?>
                     <img src="uploads/<?php echo htmlspecialchars($profile_photo); ?>"
-                         style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6;"
-                         title="Admin">
+                         onclick="showSection('my_profile', document.querySelector('[onclick*=my_profile]'))"
+                         style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6;cursor:pointer;"
+                         title="My Profile">
                 <?php else: ?>
-                    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);
-                                display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:15px;">
+                    <div onclick="showSection('my_profile', document.querySelector('[onclick*=my_profile]'))"
+                         style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);
+                                display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:15px;cursor:pointer;">
                         <?php echo strtoupper(substr($_SESSION['user']['name'],0,1)); ?>
                     </div>
                 <?php endif; ?>
@@ -142,14 +209,100 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
         <!-- Attendance -->
         <div id="attendance" class="section">
             <div class="form-card">
-                <h3 class="section-title">Attendance Records</h3>
+               <h3 class="section-title">Attendance Records</h3>
                 <table class="emp-table">
-                    <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Status</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
                     <tbody>
                     <?php
                         $result=mysqli_query($conn,"SELECT e.first_name,e.last_name,a.date,a.check_in,a.check_out,a.status FROM attendance a JOIN employees e ON a.emp_id=e.emp_id ORDER BY a.date DESC");
                         while($row=mysqli_fetch_assoc($result)){
-                            echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td><td>{$row['status']}</td></tr>";
+                            $type = ($row['status'] == 'work_from_home')
+                                ? "<span style='background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127968; WFH</span>"
+                                : "<span style='background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127970; Office</span>";
+                            echo "<tr>
+                                <td>{$row['first_name']} {$row['last_name']}</td>
+                                <td>{$row['date']}</td>
+                                <td>{$row['check_in']}</td>
+                                <td>{$row['check_out']}</td>
+                                <td>{$row['status']}</td>
+                                <td>{$type}</td>
+                            </tr>";
+                        }
+                    ?>
+                    </tbody>
+                </table>
+
+                <!-- Today's WFH Employees -->
+                <h3 class="section-title" style="margin-top:30px;">Work From Home Today</h3>
+                <table class="emp-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                        $today = date('Y-m-d');
+                        $wfh_result = mysqli_query($conn, "SELECT a.*, e.first_name, e.last_name 
+                                                           FROM attendance a 
+                                                           JOIN employees e ON a.emp_id = e.emp_id 
+                                                           WHERE a.status='work_from_home' 
+                                                           AND a.date='$today'");
+                        if(mysqli_num_rows($wfh_result) > 0){
+                            while($row = mysqli_fetch_assoc($wfh_result)){
+                                echo "<tr>
+                                    <td>&#127968; {$row['first_name']} {$row['last_name']}</td>
+                                    <td>{$row['date']}</td>
+                                    <td>{$row['check_in']}</td>
+                                    <td>{$row['check_out']}</td>
+                                </tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='4' style='text-align:center;color:#9ca3af;'>No employees working from home today</td></tr>";
+                        }
+                    ?>
+                    </tbody>
+                </table>
+
+                <!-- Monthly WFH Count -->
+                <h3 class="section-title" style="margin-top:30px;">Monthly WFH Count</h3>
+                <table class="emp-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>WFH Days This Month</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                        $wfh_monthly = mysqli_query($conn, "SELECT e.first_name, e.last_name, COUNT(*) as wfh_count 
+                                                            FROM attendance a 
+                                                            JOIN employees e ON a.emp_id = e.emp_id 
+                                                            WHERE a.status='work_from_home' 
+                                                            AND MONTH(a.date)=MONTH(CURDATE()) 
+                                                            AND YEAR(a.date)=YEAR(CURDATE())
+                                                            GROUP BY a.emp_id");
+                        if(mysqli_num_rows($wfh_monthly) > 0){
+                            while($row = mysqli_fetch_assoc($wfh_monthly)){
+                                echo "<tr>
+                                    <td>{$row['first_name']} {$row['last_name']}</td>
+                                    <td><span style='color:#3b82f6;font-weight:bold;'>&#127968; {$row['wfh_count']} days</span></td>
+                                </tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='2' style='text-align:center;color:#9ca3af;'>No WFH records this month</td></tr>";
                         }
                     ?>
                     </tbody>
@@ -271,6 +424,30 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
             </div>
         </div>
 
+        <!-- My Profile -->
+        <div id="my_profile" class="section">
+            <div class="form-card">
+                <h3 class="section-title">Profile Photo</h3>
+                <?php if(!empty($profile_photo) && file_exists('uploads/'.$profile_photo)): ?>
+                    <img src="uploads/<?php echo htmlspecialchars($profile_photo); ?>"
+                         style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #3b82f6;margin-bottom:16px;">
+                <?php endif; ?>
+                <form action="save_profile_photo.php" method="POST" enctype="multipart/form-data">
+                    <div class="field">
+                        <label>Upload Profile Photo (JPG/PNG, max 2MB)</label>
+                        <input type="file" name="profile_photo" accept="image/*" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Update Photo</button>
+                </form>
+                <h3 class="section-title" style="margin-top:30px;">My Details</h3>
+                <table class="emp-table">
+                    <tr><td><b>Name</b></td><td><?php echo $_SESSION['user']['name']; ?></td></tr>
+                    <tr><td><b>Email</b></td><td><?php echo $_SESSION['user']['email']; ?></td></tr>
+                    <tr><td><b>Role</b></td><td><?php echo ucfirst($_SESSION['user']['role']); ?></td></tr>
+                </table>
+            </div>
+        </div>
+
     </div><!-- /main-content -->
 </div><!-- /dashboard -->
 
@@ -305,8 +482,16 @@ function showSection(name, el) {
     el.classList.add('active');
     document.getElementById('page-title').innerText = el.innerText;
 }
+function toggleNotif() {
+    document.getElementById('notifDropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+    const wrapper=document.getElementById('notifWrapper');
+    if(wrapper && !wrapper.contains(e.target)){
+        document.getElementById('notifDropdown').classList.remove('open');
+    }
+});
 let timeLeft=1800;
-function formatTime(s){ return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
 function resetTimer(){ timeLeft=1800; }
 ['mousemove','keydown','click','scroll'].forEach(e=>document.addEventListener(e,resetTimer,{passive:true}));
 setInterval(()=>{

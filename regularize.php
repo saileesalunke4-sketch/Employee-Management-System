@@ -9,11 +9,54 @@ if(!isset($_SESSION['user'])){
 
 $attendance_id = $_GET['id'];
 
-$query = "UPDATE attendance SET status='present' WHERE attendance_id='$attendance_id'";
-
-if(mysqli_query($conn, $query)){
-    echo "<script>alert('Attendance regularized!'); window.location.href='super_admin_dashboard.php';</script>";
-} else {
-    echo "<script>alert('Failed!'); window.history.back();</script>";
-}
+// Get current attendance record
+$att_res = mysqli_query($conn, "SELECT a.*, e.first_name, e.last_name FROM attendance a JOIN employees e ON a.emp_id = e.emp_id WHERE a.attendance_id='$attendance_id'");
+$att = mysqli_fetch_assoc($att_res);
 ?>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Regularize Attendance - EMS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div style="max-width:500px;margin:60px auto;background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.1);">
+    <h2 style="font-size:20px;color:#1a1a2e;margin-bottom:20px;">Regularize Attendance</h2>
+
+    <table style="width:100%;margin-bottom:24px;font-size:14px;">
+        <tr><td style="padding:8px 0;color:#888;">Employee</td><td><b><?php echo $att['first_name'].' '.$att['last_name']; ?></b></td></tr>
+        <tr><td style="padding:8px 0;color:#888;">Date</td><td><b><?php echo $att['date']; ?></b></td></tr>
+        <tr><td style="padding:8px 0;color:#888;">Check In</td><td><b><?php echo $att['check_in']; ?></b></td></tr>
+        <tr><td style="padding:8px 0;color:#888;">Check Out</td><td><b><?php echo $att['check_out']; ?></b></td></tr>
+        <tr><td style="padding:8px 0;color:#888;">Current Status</td><td><b><?php echo $att['status']; ?></b></td></tr>
+    </table>
+
+    <form action="save_regularize.php" method="POST">
+        <input type="hidden" name="attendance_id" value="<?php echo $attendance_id; ?>">
+
+        <div class="field">
+            <label>Update Status</label>
+            <select name="status">
+                <option value="present" <?php echo ($att['status']=='present')?'selected':''; ?>>Present</option>
+                <option value="late" <?php echo ($att['status']=='late')?'selected':''; ?>>Late</option>
+                <option value="half_day" <?php echo ($att['status']=='half_day')?'selected':''; ?>>Half Day</option>
+                <option value="work_from_home" <?php echo ($att['status']=='work_from_home')?'selected':''; ?>>Work From Home</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Check In Time</label>
+            <input type="time" name="check_in" value="<?php echo $att['check_in']; ?>">
+        </div>
+
+        <div class="field">
+            <label>Check Out Time</label>
+            <input type="time" name="check_out" value="<?php echo $att['check_out']; ?>">
+        </div>
+
+        <button type="submit" class="submit-btn" style="margin-top:16px;">Update Attendance</button>
+        <a href="javascript:history.back()" style="display:inline-block;margin-top:12px;margin-left:16px;color:#3b82f6;font-size:14px;">Cancel</a>
+    </form>
+</div>
+</body>
+</html>

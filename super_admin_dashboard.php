@@ -54,7 +54,9 @@ require 'db.php';
             <a class="nav-item" onclick="showSection('tasks', this)">Tasks</a>
             <a class="nav-item" onclick="showSection('revenue', this)">Monthly Revenue</a>
             <a class="nav-item" onclick="showSection('performance', this)">Performance</a>
+            <a class="nav-item" onclick="showSection('my_profile', this)">My Profile</a>
         </nav>
+        
         <a href="logout.php" class="logout-btn">Logout</a>
         <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,0.07);">
             <p style="font-size:10px;color:rgba(255,255,255,0.22);text-align:center;line-height:1.8;">
@@ -111,10 +113,28 @@ require 'db.php';
                         </div>
                     </div>
                 </div>
+
+                <?php
+                $sa_photo_res = mysqli_query($conn, "SELECT profile_photo FROM users WHERE id='{$_SESSION['user']['id']}'");
+                $sa_photo_row = mysqli_fetch_assoc($sa_photo_res);
+                $sa_photo = $sa_photo_row['profile_photo'] ?? '';
+                if(!empty($sa_photo) && file_exists('uploads/'.$sa_photo)): ?>
+                    <img src="uploads/<?php echo htmlspecialchars($sa_photo); ?>"
+                         onclick="showSection('my_profile', document.querySelector('[onclick*=my_profile]'))"
+                         style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6;cursor:pointer;"
+                         title="My Profile">
+                <?php else: ?>
+                    <div onclick="showSection('my_profile', document.querySelector('[onclick*=my_profile]'))"
+                         style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);
+                                display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:15px;cursor:pointer;">
+                        <?php echo strtoupper(substr($_SESSION['user']['name'],0,1)); ?>
+                    </div>
+                <?php endif; ?>
                 <div class="user-info">Welcome, <?php echo $_SESSION['user']['name']; ?></div>
             </div>
         </div>
 
+        <!-- Dashboard -->
         <!-- Dashboard -->
         <div id="dashboard" class="section active">
             <div class="cards">
@@ -158,12 +178,100 @@ require 'db.php';
             <div class="form-card">
                 <h3 class="section-title">Attendance Records</h3>
                 <table class="emp-table">
-                    <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Action</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Status</th>
+                            <th>Type</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
                     <tbody>
                     <?php
                         $result=mysqli_query($conn,"SELECT a.*,e.first_name,e.last_name FROM attendance a JOIN employees e ON a.emp_id=e.emp_id ORDER BY a.date DESC");
                         while($row=mysqli_fetch_assoc($result)){
-                            echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td><td>{$row['status']}</td><td><a href='regularize.php?id={$row['attendance_id']}' class='approve-btn'>Regularize</a></td></tr>";
+                            $type = ($row['status'] == 'work_from_home')
+                                ? "<span style='background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127968; WFH</span>"
+                                : "<span style='background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127970; Office</span>";
+                            echo "<tr>
+                                <td>{$row['first_name']} {$row['last_name']}</td>
+                                <td>{$row['date']}</td>
+                                <td>{$row['check_in']}</td>
+                                <td>{$row['check_out']}</td>
+                                <td>{$row['status']}</td>
+                                <td>{$type}</td>
+                                <td><a href='regularize.php?id={$row['attendance_id']}' class='approve-btn'>Regularize</a></td>
+                            </tr>";
+                        }
+                    ?>
+                    </tbody>
+                </table>
+
+                <!-- Today's WFH -->
+                <h3 class="section-title" style="margin-top:30px;">Work From Home Today</h3>
+                <table class="emp-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                        $today = date('Y-m-d');
+                        $wfh_result = mysqli_query($conn, "SELECT a.*, e.first_name, e.last_name 
+                                                           FROM attendance a 
+                                                           JOIN employees e ON a.emp_id = e.emp_id 
+                                                           WHERE a.status='work_from_home' 
+                                                           AND a.date='$today'");
+                        if(mysqli_num_rows($wfh_result) > 0){
+                            while($row = mysqli_fetch_assoc($wfh_result)){
+                                echo "<tr>
+                                    <td>&#127968; {$row['first_name']} {$row['last_name']}</td>
+                                    <td>{$row['date']}</td>
+                                    <td>{$row['check_in']}</td>
+                                    <td>{$row['check_out']}</td>
+                                </tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='4' style='text-align:center;color:#9ca3af;'>No employees working from home today</td></tr>";
+                        }
+                    ?>
+                    </tbody>
+                </table>
+
+                <!-- Monthly WFH Count -->
+                <h3 class="section-title" style="margin-top:30px;">Monthly WFH Count</h3>
+                <table class="emp-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>WFH Days This Month</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                        $wfh_monthly = mysqli_query($conn, "SELECT e.first_name, e.last_name, COUNT(*) as wfh_count 
+                                                            FROM attendance a 
+                                                            JOIN employees e ON a.emp_id = e.emp_id 
+                                                            WHERE a.status='work_from_home' 
+                                                            AND MONTH(a.date)=MONTH(CURDATE()) 
+                                                            AND YEAR(a.date)=YEAR(CURDATE())
+                                                            GROUP BY a.emp_id");
+                        if(mysqli_num_rows($wfh_monthly) > 0){
+                            while($row = mysqli_fetch_assoc($wfh_monthly)){
+                                echo "<tr>
+                                    <td>{$row['first_name']} {$row['last_name']}</td>
+                                    <td><span style='color:#3b82f6;font-weight:bold;'>&#127968; {$row['wfh_count']} days</span></td>
+                                </tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='2' style='text-align:center;color:#9ca3af;'>No WFH records this month</td></tr>";
                         }
                     ?>
                     </tbody>
@@ -276,6 +384,40 @@ require 'db.php';
                 </table>
             </div>
         </div>
+
+        <!-- My Profile Section -->
+        <div id="my_profile" class="section">
+            <div class="form-card">
+
+                <!-- Profile Photo -->
+                <h3 class="section-title">Profile Photo</h3>
+                <?php
+                $sa_photo_res2 = mysqli_query($conn, "SELECT profile_photo FROM users WHERE id='{$_SESSION['user']['id']}'");
+                $sa_photo_row2 = mysqli_fetch_assoc($sa_photo_res2);
+                $sa_photo2 = $sa_photo_row2['profile_photo'] ?? '';
+                if(!empty($sa_photo2) && file_exists('uploads/'.$sa_photo2)): ?>
+                    <img src="uploads/<?php echo htmlspecialchars($sa_photo2); ?>"
+                         style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #3b82f6;margin-bottom:16px;">
+                <?php endif; ?>
+                <form action="save_profile_photo.php" method="POST" enctype="multipart/form-data">
+                    <div class="field">
+                        <label>Upload Profile Photo (JPG/PNG, max 2MB)</label>
+                        <input type="file" name="profile_photo" accept="image/*" required>
+                    </div>
+                    <button type="submit" class="submit-btn">Update Photo</button>
+                </form>
+
+                <!-- Profile Details -->
+                <h3 class="section-title" style="margin-top:30px;">My Details</h3>
+                <table class="emp-table">
+                    <tr><td><b>Name</b></td><td><?php echo $_SESSION['user']['name']; ?></td></tr>
+                    <tr><td><b>Email</b></td><td><?php echo $_SESSION['user']['email']; ?></td></tr>
+                    <tr><td><b>Role</b></td><td><?php echo ucfirst($_SESSION['user']['role']); ?></td></tr>
+                </table>
+
+            </div>
+        </div>
+                
 
     </div><!-- /main-content -->
 </div><!-- /dashboard -->
