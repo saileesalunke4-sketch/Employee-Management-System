@@ -186,6 +186,8 @@ button[type="submit"]:hover {
     display: flex;
     align-items: center;
     gap: 14px;
+    position: relative;
+    z-index: 100;
 }
 .user-info {
     font-size: 13px;

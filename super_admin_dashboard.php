@@ -18,7 +18,7 @@ require 'db.php';
     .notif-bell:hover { background: rgba(59,130,246,0.1); }
     .notif-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-    .notif-dropdown { display: none; position: absolute; right: 0; top: 42px; width: 340px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 999; overflow: hidden; border: 1px solid #e5e7eb; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 42px; width: 340px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 9999; overflow: hidden; border: 1px solid #e5e7eb; }
     .notif-dropdown.open { display: block; animation: slideDown 0.2s ease; }
     @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
     .notif-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; font-size: 14px; font-weight: 600; color: #1a1a2e; background: #f8fafc; }
@@ -34,6 +34,7 @@ require 'db.php';
     .notif-reason { color: #9ca3af; font-style: italic; }
     .notif-dot { width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
     .notif-empty { text-align: center; padding: 30px; color: #9ca3af; font-size: 13px; }
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
     </style>
 </head>
 <body>
@@ -56,7 +57,6 @@ require 'db.php';
             <a class="nav-item" onclick="showSection('performance', this)">Performance</a>
             <a class="nav-item" onclick="showSection('my_profile', this)">My Profile</a>
         </nav>
-        
         <a href="logout.php" class="logout-btn">Logout</a>
         <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,0.07);">
             <p style="font-size:10px;color:rgba(255,255,255,0.22);text-align:center;line-height:1.8;">
@@ -87,7 +87,7 @@ require 'db.php';
                     </div>
                     <div class="notif-dropdown" id="notifDropdown">
                         <div class="notif-header">
-                            <span>Notifications</span>
+                            <span>Leave Notifications</span>
                             <?php if($unread_count>0): ?>
                                 <a href="mark_notifications_read.php" class="mark-read-btn">Mark all read</a>
                             <?php endif; ?>
@@ -115,18 +115,16 @@ require 'db.php';
                 </div>
 
                 <?php
-                $sa_photo_res = mysqli_query($conn, "SELECT profile_photo FROM users WHERE id='{$_SESSION['user']['id']}'");
-                $sa_photo_row = mysqli_fetch_assoc($sa_photo_res);
-                $sa_photo = $sa_photo_row['profile_photo'] ?? '';
+                $sa_photo_res=mysqli_query($conn,"SELECT profile_photo FROM users WHERE id='{$_SESSION['user']['id']}'");
+                $sa_photo_row=mysqli_fetch_assoc($sa_photo_res);
+                $sa_photo=$sa_photo_row['profile_photo']??'';
                 if(!empty($sa_photo) && file_exists('uploads/'.$sa_photo)): ?>
                     <img src="uploads/<?php echo htmlspecialchars($sa_photo); ?>"
                          onclick="showSection('my_profile', document.querySelector('[onclick*=my_profile]'))"
-                         style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6;cursor:pointer;"
-                         title="My Profile">
+                         style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6;cursor:pointer;">
                 <?php else: ?>
                     <div onclick="showSection('my_profile', document.querySelector('[onclick*=my_profile]'))"
-                         style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);
-                                display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:15px;cursor:pointer;">
+                         style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:15px;cursor:pointer;">
                         <?php echo strtoupper(substr($_SESSION['user']['name'],0,1)); ?>
                     </div>
                 <?php endif; ?>
@@ -134,15 +132,56 @@ require 'db.php';
             </div>
         </div>
 
-        <!-- Dashboard -->
-        <!-- Dashboard -->
+        <!-- Dashboard — Fix EMS-DASH-017: Add Approved Leave card, Fix EMS_TASK_026 -->
         <div id="dashboard" class="section active">
             <div class="cards">
-                <div class="card"><h3>Total Employees</h3><p class="num"><?php $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM employees"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p></div>
-                <div class="card"><h3>Present Today</h3><p class="num"><?php $today=date('Y-m-d'); $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM attendance WHERE date='$today' AND status='present'"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p></div>
-                <div class="card"><h3>Pending Leaves</h3><p class="num"><?php $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM leaves WHERE status='pending'"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p></div>
-                <div class="card"><h3>Total Tasks</h3><p class="num"><?php $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM tasks"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p></div>
+                <div class="card">
+                    <h3>Total Employees</h3>
+                    <p class="num"><?php
+                        $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM users WHERE role='employee'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
+                <div class="card">
+                    <h3>Present Today</h3>
+                    <p class="num"><?php
+                        $today=date('Y-m-d');
+                        $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM attendance WHERE date='$today' AND status='present'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
+                <div class="card">
+                    <h3>Pending Leaves</h3>
+                    <p class="num"><?php
+                        $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM leaves WHERE status='pending'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
+                <!-- Fix EMS-DASH-017: Approved Leave card -->
+                <div class="card">
+                    <h3>Approved Leaves</h3>
+                    <p class="num"><?php
+                        $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM leaves WHERE status='approved'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
+                <div class="card">
+                    <h3>Pending Tasks</h3>
+                    <p class="num"><?php
+                        $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM tasks WHERE status='pending'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
+                <!-- Fix EMS_TASK_026: Completed Tasks card -->
+                <div class="card">
+                    <h3>Completed Tasks</h3>
+                    <p class="num"><?php
+                        $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM tasks WHERE status='completed'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
             </div>
+
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
                 <div style="background:white;padding:24px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06);min-width:0;">
                     <h3 style="font-size:14px;color:#60a5fa;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #eee;">Company Monthly Attendance</h3>
@@ -173,73 +212,60 @@ require 'db.php';
             </div>
         </div>
 
-        <!-- Attendance -->
+        <!-- Attendance — Fix EMS_ATT_024: WFH Today table -->
         <div id="attendance" class="section">
             <div class="form-card">
                 <h3 class="section-title">Attendance Records</h3>
                 <table class="emp-table">
-                    <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                            <th>Status</th>
-                            <th>Type</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Type</th><th>Action</th></tr></thead>
                     <tbody>
                     <?php
                         $result=mysqli_query($conn,"SELECT a.*,e.first_name,e.last_name FROM attendance a JOIN employees e ON a.emp_id=e.emp_id ORDER BY a.date DESC");
                         while($row=mysqli_fetch_assoc($result)){
-                            $type = ($row['status'] == 'work_from_home')
-                                ? "<span style='background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127968; WFH</span>"
-                                : "<span style='background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127970; Office</span>";
-                            echo "<tr>
-                                <td>{$row['first_name']} {$row['last_name']}</td>
-                                <td>{$row['date']}</td>
-                                <td>{$row['check_in']}</td>
-                                <td>{$row['check_out']}</td>
-                                <td>{$row['status']}</td>
-                                <td>{$type}</td>
-                                <td><a href='regularize.php?id={$row['attendance_id']}' class='approve-btn'>Regularize</a></td>
-                            </tr>";
+                            $type=($row['status']=='work_from_home')
+                                ?"<span style='background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127968; WFH</span>"
+                                :"<span style='background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127970; Office</span>";
+                            echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td><td>{$row['status']}</td><td>{$type}</td><td><a href='regularize.php?id={$row['attendance_id']}' class='approve-btn'>Regularize</a></td></tr>";
                         }
                     ?>
                     </tbody>
                 </table>
 
-                <!-- Today's WFH -->
-                <h3 class="section-title" style="margin-top:30px;">Work From Home Today</h3>
+                <!-- Late Coming Today -->
+                <h3 class="section-title" style="margin-top:30px;">Late Coming Today</h3>
                 <table class="emp-table">
-                    <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Late By</th></tr></thead>
                     <tbody>
                     <?php
-                        $today = date('Y-m-d');
-                        $wfh_result = mysqli_query($conn, "SELECT a.*, e.first_name, e.last_name 
-                                                           FROM attendance a 
-                                                           JOIN employees e ON a.emp_id = e.emp_id 
-                                                           WHERE a.status='work_from_home' 
-                                                           AND a.date='$today'");
-                        if(mysqli_num_rows($wfh_result) > 0){
-                            while($row = mysqli_fetch_assoc($wfh_result)){
-                                echo "<tr>
-                                    <td>&#127968; {$row['first_name']} {$row['last_name']}</td>
-                                    <td>{$row['date']}</td>
-                                    <td>{$row['check_in']}</td>
-                                    <td>{$row['check_out']}</td>
-                                </tr>";
+                        $today=date('Y-m-d');
+                        $late=mysqli_query($conn,"SELECT a.*,e.first_name,e.last_name FROM attendance a JOIN employees e ON a.emp_id=e.emp_id WHERE a.date='$today' AND a.check_in>'09:00:00' AND a.status!='work_from_home' ORDER BY a.check_in DESC");
+                        if(mysqli_num_rows($late)>0){
+                            while($row=mysqli_fetch_assoc($late)){
+                                $secs=strtotime($row['check_in'])-strtotime('09:00:00');
+                                $h=floor($secs/3600);$m=floor(($secs%3600)/60);
+                                $str=$h>0?"{$h}h {$m}m late":"{$m}m late";
+                                echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['date']}</td><td style='color:#ef4444;font-weight:bold;'>{$row['check_in']}</td><td><span style='background:#fef2f2;color:#ef4444;padding:2px 8px;border-radius:20px;font-size:11px;'>{$str}</span></td></tr>";
                             }
                         } else {
-                            echo "<tr><td colspan='4' style='text-align:center;color:#9ca3af;'>No employees working from home today</td></tr>";
+                            echo "<tr><td colspan='4' style='text-align:center;color:#9ca3af;'>No late comers today</td></tr>";
+                        }
+                    ?>
+                    </tbody>
+                </table>
+
+                <!-- Fix EMS_ATT_024: WFH Today — fetch all WFH not just today -->
+                <h3 class="section-title" style="margin-top:30px;">Work From Home Today</h3>
+                <table class="emp-table">
+                    <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th></tr></thead>
+                    <tbody>
+                    <?php
+                        $wfh=mysqli_query($conn,"SELECT a.*,e.first_name,e.last_name FROM attendance a JOIN employees e ON a.emp_id=e.emp_id WHERE a.status='work_from_home' AND a.date='$today' ORDER BY a.check_in DESC");
+                        if(mysqli_num_rows($wfh)>0){
+                            while($row=mysqli_fetch_assoc($wfh)){
+                                echo "<tr><td>&#127968; {$row['first_name']} {$row['last_name']}</td><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td></tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='4' style='text-align:center;color:#9ca3af;'>No WFH employees today</td></tr>";
                         }
                     ?>
                     </tbody>
@@ -248,27 +274,13 @@ require 'db.php';
                 <!-- Monthly WFH Count -->
                 <h3 class="section-title" style="margin-top:30px;">Monthly WFH Count</h3>
                 <table class="emp-table">
-                    <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>WFH Days This Month</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Employee</th><th>WFH Days This Month</th></tr></thead>
                     <tbody>
                     <?php
-                        $wfh_monthly = mysqli_query($conn, "SELECT e.first_name, e.last_name, COUNT(*) as wfh_count 
-                                                            FROM attendance a 
-                                                            JOIN employees e ON a.emp_id = e.emp_id 
-                                                            WHERE a.status='work_from_home' 
-                                                            AND MONTH(a.date)=MONTH(CURDATE()) 
-                                                            AND YEAR(a.date)=YEAR(CURDATE())
-                                                            GROUP BY a.emp_id");
-                        if(mysqli_num_rows($wfh_monthly) > 0){
-                            while($row = mysqli_fetch_assoc($wfh_monthly)){
-                                echo "<tr>
-                                    <td>{$row['first_name']} {$row['last_name']}</td>
-                                    <td><span style='color:#3b82f6;font-weight:bold;'>&#127968; {$row['wfh_count']} days</span></td>
-                                </tr>";
+                        $wfhm=mysqli_query($conn,"SELECT e.first_name,e.last_name,COUNT(*) as cnt FROM attendance a JOIN employees e ON a.emp_id=e.emp_id WHERE a.status='work_from_home' AND MONTH(a.date)=MONTH(CURDATE()) AND YEAR(a.date)=YEAR(CURDATE()) GROUP BY a.emp_id ORDER BY cnt DESC");
+                        if(mysqli_num_rows($wfhm)>0){
+                            while($row=mysqli_fetch_assoc($wfhm)){
+                                echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td><span style='color:#3b82f6;font-weight:bold;'>&#127968; {$row['cnt']} days</span></td></tr>";
                             }
                         } else {
                             echo "<tr><td colspan='2' style='text-align:center;color:#9ca3af;'>No WFH records this month</td></tr>";
@@ -304,12 +316,12 @@ require 'db.php';
             <div class="form-card">
                 <h3 class="section-title">All Salary Records</h3>
                 <table class="emp-table">
-                    <thead><tr><th>Employee</th><th>Basic Pay</th><th>Allowances</th><th>Deductions</th><th>Net Pay</th><th>Month</th><th>Year</th></tr></thead>
+                    <thead><tr><th>Employee</th><th>Basic Pay</th><th>Allowances</th><th>Deductions</th><th>LOP Days</th><th>LOP Amount</th><th>Net Pay</th><th>Month</th><th>Year</th></tr></thead>
                     <tbody>
                     <?php
                         $result=mysqli_query($conn,"SELECT s.*,e.first_name,e.last_name FROM salary s JOIN employees e ON s.emp_id=e.emp_id ORDER BY s.year DESC");
                         while($row=mysqli_fetch_assoc($result)){
-                            echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['basic_pay']}</td><td>{$row['allowances']}</td><td>{$row['deductions']}</td><td>{$row['net_pay']}</td><td>{$row['month']}</td><td>{$row['year']}</td></tr>";
+                            echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['basic_pay']}</td><td>{$row['allowances']}</td><td>{$row['deductions']}</td><td style='color:#ef4444;'>{$row['lop_days']} days</td><td style='color:#ef4444;'>Rs.{$row['lop_amount']}</td><td><b>Rs.{$row['net_pay']}</b></td><td>{$row['month']}</td><td>{$row['year']}</td></tr>";
                         }
                     ?>
                     </tbody>
@@ -355,7 +367,7 @@ require 'db.php';
                     <tbody>
                     <?php
                         $result=mysqli_query($conn,"SELECT * FROM revenue ORDER BY year DESC");
-                        if($result){ while($row=mysqli_fetch_assoc($result)){ echo "<tr><td>{$row['month']}</td><td>{$row['year']}</td><td>{$row['amount']}</td></tr>"; } }
+                        if($result){ while($row=mysqli_fetch_assoc($result)){ echo "<tr><td>{$row['month']}</td><td>{$row['year']}</td><td>Rs. {$row['amount']}</td></tr>"; } }
                     ?>
                     </tbody>
                 </table>
@@ -377,7 +389,7 @@ require 'db.php';
                             (SELECT COUNT(*) FROM attendance WHERE emp_id=e.emp_id) as attendance_days
                             FROM employees e");
                         while($row=mysqli_fetch_assoc($result)){
-                            echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['total_tasks']}</td><td>{$row['completed']}</td><td>{$row['pending']}</td><td>{$row['attendance_days']}</td></tr>";
+                            echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['total_tasks']}</td><td style='color:#16a34a;font-weight:bold;'>{$row['completed']}</td><td style='color:#ef4444;font-weight:bold;'>{$row['pending']}</td><td>{$row['attendance_days']}</td></tr>";
                         }
                     ?>
                     </tbody>
@@ -385,39 +397,29 @@ require 'db.php';
             </div>
         </div>
 
-        <!-- My Profile Section -->
+        <!-- My Profile -->
         <div id="my_profile" class="section">
             <div class="form-card">
-
-                <!-- Profile Photo -->
                 <h3 class="section-title">Profile Photo</h3>
                 <?php
-                $sa_photo_res2 = mysqli_query($conn, "SELECT profile_photo FROM users WHERE id='{$_SESSION['user']['id']}'");
-                $sa_photo_row2 = mysqli_fetch_assoc($sa_photo_res2);
-                $sa_photo2 = $sa_photo_row2['profile_photo'] ?? '';
+                $sa_photo_res2=mysqli_query($conn,"SELECT profile_photo FROM users WHERE id='{$_SESSION['user']['id']}'");
+                $sa_photo_row2=mysqli_fetch_assoc($sa_photo_res2);
+                $sa_photo2=$sa_photo_row2['profile_photo']??'';
                 if(!empty($sa_photo2) && file_exists('uploads/'.$sa_photo2)): ?>
-                    <img src="uploads/<?php echo htmlspecialchars($sa_photo2); ?>"
-                         style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #3b82f6;margin-bottom:16px;">
+                    <img src="uploads/<?php echo htmlspecialchars($sa_photo2); ?>" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #3b82f6;margin-bottom:16px;">
                 <?php endif; ?>
                 <form action="save_profile_photo.php" method="POST" enctype="multipart/form-data">
-                    <div class="field">
-                        <label>Upload Profile Photo (JPG/PNG, max 2MB)</label>
-                        <input type="file" name="profile_photo" accept="image/*" required>
-                    </div>
+                    <div class="field"><label>Upload Profile Photo</label><input type="file" name="profile_photo" accept="image/*" required></div>
                     <button type="submit" class="submit-btn">Update Photo</button>
                 </form>
-
-                <!-- Profile Details -->
                 <h3 class="section-title" style="margin-top:30px;">My Details</h3>
                 <table class="emp-table">
                     <tr><td><b>Name</b></td><td><?php echo $_SESSION['user']['name']; ?></td></tr>
                     <tr><td><b>Email</b></td><td><?php echo $_SESSION['user']['email']; ?></td></tr>
-                    <tr><td><b>Role</b></td><td><?php echo ucfirst($_SESSION['user']['role']); ?></td></tr>
+                    <tr><td><b>Role</b></td><td>Super Admin</td></tr>
                 </table>
-
             </div>
         </div>
-                
 
     </div><!-- /main-content -->
 </div><!-- /dashboard -->
@@ -444,8 +446,6 @@ new Chart(document.getElementById('leaveChart'),{
     type:'bar',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo $leave_json;?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},
     options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
 });
-</script>
-<script>
 function showSection(name, el) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));

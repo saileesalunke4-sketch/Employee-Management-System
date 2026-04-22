@@ -27,7 +27,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
     .notif-bell:hover { background: rgba(59,130,246,0.1); }
     .notif-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-    .notif-dropdown { display: none; position: absolute; right: 0; top: 42px; width: 320px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 999; overflow: hidden; border: 1px solid #e5e7eb; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 42px; width: 320px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 9999; overflow: hidden; border: 1px solid #e5e7eb; }
     .notif-dropdown.open { display: block; animation: slideDown 0.2s ease; }
     @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
     .notif-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; font-size: 14px; font-weight: 600; color: #1a1a2e; background: #f8fafc; }
@@ -117,7 +117,6 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                         </div>
                     </div>
                 </div>
-
                 <?php if(!empty($profile_photo) && file_exists('uploads/'.$profile_photo)): ?>
                     <img src="uploads/<?php echo htmlspecialchars($profile_photo); ?>"
                          style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6;">
@@ -128,7 +127,6 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
 
         <!-- Dashboard Section -->
         <div id="dashboard" class="section active">
-
             <!-- 5 Cards -->
             <div class="five-cards">
                 <div class="card">
@@ -168,7 +166,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                 </div>
             </div>
 
-            <!-- Charts -->
+            <!-- Charts INSIDE dashboard section only  -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
                 <div style="background:white;padding:24px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06);">
                     <h3 style="font-size:14px;color:#60a5fa;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #eee;">Monthly Attendance</h3>
@@ -187,7 +185,14 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                 <h3 class="section-title">Add Attendance</h3>
                 <form action="save_attendance.php" method="POST">
                     <div class="form-grid">
-                        <div class="field"><label>Date</label><input type="date" name="date" value="<?php echo date('Y-m-d'); ?>" required></div>
+                        <!-- Fix EMS-ATT-002: restrict to today only -->
+                        <div class="field"><label>Date</label>
+                            <input type="date" name="date"
+                                value="<?php echo date('Y-m-d'); ?>"
+                                min="<?php echo date('Y-m-d'); ?>"
+                                max="<?php echo date('Y-m-d'); ?>"
+                                required>
+                        </div>
                         <div class="field"><label>Check In</label><input type="time" name="check_in" required></div>
                         <div class="field"><label>Check Out</label><input type="time" name="check_out" required></div>
                         <div class="field"><label>Status</label>
@@ -202,16 +207,43 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                     <button type="submit" class="submit-btn">Add Attendance</button>
                 </form>
 
+                <!-- My Late Coming Records -->
+                <h3 class="section-title" style="margin-top:30px;">My Late Coming Records</h3>
+                <table class="emp-table">
+                    <thead>
+                        <tr><th>Date</th><th>Check In</th><th>Late By</th></tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                        $late_res = mysqli_query($conn, "SELECT * FROM attendance
+                                                        WHERE emp_id='$emp_id'
+                                                        AND check_in > '09:00:00'
+                                                        AND status != 'work_from_home'
+                                                        ORDER BY date DESC");
+                        if(mysqli_num_rows($late_res) > 0){
+                            while($row = mysqli_fetch_assoc($late_res)){
+                                $late_mins = strtotime($row['check_in']) - strtotime('09:00:00');
+                                $hrs  = floor($late_mins / 3600);
+                                $mins = floor(($late_mins % 3600) / 60);
+                                $late_str = ($hrs > 0) ? "{$hrs}h {$mins}m late" : "{$mins}m late";
+                                echo "<tr>
+                                    <td>{$row['date']}</td>
+                                    <td><span style='color:#ef4444;font-weight:bold;'>{$row['check_in']}</span></td>
+                                    <td><span style='background:#fef2f2;color:#ef4444;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>{$late_str}</span></td>
+                                </tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='3' style='text-align:center;color:#16a34a;'>&#10003; No late records! Great work!</td></tr>";
+                        }
+                    ?>
+                    </tbody>
+                </table>
+
+                <!-- My Attendance Records  -->
                 <h3 class="section-title" style="margin-top:30px;">My Attendance Records</h3>
                 <table class="emp-table">
                     <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                            <th>Status</th>
-                            <th>Type</th>
-                        </tr>
+                        <tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Type</th></tr>
                     </thead>
                     <tbody>
                     <?php
@@ -234,7 +266,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
             </div>
         </div>
 
-        <!-- Leaves Section -->
+        <!-- Leaves Section — No approve/reject buttons -->
         <div id="leaves" class="section">
             <div class="form-card">
                 <h3 class="section-title">Apply for Leave</h3>
@@ -275,6 +307,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                     </tbody>
                 </table>
 
+                <!--  No Approve/Reject buttons for employee -->
                 <h3 class="section-title" style="margin-top:30px;">My Leave Records</h3>
                 <table class="emp-table">
                     <thead><tr><th>Leave Type</th><th>From</th><th>To</th><th>Reason</th><th>Status</th></tr></thead>
@@ -282,7 +315,15 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                     <?php
                         $result = mysqli_query($conn,"SELECT * FROM leaves WHERE emp_id='$emp_id' ORDER BY leave_id DESC");
                         while($row = mysqli_fetch_assoc($result)){
-                            echo "<tr><td>{$row['leave_type']}</td><td>{$row['from_date']}</td><td>{$row['to_date']}</td><td>{$row['reason']}</td><td>{$row['status']}</td></tr>";
+                            $status_color = $row['status'] == 'approved' ? 'color:#16a34a;font-weight:bold;' :
+                                           ($row['status'] == 'rejected' ? 'color:#ef4444;font-weight:bold;' : 'color:#f59e0b;font-weight:bold;');
+                            echo "<tr>
+                                <td>{$row['leave_type']}</td>
+                                <td>{$row['from_date']}</td>
+                                <td>{$row['to_date']}</td>
+                                <td>{$row['reason']}</td>
+                                <td style='{$status_color}'>{$row['status']}</td>
+                            </tr>";
                         }
                     ?>
                     </tbody>
@@ -290,17 +331,34 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
             </div>
         </div>
 
-        <!-- Salary Section -->
+        <!-- Salary Section  -->
         <div id="salary" class="section">
             <div class="form-card">
                 <h3 class="section-title">My Salary Details</h3>
+                <?php
+                    $sal_check = mysqli_query($conn,"SELECT * FROM salary WHERE emp_id='$emp_id'");
+                    if(mysqli_num_rows($sal_check) == 0){
+                        echo "<div style='text-align:center;padding:30px;color:#9ca3af;'>No salary records found. Please contact Admin.</div>";
+                    }
+                ?>
                 <table class="emp-table">
-                    <thead><tr><th>Month</th><th>Year</th><th>Basic Pay</th><th>Allowances</th><th>Deductions</th><th>Net Pay</th></tr></thead>
+                    <thead><tr><th>Month</th><th>Year</th><th>Basic Pay</th><th>Allowances</th><th>Deductions</th><th>LOP Days</th><th>Net Pay</th><th>Slip</th></tr></thead>
                     <tbody>
                     <?php
-                        $result = mysqli_query($conn,"SELECT * FROM salary WHERE emp_id='$emp_id' ORDER BY year DESC");
+                        $result = mysqli_query($conn,"SELECT * FROM salary WHERE emp_id='$emp_id' ORDER BY year DESC, salary_id DESC");
                         while($row = mysqli_fetch_assoc($result)){
-                            echo "<tr><td>{$row['month']}</td><td>{$row['year']}</td><td>{$row['basic_pay']}</td><td>{$row['allowances']}</td><td>{$row['deductions']}</td><td>{$row['net_pay']}</td></tr>";
+                            echo "<tr>
+                                <td>{$row['month']}</td>
+                                <td>{$row['year']}</td>
+                                <td>Rs. {$row['basic_pay']}</td>
+                                <td>Rs. {$row['allowances']}</td>
+                                <td>Rs. {$row['deductions']}</td>
+                                <td><span style='color:#ef4444;'>{$row['lop_days']} days</span></td>
+                                <td><b>Rs. {$row['net_pay']}</b></td>
+                                <td><a href='generate_salary_slip.php?salary_id={$row['salary_id']}'
+                                    style='background:#1a3a6e;color:white;padding:4px 12px;border-radius:6px;text-decoration:none;font-size:12px;'>
+                                    &#128196; Download</a></td>
+                            </tr>";
                         }
                     ?>
                     </tbody>
@@ -308,21 +366,29 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
             </div>
         </div>
 
-        <!-- Tasks Section -->
+        <!-- Tasks Section  -->
         <div id="tasks" class="section">
             <div class="form-card">
                 <h3 class="section-title">My Tasks</h3>
+                <?php
+                    $task_check = mysqli_query($conn,"SELECT * FROM tasks WHERE emp_id='$emp_id'");
+                    if(mysqli_num_rows($task_check) == 0){
+                        echo "<div style='text-align:center;padding:30px;color:#9ca3af;'>No tasks assigned yet. Please contact Admin.</div>";
+                    }
+                ?>
                 <table class="emp-table">
                     <thead><tr><th>Task</th><th>Description</th><th>Target Date</th><th>Status</th><th>Hours</th></tr></thead>
                     <tbody>
                     <?php
                         $result = mysqli_query($conn,"SELECT * FROM tasks WHERE emp_id='$emp_id' ORDER BY target_date DESC");
                         while($row = mysqli_fetch_assoc($result)){
+                            $st_color = $row['status']=='completed' ? 'color:#16a34a;font-weight:bold;' :
+                                       ($row['status']=='in_progress' ? 'color:#f59e0b;font-weight:bold;' : 'color:#ef4444;font-weight:bold;');
                             echo "<tr>
                                 <td>{$row['task_name']}</td>
                                 <td>{$row['description']}</td>
                                 <td>{$row['target_date']}</td>
-                                <td>{$row['status']}</td>
+                                <td style='{$st_color}'>{$row['status']}</td>
                                 <td>{$row['hours_worked']}</td>
                             </tr>";
                         }
@@ -364,11 +430,36 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                     <tr><td><b>Common Address</b></td><td><?php echo $emp['common_address']; ?></td></tr>
                 </table>
 
+                <!-- Show proper uploaded/not uploaded status -->
                 <h3 class="section-title" style="margin-top:30px;">My Documents</h3>
                 <table class="emp-table">
-                    <tr><td><b>PAN Card</b></td><td><?php if($emp['pan_card']): ?><a href="uploads/<?php echo $emp['pan_card']; ?>" target="_blank" style="color:#3b82f6;">View PAN Card</a><?php else: ?><span style="color:#9ca3af;">Not uploaded</span><?php endif; ?></td></tr>
-                    <tr><td><b>Aadhar Card</b></td><td><?php if($emp['aadhar_card']): ?><a href="uploads/<?php echo $emp['aadhar_card']; ?>" target="_blank" style="color:#3b82f6;">View Aadhar Card</a><?php else: ?><span style="color:#9ca3af;">Not uploaded</span><?php endif; ?></td></tr>
-                    <tr><td><b>Marks Card</b></td><td><?php if($emp['marks_card']): ?><a href="uploads/<?php echo $emp['marks_card']; ?>" target="_blank" style="color:#3b82f6;">View Marks Card</a><?php else: ?><span style="color:#9ca3af;">Not uploaded</span><?php endif; ?></td></tr>
+                    <thead><tr><th>Document</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody>
+                    <?php
+                        // Reload fresh emp data to show updated docs
+                        $emp_fresh = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM employees WHERE emp_id='$emp_id'"));
+                        $docs = [
+                            'pan_card'    => 'PAN Card',
+                            'aadhar_card' => 'Aadhar Card',
+                            'marks_card'  => 'Marks Card',
+                        ];
+                        foreach($docs as $col => $label){
+                            if(!empty($emp_fresh[$col])){
+                                echo "<tr>
+                                    <td><b>{$label}</b></td>
+                                    <td><span style='color:#16a34a;font-weight:bold;'>&#10003; Uploaded</span></td>
+                                    <td><a href='uploads/{$emp_fresh[$col]}' target='_blank' style='color:#3b82f6;'>View File</a></td>
+                                </tr>";
+                            } else {
+                                echo "<tr>
+                                    <td><b>{$label}</b></td>
+                                    <td><span style='color:#ef4444;'>&#10005; Not Uploaded</span></td>
+                                    <td>-</td>
+                                </tr>";
+                            }
+                        }
+                    ?>
+                    </tbody>
                 </table>
 
                 <h3 class="section-title" style="margin-top:30px;">Upload Documents</h3>

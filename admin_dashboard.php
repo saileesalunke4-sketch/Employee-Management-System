@@ -23,7 +23,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
     .notif-bell:hover { background: rgba(59,130,246,0.1); }
     .notif-badge { position: absolute; top: -4px; right: -4px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-    .notif-dropdown { display: none; position: absolute; right: 0; top: 42px; width: 340px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 999; overflow: hidden; border: 1px solid #e5e7eb; }
+    .notif-dropdown { display: none; position: absolute; right: 0; top: 42px; width: 340px; background: white; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 9999; overflow: hidden; border: 1px solid #e5e7eb; }
     .notif-dropdown.open { display: block; animation: slideDown 0.2s ease; }
     @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
     .notif-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid #f0f0f0; font-size: 14px; font-weight: 600; color: #1a1a2e; background: #f8fafc; }
@@ -39,6 +39,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
     .notif-reason { color: #9ca3af; font-style: italic; }
     .notif-dot { width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
     .notif-empty { text-align: center; padding: 30px; color: #9ca3af; font-size: 13px; }
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
     </style>
 </head>
 <body>
@@ -118,12 +119,10 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                 <?php if(!empty($profile_photo) && file_exists('uploads/'.$profile_photo)): ?>
                     <img src="uploads/<?php echo htmlspecialchars($profile_photo); ?>"
                          onclick="showSection('my_profile', document.querySelector('[onclick*=my_profile]'))"
-                         style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6;cursor:pointer;"
-                         title="My Profile">
+                         style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6;cursor:pointer;">
                 <?php else: ?>
                     <div onclick="showSection('my_profile', document.querySelector('[onclick*=my_profile]'))"
-                         style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);
-                                display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:15px;cursor:pointer;">
+                         style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:15px;cursor:pointer;">
                         <?php echo strtoupper(substr($_SESSION['user']['name'],0,1)); ?>
                     </div>
                 <?php endif; ?>
@@ -131,17 +130,52 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
             </div>
         </div>
 
-        <!-- Dashboard -->
+        <!-- Dashboard — Fix EMS-DASH-015,016,EMS_TASK_026 -->
         <div id="dashboard" class="section active">
             <div class="cards">
-                <div class="card"><h3>Total Employees</h3><p class="num"><?php $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM employees"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p></div>
-                <div class="card"><h3>Present Today</h3><p class="num"><?php $today=date('Y-m-d'); $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM attendance WHERE date='$today' AND status='present'"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p></div>
-                <div class="card"><h3>On Leave</h3><p class="num"><?php $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM leaves WHERE status='approved'"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p></div>
-                <div class="card"><h3>Pending Tasks</h3><p class="num"><?php $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM tasks WHERE status='pending'"); $row=mysqli_fetch_assoc($res); echo $row['total']; ?></p></div>
+                <!-- Fix EMS-DASH-015: Count only role=employee -->
+                <div class="card">
+                    <h3>Total Employees</h3>
+                    <p class="num"><?php
+                        $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM users WHERE role='employee'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
+                <!-- Fix EMS-DASH-016: Count present today correctly -->
+                <div class="card">
+                    <h3>Present Today</h3>
+                    <p class="num"><?php
+                        $today=date('Y-m-d');
+                        $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM attendance WHERE date='$today' AND status='present'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
+                <div class="card">
+                    <h3>On Leave</h3>
+                    <p class="num"><?php
+                        $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM leaves WHERE status='approved'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
+                <div class="card">
+                    <h3>Pending Tasks</h3>
+                    <p class="num"><?php
+                        $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM tasks WHERE status='pending'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
+                <!-- Fix EMS_TASK_026: Add Completed Tasks card -->
+                <div class="card">
+                    <h3>Completed Tasks</h3>
+                    <p class="num"><?php
+                        $res=mysqli_query($conn,"SELECT COUNT(*) as total FROM tasks WHERE status='completed'");
+                        echo mysqli_fetch_assoc($res)['total'];
+                    ?></p>
+                </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
                 <div style="background:white;padding:24px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06);min-width:0;">
-                    <h3 style="font-size:14px;color:#60a5fa;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #eee;">Monthly Attendance (Present)</h3>
+                    <h3 style="font-size:14px;color:#60a5fa;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #eee;">Monthly Attendance</h3>
                     <canvas id="adminAttChart"></canvas>
                 </div>
                 <div style="background:white;padding:24px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06);min-width:0;">
@@ -151,15 +185,15 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
             </div>
         </div>
 
-        <!-- Add Employee -->
+        <!-- Add Employee — Fix EMS-EMP-006: Validation -->
         <div id="add_employee" class="section">
             <div class="form-card">
-                <form action="save_employee.php" method="POST">
+                <form action="save_employee.php" method="POST" id="addEmpForm">
                     <h3 class="section-title">Login Details</h3>
                     <div class="form-grid">
-                        <div class="field"><label>Full Name</label><input type="text" name="name" placeholder="Full Name" required></div>
+                        <div class="field"><label>Full Name</label><input type="text" name="name" id="name" placeholder="Full Name" required></div>
                         <div class="field"><label>Email</label><input type="email" name="email" placeholder="Email" required></div>
-                        <div class="field"><label>Password</label><input type="password" name="password" placeholder="Password" required></div>
+                        <div class="field"><label>Password</label><input type="password" name="password" placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special" required></div>
                         <div class="field"><label>Role</label>
                             <select name="role">
                                 <option value="employee">Employee</option>
@@ -170,9 +204,9 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                     </div>
                     <h3 class="section-title">Personal Details</h3>
                     <div class="form-grid">
-                        <div class="field"><label>First Name</label><input type="text" name="first_name" placeholder="First Name" required></div>
-                        <div class="field"><label>Last Name</label><input type="text" name="last_name" placeholder="Last Name" required></div>
-                        <div class="field"><label>Contact</label><input type="text" name="contact" placeholder="Contact Number" required></div>
+                        <div class="field"><label>First Name</label><input type="text" name="first_name" id="first_name" placeholder="First Name (letters only)" required></div>
+                        <div class="field"><label>Last Name</label><input type="text" name="last_name" id="last_name" placeholder="Last Name (letters only)" required></div>
+                        <div class="field"><label>Contact (10 digits)</label><input type="text" name="contact" id="contact" placeholder="10-digit number" maxlength="10" required></div>
                         <div class="field"><label>Designation</label><input type="text" name="designation" placeholder="Designation" required></div>
                         <div class="field"><label>Blood Group</label>
                             <select name="blood_group">
@@ -192,6 +226,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
         <!-- View Employees -->
         <div id="view_employees" class="section">
             <div class="form-card">
+                <h3 class="section-title">All Employees</h3>
                 <table class="emp-table">
                     <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Designation</th><th>Contact</th><th>Role</th></tr></thead>
                     <tbody>
@@ -209,68 +244,59 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
         <!-- Attendance -->
         <div id="attendance" class="section">
             <div class="form-card">
-               <h3 class="section-title">Attendance Records</h3>
+                <h3 class="section-title">Attendance Records</h3>
                 <table class="emp-table">
                     <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                            <th>Status</th>
-                            <th>Type</th>
-                        </tr>
+                        <tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Type</th></tr>
                     </thead>
                     <tbody>
                     <?php
                         $result=mysqli_query($conn,"SELECT e.first_name,e.last_name,a.date,a.check_in,a.check_out,a.status FROM attendance a JOIN employees e ON a.emp_id=e.emp_id ORDER BY a.date DESC");
                         while($row=mysqli_fetch_assoc($result)){
-                            $type = ($row['status'] == 'work_from_home')
+                            $type = ($row['status']=='work_from_home')
                                 ? "<span style='background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127968; WFH</span>"
                                 : "<span style='background:#dcfce7;color:#16a34a;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:bold;'>&#127970; Office</span>";
-                            echo "<tr>
-                                <td>{$row['first_name']} {$row['last_name']}</td>
-                                <td>{$row['date']}</td>
-                                <td>{$row['check_in']}</td>
-                                <td>{$row['check_out']}</td>
-                                <td>{$row['status']}</td>
-                                <td>{$type}</td>
-                            </tr>";
+                            echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td><td>{$row['status']}</td><td>{$type}</td></tr>";
                         }
                     ?>
                     </tbody>
                 </table>
 
-                <!-- Today's WFH Employees -->
-                <h3 class="section-title" style="margin-top:30px;">Work From Home Today</h3>
+                <!-- Late Coming Today -->
+                <h3 class="section-title" style="margin-top:30px;">Late Coming Today</h3>
                 <table class="emp-table">
-                    <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Date</th>
-                            <th>Check In</th>
-                            <th>Check Out</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Late By</th></tr></thead>
                     <tbody>
                     <?php
-                        $today = date('Y-m-d');
-                        $wfh_result = mysqli_query($conn, "SELECT a.*, e.first_name, e.last_name 
-                                                           FROM attendance a 
-                                                           JOIN employees e ON a.emp_id = e.emp_id 
-                                                           WHERE a.status='work_from_home' 
-                                                           AND a.date='$today'");
-                        if(mysqli_num_rows($wfh_result) > 0){
-                            while($row = mysqli_fetch_assoc($wfh_result)){
-                                echo "<tr>
-                                    <td>&#127968; {$row['first_name']} {$row['last_name']}</td>
-                                    <td>{$row['date']}</td>
-                                    <td>{$row['check_in']}</td>
-                                    <td>{$row['check_out']}</td>
-                                </tr>";
+                        $today=date('Y-m-d');
+                        $late=mysqli_query($conn,"SELECT a.*,e.first_name,e.last_name FROM attendance a JOIN employees e ON a.emp_id=e.emp_id WHERE a.date='$today' AND a.check_in>'09:00:00' AND a.status!='work_from_home' ORDER BY a.check_in DESC");
+                        if(mysqli_num_rows($late)>0){
+                            while($row=mysqli_fetch_assoc($late)){
+                                $secs=strtotime($row['check_in'])-strtotime('09:00:00');
+                                $h=floor($secs/3600); $m=floor(($secs%3600)/60);
+                                $str=$h>0?"{$h}h {$m}m late":"{$m}m late";
+                                echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['date']}</td><td style='color:#ef4444;font-weight:bold;'>{$row['check_in']}</td><td><span style='background:#fef2f2;color:#ef4444;padding:2px 8px;border-radius:20px;font-size:11px;'>{$str}</span></td></tr>";
                             }
                         } else {
-                            echo "<tr><td colspan='4' style='text-align:center;color:#9ca3af;'>No employees working from home today</td></tr>";
+                            echo "<tr><td colspan='4' style='text-align:center;color:#9ca3af;'>No late comers today</td></tr>";
+                        }
+                    ?>
+                    </tbody>
+                </table>
+
+                <!-- WFH Today -->
+                <h3 class="section-title" style="margin-top:30px;">Work From Home Today</h3>
+                <table class="emp-table">
+                    <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th></tr></thead>
+                    <tbody>
+                    <?php
+                        $wfh=mysqli_query($conn,"SELECT a.*,e.first_name,e.last_name FROM attendance a JOIN employees e ON a.emp_id=e.emp_id WHERE a.status='work_from_home' AND a.date='$today'");
+                        if(mysqli_num_rows($wfh)>0){
+                            while($row=mysqli_fetch_assoc($wfh)){
+                                echo "<tr><td>&#127968; {$row['first_name']} {$row['last_name']}</td><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td></tr>";
+                            }
+                        } else {
+                            echo "<tr><td colspan='4' style='text-align:center;color:#9ca3af;'>No WFH employees today</td></tr>";
                         }
                     ?>
                     </tbody>
@@ -279,27 +305,13 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                 <!-- Monthly WFH Count -->
                 <h3 class="section-title" style="margin-top:30px;">Monthly WFH Count</h3>
                 <table class="emp-table">
-                    <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>WFH Days This Month</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Employee</th><th>WFH Days This Month</th></tr></thead>
                     <tbody>
                     <?php
-                        $wfh_monthly = mysqli_query($conn, "SELECT e.first_name, e.last_name, COUNT(*) as wfh_count 
-                                                            FROM attendance a 
-                                                            JOIN employees e ON a.emp_id = e.emp_id 
-                                                            WHERE a.status='work_from_home' 
-                                                            AND MONTH(a.date)=MONTH(CURDATE()) 
-                                                            AND YEAR(a.date)=YEAR(CURDATE())
-                                                            GROUP BY a.emp_id");
-                        if(mysqli_num_rows($wfh_monthly) > 0){
-                            while($row = mysqli_fetch_assoc($wfh_monthly)){
-                                echo "<tr>
-                                    <td>{$row['first_name']} {$row['last_name']}</td>
-                                    <td><span style='color:#3b82f6;font-weight:bold;'>&#127968; {$row['wfh_count']} days</span></td>
-                                </tr>";
+                        $wfhm=mysqli_query($conn,"SELECT e.first_name,e.last_name,COUNT(*) as cnt FROM attendance a JOIN employees e ON a.emp_id=e.emp_id WHERE a.status='work_from_home' AND MONTH(a.date)=MONTH(CURDATE()) AND YEAR(a.date)=YEAR(CURDATE()) GROUP BY a.emp_id");
+                        if(mysqli_num_rows($wfhm)>0){
+                            while($row=mysqli_fetch_assoc($wfhm)){
+                                echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td><span style='color:#3b82f6;font-weight:bold;'>&#127968; {$row['cnt']} days</span></td></tr>";
                             }
                         } else {
                             echo "<tr><td colspan='2' style='text-align:center;color:#9ca3af;'>No WFH records this month</td></tr>";
@@ -342,6 +354,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                         <div class="field"><label>Basic Pay</label><input type="number" name="basic_pay" placeholder="Basic Pay" required></div>
                         <div class="field"><label>Allowances</label><input type="number" name="allowances" placeholder="Allowances" required></div>
                         <div class="field"><label>Deductions</label><input type="number" name="deductions" placeholder="Deductions" required></div>
+                        <div class="field"><label>LOP Days</label><input type="number" name="lop_days" placeholder="LOP Days" value="0" min="0"></div>
                         <div class="field"><label>Month</label>
                             <select name="month"><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select>
                         </div>
@@ -351,12 +364,12 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                 </form>
                 <h3 class="section-title" style="margin-top:30px;">Salary Records</h3>
                 <table class="emp-table">
-                    <thead><tr><th>Employee</th><th>Basic Pay</th><th>Allowances</th><th>Deductions</th><th>Net Pay</th><th>Month</th><th>Year</th></tr></thead>
+                    <thead><tr><th>Employee</th><th>Basic Pay</th><th>Allowances</th><th>Deductions</th><th>LOP Days</th><th>LOP Amount</th><th>Net Pay</th><th>Month</th><th>Year</th></tr></thead>
                     <tbody>
                     <?php
                         $result=mysqli_query($conn,"SELECT s.*,e.first_name,e.last_name FROM salary s JOIN employees e ON s.emp_id=e.emp_id ORDER BY s.year DESC");
                         while($row=mysqli_fetch_assoc($result)){
-                            echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['basic_pay']}</td><td>{$row['allowances']}</td><td>{$row['deductions']}</td><td>{$row['net_pay']}</td><td>{$row['month']}</td><td>{$row['year']}</td></tr>";
+                            echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['basic_pay']}</td><td>{$row['allowances']}</td><td>{$row['deductions']}</td><td style='color:#ef4444;'>{$row['lop_days']} days</td><td style='color:#ef4444;'>Rs.{$row['lop_amount']}</td><td><b>Rs.{$row['net_pay']}</b></td><td>{$row['month']}</td><td>{$row['year']}</td></tr>";
                         }
                     ?>
                     </tbody>
@@ -411,12 +424,12 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
                 </form>
                 <h3 class="section-title" style="margin-top:30px;">All Leave Types</h3>
                 <table class="emp-table">
-                    <thead><tr><th>Leave Type</th><th>Total Days Allowed</th><th>Action</th></tr></thead>
+                    <thead><tr><th>Leave Type</th><th>Total Days</th><th>Action</th></tr></thead>
                     <tbody>
                     <?php
                         $result=mysqli_query($conn,"SELECT * FROM leave_types ORDER BY id ASC");
                         while($row=mysqli_fetch_assoc($result)){
-                            echo "<tr><td>{$row['leave_type_name']}</td><td>{$row['total_days']}</td><td><a href='delete_leave_type.php?id={$row['id']}' class='reject-btn' onclick='return confirm(\"Delete this?\")'>Delete</a></td></tr>";
+                            echo "<tr><td>{$row['leave_type_name']}</td><td>{$row['total_days']}</td><td><a href='delete_leave_type.php?id={$row['id']}' class='reject-btn' onclick='return confirm(\"Delete?\")'>Delete</a></td></tr>";
                         }
                     ?>
                     </tbody>
@@ -429,14 +442,10 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
             <div class="form-card">
                 <h3 class="section-title">Profile Photo</h3>
                 <?php if(!empty($profile_photo) && file_exists('uploads/'.$profile_photo)): ?>
-                    <img src="uploads/<?php echo htmlspecialchars($profile_photo); ?>"
-                         style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #3b82f6;margin-bottom:16px;">
+                    <img src="uploads/<?php echo htmlspecialchars($profile_photo); ?>" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #3b82f6;margin-bottom:16px;">
                 <?php endif; ?>
                 <form action="save_profile_photo.php" method="POST" enctype="multipart/form-data">
-                    <div class="field">
-                        <label>Upload Profile Photo (JPG/PNG, max 2MB)</label>
-                        <input type="file" name="profile_photo" accept="image/*" required>
-                    </div>
+                    <div class="field"><label>Upload Profile Photo</label><input type="file" name="profile_photo" accept="image/*" required></div>
                     <button type="submit" class="submit-btn">Update Photo</button>
                 </form>
                 <h3 class="section-title" style="margin-top:30px;">My Details</h3>
@@ -491,6 +500,26 @@ document.addEventListener('click', function(e) {
         document.getElementById('notifDropdown').classList.remove('open');
     }
 });
+
+// Fix EMS-EMP-006: Name & Contact validation
+document.getElementById('addEmpForm').addEventListener('submit', function(e){
+    const fname = document.getElementById('first_name').value.trim();
+    const lname = document.getElementById('last_name').value.trim();
+    const contact = document.getElementById('contact').value.trim();
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    const contactRegex = /^[0-9]{10}$/;
+    if(!nameRegex.test(fname) || !nameRegex.test(lname)){
+        e.preventDefault();
+        alert('Name should contain letters only! Numbers and special characters are not allowed.');
+        return;
+    }
+    if(!contactRegex.test(contact)){
+        e.preventDefault();
+        alert('Contact must be exactly 10 digits! Letters and special characters not allowed.');
+        return;
+    }
+});
+
 let timeLeft=1800;
 function resetTimer(){ timeLeft=1800; }
 ['mousemove','keydown','click','scroll'].forEach(e=>document.addEventListener(e,resetTimer,{passive:true}));
