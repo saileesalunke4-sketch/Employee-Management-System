@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 if(!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'employee'){
     header("Location: index.php");
@@ -433,12 +434,11 @@ if($hcount['cnt'] == 0){
                 <?php
                 $lt_all = mysqli_query($conn,"SELECT * FROM leave_types");
                 while($lt_row=mysqli_fetch_assoc($lt_all)){
-                    $used_r = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as c FROM leaves WHERE emp_id='$emp_id' AND leave_type='{$lt_row['type_name']}' AND status='approved'"));
-                    $used = $used_r['c'];
+                    $used_r = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as c FROM leaves WHERE emp_id='$emp_id' AND leave_type='{$lt_row['leave_type_name']}' AND status='approved'"));                     $used = $used_r['c'];
                     $total = 12;
                     $remaining = max(0,$total - $used);
                     echo "<div style='background:#f8fafc;border-radius:10px;padding:16px;text-align:center;border:1px solid #e5e7eb;'>
-                        <p style='font-size:12px;color:#6b7280;margin:0;'>{$lt_row['type_name']}</p>
+                        <p style='font-size:12px;color:#6b7280;margin:0;'>{$lt_row['leave_type_name']}</p>
                         <p style='font-size:24px;font-weight:700;color:#1a3a6e;margin:6px 0;'>{$remaining}</p>
                         <p style='font-size:11px;color:#9ca3af;margin:0;'>Remaining / {$total}</p>
                     </div>";
