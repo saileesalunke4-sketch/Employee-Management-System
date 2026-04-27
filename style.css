@@ -309,3 +309,6 @@ button[type="submit"]:hover {
     text-decoration: none;
     font-size: 12px;
 }
+
+.section { display: none; }
+.section.active { display: block; }
