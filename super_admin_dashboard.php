@@ -10,13 +10,13 @@ $sa_photo_row=mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM u
 $sa_photo=$sa_photo_row['profile_photo']??'';
 
 // ---- Holiday setup ----
-// ---- Holiday setup ----
+
 mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `holidays` (
   `holiday_id` INT NOT NULL AUTO_INCREMENT,
   `holiday_name` VARCHAR(200) DEFAULT NULL,
   `holiday_date` DATE DEFAULT NULL,
   `holiday_type` VARCHAR(50) DEFAULT 'National',
-  PRIMARY KEY (`holiday_id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
 //  Add holiday_type column if missing
@@ -113,7 +113,7 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
 .hl-badge.National{background:#dbeafe;color:#1d4ed8;}
 .hl-badge.Festival{background:#fef3c7;color:#d97706;}
 .hl-badge.State{background:#dcfce7;color:#16a34a;}
-.pill{display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;}
+.hl-badge.Government{background:#f3e8ff;color:#7c3aed;}.pill{display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;}
 .pill.green{background:#dcfce7;color:#16a34a;}
 .pill.red{background:#fee2e2;color:#dc2626;}
 .pill.yellow{background:#fef3c7;color:#d97706;}
@@ -472,11 +472,12 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
                     <div class="field"><label>Holiday Name</label><input type="text" name="holiday_name" placeholder="e.g. Eid al-Fitr" required></div>
                     <div class="field"><label>Date</label><input type="date" name="holiday_date" required></div>
                     <div class="field"><label>Type</label>
-                        <select name="holiday_type">
-                            <option value="National">National</option>
-                            <option value="Festival">Festival</option>
-                            <option value="State">State</option>
-                        </select>
+                    <select name="holiday_type">
+                        <option value="National">National</option>
+                        <option value="Festival">Festival</option>
+                        <option value="State">State</option>
+                        <option value="Government">Government</option>
+                     </select>
                     </div>
                 </div>
                 <button type="submit" class="submit-btn">&#43; Add Holiday</button>

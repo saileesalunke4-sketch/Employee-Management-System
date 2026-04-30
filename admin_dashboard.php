@@ -120,7 +120,7 @@ $holidays_json=json_encode($holiday_map);
 .hl-badge.National{background:#dbeafe;color:#1d4ed8;}
 .hl-badge.Festival{background:#fef3c7;color:#d97706;}
 .hl-badge.State{background:#dcfce7;color:#16a34a;}
-/* ---- Status pills ---- */
+.hl-badge.Government{background:#f3e8ff;color:#7c3aed;}/* ---- Status pills ---- */
 .pill{display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;}
 .pill.green{background:#dcfce7;color:#16a34a;}
 .pill.red{background:#fee2e2;color:#dc2626;}
@@ -520,9 +520,10 @@ $holidays_json=json_encode($holiday_map);
                     <div class="field"><label>Date</label><input type="date" name="holiday_date" required></div>
                     <div class="field"><label>Type</label>
                         <select name="holiday_type">
-                            <option value="National">National</option>
-                            <option value="Festival">Festival</option>
-                            <option value="State">State</option>
+                           <option value="National">National</option>
+                           <option value="Festival">Festival</option>
+                           <option value="State">State</option>
+                           <option value="Government">Government</option>
                         </select>
                     </div>
                 </div>

@@ -416,8 +416,7 @@ if($hcount['cnt'] == 0){
                                 <option value="">-- Select --</option>
                                 <?php
                                 $lt = mysqli_query($conn,"SELECT * FROM leave_types");
-                                while($l=mysqli_fetch_assoc($lt)) echo "<option value='{$l['type_name']}'>{$l['type_name']}</option>";
-                                ?>
+                                while($l=mysqli_fetch_assoc($lt)) echo "<option value='{$l['leave_type_name']}'>{$l['leave_type_name']}</option>";                                ?>
                             </select>
                         </div>
                         <div class="field"><label>From Date</label><input type="date" name="from_date" required></div>

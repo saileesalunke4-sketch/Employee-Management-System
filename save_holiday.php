@@ -9,18 +9,18 @@ if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['admin','s
 
 $holiday_name = mysqli_real_escape_string($conn, $_POST['holiday_name']);
 $holiday_date = $_POST['holiday_date'];
-$description  = mysqli_real_escape_string($conn, $_POST['description']);
+$holiday_type = mysqli_real_escape_string($conn, $_POST['holiday_type'] ?? 'National');
 
-$check = mysqli_query($conn,"SELECT id FROM holidays WHERE holiday_date='$holiday_date'");
+$check = mysqli_query($conn,"SELECT id FROM holidays WHERE holiday_date='$holiday_date' AND holiday_name='$holiday_name'");
 if(mysqli_num_rows($check) > 0){
-    echo "<script>alert('Holiday already exists for this date!'); window.history.back();</script>";
+    echo "<script>alert('Holiday already exists!'); window.history.back();</script>";
     exit();
 }
 
-$query = "INSERT INTO holidays (holiday_name, holiday_date, description) VALUES ('$holiday_name','$holiday_date','$description')";
+$query = "INSERT INTO holidays (holiday_name, holiday_date, holiday_type) VALUES ('$holiday_name','$holiday_date','$holiday_type')";
 if(mysqli_query($conn, $query)){
     echo "<script>alert('Holiday added successfully!'); window.location.href='admin_dashboard.php';</script>";
 } else {
-    echo "<script>alert('Failed to add holiday!'); window.history.back();</script>";
+    echo "<script>alert('Failed! " . mysqli_error($conn) . "'); window.history.back();</script>";
 }
 ?>
