@@ -24,7 +24,6 @@ if(isset($_POST['reset_password'])){
     $password = $_POST['new_password'];
     $confirm  = $_POST['confirm_password'];
 
-    // Validation
     if(empty($password) || empty($confirm)){
         $error = "Password fields cannot be blank!";
         $email_found = true;
@@ -41,6 +40,24 @@ if(isset($_POST['reset_password'])){
         $hashed = password_hash($password, PASSWORD_DEFAULT);
         mysqli_query($conn, "UPDATE users SET password='$hashed' WHERE email='$email'");
         $success = "Password updated successfully! You can now login.";
+
+        // Email bhejo
+        require 'mailer.php';
+        $subject = "Password Reset Successful — Aller Technologies EMS";
+        $body = "
+        <div style='font-family:Arial,sans-serif;max-width:500px;margin:auto;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden;'>
+            <div style='background:#1a3a6e;padding:20px;text-align:center;'>
+                <h2 style='color:white;margin:0;'>Aller Technologies EMS</h2>
+            </div>
+            <div style='padding:24px;'>
+                <p style='font-size:15px;'>Hello,</p>
+                <p style='font-size:14px;color:#444;'>Your EMS account password has been <b style='color:green;'>✅ Reset Successfully</b>.</p>
+                <p style='font-size:13px;color:#666;'>If you did not request this change, please contact HR immediately.</p>
+                <p style='font-size:13px;color:#666;margin-top:20px;'>Regards,<br><b>HR Team — Aller Technologies</b></p>
+            </div>
+        </div>";
+
+        sendEmail($email, 'User', $subject, $body);
     }
 }
 ?>
@@ -101,7 +118,6 @@ if(isset($_POST['reset_password'])){
             <?php if(!$success): ?>
 
                 <?php if(!$email_found): ?>
-                <!-- Step 1 - Enter Email -->
                 <form method="POST">
                     <div class="field">
                         <label>Enter Your Registered Email</label>
@@ -112,7 +128,6 @@ if(isset($_POST['reset_password'])){
                 </form>
 
                 <?php else: ?>
-                <!-- Step 2 - Enter New Password -->
                 <form method="POST">
                     <input type="hidden" name="email" value="<?php echo $email_val; ?>">
                     <div class="field">

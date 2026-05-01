@@ -44,7 +44,7 @@ mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `holidays` (
   PRIMARY KEY (`holiday_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-// ✅ FIX: Add holiday_type column if it doesn't exist (for older tables)
+//  Add holiday_type column if it doesn't exist (for older tables)
 $col_check = mysqli_query($conn, "SHOW COLUMNS FROM holidays LIKE 'holiday_type'");
 if(mysqli_num_rows($col_check) == 0){
     mysqli_query($conn, "ALTER TABLE holidays ADD COLUMN holiday_type VARCHAR(50) DEFAULT 'National'");
@@ -155,6 +155,7 @@ if($hcount['cnt'] == 0){
             <a class="nav-item" onclick="showSection('tasks',this)">&#9989; My Tasks</a>
             <a class="nav-item" onclick="showSection('timesheet',this)">&#9200; Timesheet</a>
             <a class="nav-item" onclick="showSection('performance',this)">&#127941; My Performance</a>
+            <a class="nav-item" onclick="showSection('dailylog',this)">&#128221; Daily Work Log</a>
             <a class="nav-item" onclick="showSection('holidays',this)">&#127974; Holiday Calendar</a>
             <a class="nav-item" onclick="showSection('profile',this)">&#128100; My Profile</a>
         </nav>
@@ -370,38 +371,71 @@ if($hcount['cnt'] == 0){
             </div>
 
             <div class="form-card" style="margin-top:20px;">
+                <h3 class="section-title">Attendance Summary</h3>
+                <?php
+                $overtime_total = mysqli_fetch_assoc(mysqli_query($conn,
+                    "SELECT SUM(overtime_hours) as total FROM attendance WHERE emp_id='$emp_id'"))['total'] ?? 0;
+                $sunday_count = mysqli_fetch_assoc(mysqli_query($conn,
+                    "SELECT COUNT(*) as total FROM attendance WHERE emp_id='$emp_id' AND is_sunday=1"))['total'] ?? 0;
+                $present_count = mysqli_fetch_assoc(mysqli_query($conn,
+                    "SELECT COUNT(*) as total FROM attendance WHERE emp_id='$emp_id' AND status='present'"))['total'] ?? 0;
+                $wfh_count = mysqli_fetch_assoc(mysqli_query($conn,
+                    "SELECT COUNT(*) as total FROM attendance WHERE emp_id='$emp_id' AND status='work_from_home'"))['total'] ?? 0;
+                ?>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+                    <div style="background:#dcfce7;border-radius:8px;padding:14px;text-align:center;">
+                        <p style="font-size:11px;color:#6b7280;margin:0;">Present Days</p>
+                        <p style="font-size:22px;font-weight:700;color:#16a34a;margin:4px 0;"><?php echo $present_count; ?></p>
+                    </div>
+                    <div style="background:#eff6ff;border-radius:8px;padding:14px;text-align:center;">
+                        <p style="font-size:11px;color:#6b7280;margin:0;">Work From Home</p>
+                        <p style="font-size:22px;font-weight:700;color:#1a3a6e;margin:4px 0;"><?php echo $wfh_count; ?></p>
+                    </div>
+                    <div style="background:#fef3c7;border-radius:8px;padding:14px;text-align:center;">
+                        <p style="font-size:11px;color:#6b7280;margin:0;">Total Overtime</p>
+                        <p style="font-size:22px;font-weight:700;color:#d97706;margin:4px 0;"><?php echo number_format($overtime_total,1); ?> hrs</p>
+                    </div>
+                    <div style="background:#fce7f3;border-radius:8px;padding:14px;text-align:center;">
+                        <p style="font-size:11px;color:#6b7280;margin:0;">Sunday Working</p>
+                        <p style="font-size:22px;font-weight:700;color:#db2777;margin:4px 0;"><?php echo $sunday_count; ?> days</p>
+                    </div>
+                </div>
+
                 <h3 class="section-title">All My Attendance Records</h3>
                 <table class="emp-table">
-                    <thead><tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Hours Worked</th></tr></thead>
-                    <tbody>
-                    <?php
-                        $res = mysqli_query($conn,"SELECT * FROM attendance WHERE emp_id='$emp_id' ORDER BY date DESC");
-                        $found=false;
-                        while($row=mysqli_fetch_assoc($res)){
-                            $found=true;
-                            $hrs = '';
-                            if($row['check_in'] && $row['check_out']){
-                                $in  = strtotime($row['check_in']);
-                                $out = strtotime($row['check_out']);
-                                if($out > $in){
-                                    $diff = ($out - $in)/3600;
-                                    $hrs  = number_format($diff,1).' hrs';
-                                }
-                            }
-                            $st_map = ['present'=>'approved','late'=>'pending','half_day'=>'pending','work_from_home'=>'approved','absent'=>'rejected'];
-                            $pill = $st_map[$row['status']] ?? 'pending';
-                            echo "<tr>
-                                <td>{$row['date']}</td>
-                                <td>{$row['check_in']}</td>
-                                <td>{$row['check_out']}</td>
-                                <td><span class='status-pill $pill'>".ucfirst(str_replace('_',' ',$row['status']))."</span></td>
-                                <td>{$hrs}</td>
-                            </tr>";
-                        }
-                        if(!$found) echo "<tr><td colspan='5' style='text-align:center;color:#9ca3af;'>No attendance records found.</td></tr>";
-                    ?>
-                    </tbody>
-                </table>
+    <thead><tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Hours Worked</th><th>Overtime</th><th>Sunday</th></tr></thead>
+    <tbody>
+    <?php
+        $res = mysqli_query($conn,"SELECT * FROM attendance WHERE emp_id='$emp_id' ORDER BY date DESC");
+        $found=false;
+        while($row=mysqli_fetch_assoc($res)){
+            $found=true;
+            $hrs = '';
+            if($row['check_in'] && $row['check_out']){
+                $in  = strtotime($row['check_in']);
+                $out = strtotime($row['check_out']);
+                if($out > $in){
+                    $diff = ($out - $in)/3600;
+                    $hrs  = number_format($diff,1).' hrs';
+                }
+            }
+            $st_map = ['present'=>'approved','late'=>'pending','half_day'=>'pending','work_from_home'=>'approved','absent'=>'rejected'];
+            $pill = $st_map[$row['status']] ?? 'pending';
+            echo "<tr>
+                <td>{$row['date']}</td>
+                <td>{$row['check_in']}</td>
+                <td>{$row['check_out']}</td>
+                <td><span class='status-pill $pill'>".ucfirst(str_replace('_',' ',$row['status']))."</span></td>
+                <td>{$hrs}</td>
+                <td>".($row['overtime_hours'] > 0 ? '<span style=\"color:#d97706;font-weight:600;\">'.$row['overtime_hours'].' hrs</span>' : '-')."</td>
+                <td>".($row['is_sunday'] ? '<span style=\"color:#db2777;font-weight:600;\">✓ Sunday</span>' : '-')."</td>
+            </tr>";
+        }
+        if(!$found) echo "<tr><td colspan='7' style='text-align:center;color:#9ca3af;'>No attendance records found.</td></tr>";
+    ?>
+    </tbody>
+</table>
+
             </div>
         </div>
 
@@ -532,26 +566,37 @@ if($hcount['cnt'] == 0){
                     <div style="background:#fee2e2;border-radius:8px;padding:14px;text-align:center;"><p style="font-size:11px;color:#6b7280;margin:0;">Pending</p><p style="font-size:22px;font-weight:700;color:#dc2626;margin:4px 0;"><?php echo $t_pending;?></p></div>
                 </div>
                 <table class="emp-table">
-                    <thead><tr><th>Task Name</th><th>Description</th><th>Target Date</th><th>Status</th><th>Hours</th></tr></thead>
-                    <tbody>
-                    <?php
-                        $result = mysqli_query($conn,"SELECT * FROM tasks WHERE emp_id='$emp_id' ORDER BY target_date DESC");
-                        $found=false;
-                        while($row = mysqli_fetch_assoc($result)){
-                            $found=true;
-                            $pill = ['completed'=>'completed','in_progress'=>'in_progress','pending'=>'pending'][$row['status']] ?? 'pending';
-                            echo "<tr>
-                                <td><b>{$row['task_name']}</b></td>
-                                <td>{$row['description']}</td>
-                                <td>{$row['target_date']}</td>
-                                <td><span class='status-pill {$pill}'>".ucfirst(str_replace('_',' ',$row['status']))."</span></td>
-                                <td>{$row['hours_worked']} hrs</td>
-                            </tr>";
-                        }
-                        if(!$found) echo "<tr><td colspan='5' style='text-align:center;color:#9ca3af;'>No tasks found.</td></tr>";
-                    ?>
-                    </tbody>
-                </table>
+    <thead><tr><th>Task Name</th><th>Description</th><th>Target Date</th><th>Status</th><th>Hours</th><th>Update</th></tr></thead>
+    <tbody>
+    <?php
+        $result = mysqli_query($conn,"SELECT * FROM tasks WHERE emp_id='$emp_id' ORDER BY target_date DESC");
+        $found=false;
+        while($row = mysqli_fetch_assoc($result)){
+            $found=true;
+            $pill = ['completed'=>'completed','in_progress'=>'in_progress','pending'=>'pending'][$row['status']] ?? 'pending';
+            echo "<tr>
+                <td><b>{$row['task_name']}</b></td>
+                <td>{$row['description']}</td>
+                <td>{$row['target_date']}</td>
+                <td><span class='status-pill {$pill}'>".ucfirst(str_replace('_',' ',$row['status']))."</span></td>
+                <td>{$row['hours_worked']} hrs</td>
+                <td>
+                    <form action='update_task_status.php' method='POST' style='display:flex;gap:6px;align-items:center;'>
+                        <input type='hidden' name='task_id' value='{$row['task_id']}'>
+                        <select name='status' style='padding:5px 8px;border-radius:6px;border:1px solid #e0e0e0;font-size:12px;outline:none;'>
+                            <option value='pending' ".($row['status']=='pending'?'selected':'').">Pending</option>
+                            <option value='in_progress' ".($row['status']=='in_progress'?'selected':'').">In Progress</option>
+                            <option value='completed' ".($row['status']=='completed'?'selected':'').">Completed</option>
+                        </select>
+                        <button type='submit' style='padding:5px 10px;background:#1a3a6e;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer;'>Update</button>
+                    </form>
+                </td>
+            </tr>";
+        }
+        if(!$found) echo "<tr><td colspan='6' style='text-align:center;color:#9ca3af;'>No tasks found.</td></tr>";
+    ?>
+    </tbody>
+</table>
             </div>
         </div>
 
@@ -731,6 +776,117 @@ if($hcount['cnt'] == 0){
                 </div>
             </div>
         </div>
+
+        <!-- ===================== DAILY WORK LOG ===================== -->
+            <div id="dailylog" class="section">
+            <div class="form-card">
+             <h3 class="section-title">📝 Daily Work Log</h3>
+              <form action="save_log.php" method="POST">
+              <div class="form-grid">
+                <div class="field">
+                    <label>Date</label>
+                    <input type="date" name="log_date" 
+                        value="<?php echo date('Y-m-d'); ?>"
+                        max="<?php echo date('Y-m-d'); ?>"
+                        required>
+                </div>
+                <div class="field">
+                    <label>Hours Spent Working</label>
+                    <input type="number" name="hours_spent" 
+                        min="1" max="12" step="0.5"
+                        placeholder="e.g. 8" required>
+                </div>
+            </div>
+            <div class="field" style="margin-top:10px;">
+                <label>What did you work on today?</label>
+                <textarea name="work_done" rows="5" 
+                    placeholder="e.g.&#10;- Fixed login page bug&#10;- Completed salary module&#10;- Attended team meeting&#10;- Reviewed pull requests"
+                    style="width:100%;padding:10px;border-radius:8px;border:1px solid #e0e0e0;font-size:13px;resize:vertical;"
+                    required></textarea>
+            </div>
+
+            <!-- Live Word Counter -->
+            <div style="text-align:right;font-size:12px;color:#9ca3af;margin-top:4px;">
+                Words: <span id="wordCount">0</span> 
+                <span id="scoreHint" style="margin-left:10px;font-weight:600;"></span>
+            </div>
+
+            <button type="submit" class="submit-btn" style="margin-top:16px;">
+                Submit Daily Log
+            </button>
+        </form>
+    </div>
+
+    <!-- Productivity Score History -->
+    <div class="form-card" style="margin-top:20px;">
+        <h3 class="section-title">📊 My Productivity Scores</h3>
+        <?php
+        $avg = mysqli_fetch_assoc(mysqli_query($conn,
+            "SELECT AVG(productivity_score) as avg FROM daily_logs WHERE emp_id='$emp_id'"))['avg'] ?? 0;
+        $avg = round($avg);
+        $score_color = '#dc2626';
+        $score_label = 'Needs Improvement';
+        if($avg >= 80){ $score_color = '#16a34a'; $score_label = 'Excellent'; }
+        elseif($avg >= 60){ $score_color = '#d97706'; $score_label = 'Good'; }
+        elseif($avg >= 40){ $score_color = '#2563eb'; $score_label = 'Average'; }
+        ?>
+
+        <!-- Score Card -->
+        <div style="display:flex;align-items:center;gap:20px;background:#f9fafb;border-radius:10px;padding:20px;margin-bottom:20px;">
+            <div style="text-align:center;">
+                <div style="width:80px;height:80px;border-radius:50%;background:<?php echo $score_color;?>;display:flex;align-items:center;justify-content:center;margin:auto;">
+                    <span style="font-size:24px;font-weight:700;color:white;"><?php echo $avg;?></span>
+                </div>
+                <p style="font-size:11px;color:#6b7280;margin:6px 0 0;">Avg Score</p>
+            </div>
+            <div>
+                <p style="font-size:18px;font-weight:700;color:<?php echo $score_color;?>;margin:0;"><?php echo $score_label;?></p>
+                <p style="font-size:13px;color:#6b7280;margin:4px 0;">Based on attendance, tasks & log quality</p>
+                <div style="background:#e5e7eb;border-radius:5px;height:8px;width:200px;margin-top:8px;">
+                    <div style="background:<?php echo $score_color;?>;height:8px;border-radius:5px;width:<?php echo $avg;?>%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log History Table -->
+        <table class="emp-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Work Done</th>
+                    <th>Hours</th>
+                    <th>Score</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php
+                $logs = mysqli_query($conn, "SELECT * FROM daily_logs WHERE emp_id='$emp_id' ORDER BY log_date DESC");
+                $found = false;
+                while($log = mysqli_fetch_assoc($logs)){
+                    $found = true;
+                    $s = $log['productivity_score'];
+                    if($s >= 80){ $sc = '#16a34a'; $sl = '⭐ Excellent'; }
+                    elseif($s >= 60){ $sc = '#d97706'; $sl = '👍 Good'; }
+                    elseif($s >= 40){ $sc = '#2563eb'; $sl = '📈 Average'; }
+                    else{ $sc = '#dc2626'; $sl = '⚠ Low'; }
+                    $preview = strlen($log['work_done']) > 60 
+                               ? substr($log['work_done'], 0, 60).'...' 
+                               : $log['work_done'];
+                    echo "<tr>
+                        <td>{$log['log_date']}</td>
+                        <td style='font-size:12px;'>{$preview}</td>
+                        <td>{$log['hours_spent']} hrs</td>
+                        <td><b style='color:{$sc};'>{$s}/100</b></td>
+                        <td><span style='color:{$sc};font-weight:600;'>{$sl}</span></td>
+                    </tr>";
+                }
+                if(!$found) echo "<tr><td colspan='5' style='text-align:center;color:#9ca3af;'>No logs submitted yet.</td></tr>";
+            ?>
+            </tbody>
+        </table>
+    </div>
+</div>
 
         <!-- ===================== PROFILE ===================== -->
         <div id="profile" class="section">
@@ -939,6 +1095,20 @@ function changeMonth(dir){
 }
 
 buildCalendar(calYear, calMonth);
+
+// ---- Live Word Counter ----
+const workDoneTA = document.querySelector('textarea[name="work_done"]');
+if(workDoneTA){
+    workDoneTA.addEventListener('input', function(){
+        const words = this.value.trim() === '' ? 0 : this.value.trim().split(/\s+/).length;
+        document.getElementById('wordCount').textContent = words;
+        const hint = document.getElementById('scoreHint');
+        if(words >= 50){ hint.textContent = '✅ Great detail! +30 pts'; hint.style.color = '#16a34a'; }
+        else if(words >= 30){ hint.textContent = '👍 Good! +20 pts'; hint.style.color = '#d97706'; }
+        else if(words >= 10){ hint.textContent = '📝 Add more detail +10 pts'; hint.style.color = '#2563eb'; }
+        else { hint.textContent = '⚠ Too short'; hint.style.color = '#dc2626'; }
+    });
+}
 
 // ---- Notification ----
 function toggleNotif(){

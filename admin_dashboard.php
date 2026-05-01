@@ -10,6 +10,12 @@ $photo_res = mysqli_query($conn,"SELECT profile_photo FROM users WHERE id='$admi
 $photo_row = mysqli_fetch_assoc($photo_res);
 $profile_photo = $photo_row['profile_photo'] ?? '';
 
+
+
+
+
+
+
 // ---- Holiday setup ----
 
 mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `holidays` (
@@ -20,7 +26,7 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `holidays` (
   PRIMARY KEY (`holiday_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-// ✅ FIX: Add holiday_type column if missing
+//  Add holiday_type column if missing
 $col_check = mysqli_query($conn, "SHOW COLUMNS FROM holidays LIKE 'holiday_type'");
 if(mysqli_num_rows($col_check) == 0){
     mysqli_query($conn, "ALTER TABLE holidays ADD COLUMN holiday_type VARCHAR(50) DEFAULT 'National'");
@@ -97,6 +103,8 @@ $holidays_json=json_encode($holiday_map);
 .notif-dot{width:8px;height:8px;background:#3b82f6;border-radius:50%;flex-shrink:0;margin-top:6px;}
 .notif-empty{text-align:center;padding:28px;color:#9ca3af;font-size:13px;}
 .topbar-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+
+
 /* ---- Holiday Calendar ---- */
 .cal-outer{background:#fff;border-radius:14px;box-shadow:0 2px 14px rgba(0,0,0,.07);overflow:hidden;}
 .cal-top{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;background:linear-gradient(135deg,#1a3a6e,#3b82f6);color:#fff;}
@@ -148,6 +156,8 @@ $holidays_json=json_encode($holiday_map);
         <a class="nav-item" onclick="showSection('salary',this)">&#128176; Salary</a>
         <a class="nav-item" onclick="showSection('tasks',this)">&#9989; Tasks</a>
         <a class="nav-item" onclick="showSection('leave_types',this)">&#128221; Leave Types</a>
+        <a class="nav-item" onclick="showSection('departments',this)">&#127970; Departments</a>
+        <a class="nav-item" onclick="showSection('projects',this)">&#128196; Projects</a>
         <a class="nav-item" onclick="showSection('holidays',this)">&#127974; Holiday Calendar</a>
         <a class="nav-item" onclick="showSection('my_profile',this)">&#128100; My Profile</a>
     </nav>
@@ -290,11 +300,35 @@ $holidays_json=json_encode($holiday_map);
             <h3 class="section-title">All Employees</h3>
             <div style="overflow-x:auto;">
             <table class="emp-table">
-                <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Designation</th><th>Contact</th><th>Role</th></tr></thead>
-                <tbody>
-                <?php
-                    $res=mysqli_query($conn,"SELECT u.id,u.name,u.email,u.role,e.designation,e.contact FROM users u LEFT JOIN employees e ON u.id=e.user_id WHERE u.role='employee'");
-                    while($row=mysqli_fetch_assoc($res)) echo "<tr><td>{$row['id']}</td><td>{$row['name']}</td><td>{$row['email']}</td><td>{$row['designation']}</td><td>{$row['contact']}</td><td><span class='pill blue'>".ucfirst($row['role'])."</span></td></tr>";
+                    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Designation</th><th>Contact</th><th>Role</th><th>Department</th></tr></thead>                <?php
+                    $res=mysqli_query($conn,"SELECT u.id,u.name,u.email,u.role,e.designation,e.contact,e.emp_id,e.dept_id FROM users u LEFT JOIN employees e ON u.id=e.user_id WHERE u.role='employee'");
+while($row=mysqli_fetch_assoc($res)){
+    // Departments fetch karo
+    $depts_opt = '';
+    $d_res = mysqli_query($conn,"SELECT * FROM departments ORDER BY dept_name");
+    while($d = mysqli_fetch_assoc($d_res)){
+        $sel = ($row['dept_id'] == $d['dept_id']) ? 'selected' : '';
+        $depts_opt .= "<option value='{$d['dept_id']}' {$sel}>{$d['dept_name']}</option>";
+    }
+    echo "<tr>
+        <td>{$row['id']}</td>
+        <td>{$row['name']}</td>
+        <td>{$row['email']}</td>
+        <td>{$row['designation']}</td>
+        <td>{$row['contact']}</td>
+        <td><span class='pill blue'>".ucfirst($row['role'])."</span></td>
+        <td>
+            <form action='assign_department.php' method='POST' style='display:flex;gap:6px;align-items:center;'>
+                <input type='hidden' name='emp_id' value='{$row['emp_id']}'>
+                <select name='dept_id' style='padding:5px 8px;border-radius:6px;border:1px solid #e0e0e0;font-size:12px;'>
+                    <option value=''>-- Select --</option>
+                    {$depts_opt}
+                </select>
+                <button type='submit' style='padding:5px 10px;background:#1a3a6e;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer;'>Assign</button>
+            </form>
+        </td>
+    </tr>";
+}
                 ?>
                 </tbody>
             </table>
@@ -482,6 +516,175 @@ $holidays_json=json_encode($holiday_map);
         </div>
     </div>
 
+    <!-- ===================== DEPARTMENTS ===================== -->
+<div id="departments" class="section">
+    <div class="form-card">
+        <h3 class="section-title">🏢 Add Department</h3>
+        <form action="save_department.php" method="POST">
+            <div class="form-grid">
+                <div class="field">
+                    <label>Department Name</label>
+                    <input type="text" name="dept_name" placeholder="e.g. Development, HR, Design" required>
+                </div>
+                <div class="field">
+                    <label>Department Head</label>
+                    <input type="text" name="dept_head" placeholder="e.g. John Smith">
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">Add Department</button>
+        </form>
+    </div>
+
+    <div class="form-card" style="margin-top:20px;">
+        <h3 class="section-title">All Departments</h3>
+        <table class="emp-table">
+            <thead>
+                <tr>
+                    <th>SR no.</th>
+                    <th>Department Name</th>
+                    <th>Department Head</th>
+                    <th>Total Employees</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php
+                $depts = mysqli_query($conn, "SELECT d.*, COUNT(e.emp_id) as total_emp 
+                                             FROM departments d 
+                                             LEFT JOIN employees e ON d.dept_id = e.dept_id 
+                                             GROUP BY d.dept_id 
+                                             ORDER BY d.dept_id DESC");
+                $found = false;
+                $cnt = 1;
+                while($dept = mysqli_fetch_assoc($depts)){
+                    $found = true;
+                    echo "<tr>
+                        <td>{$cnt}</td>
+                        <td><b>{$dept['dept_name']}</b></td>
+                        <td>{$dept['dept_head']}</td>
+                        <td><span style='background:#eff6ff;color:#1a3a6e;padding:3px 10px;border-radius:20px;font-weight:600;font-size:12px;'>{$dept['total_emp']} employees</span></td>
+                    </tr>";
+                    $cnt++;
+                }
+                if(!$found) echo "<tr><td colspan='4' style='text-align:center;color:#9ca3af;'>No departments added yet.</td></tr>";
+            ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===================== PROJECTS ===================== -->
+<div id="projects" class="section">
+    <div class="form-card">
+        <h3 class="section-title">📋 Add New Project</h3>
+        <form action="save_project.php" method="POST">
+            <div class="form-grid">
+                <div class="field">
+                    <label>Project Name</label>
+                    <input type="text" name="project_name" placeholder="e.g. EMS Development" required>
+                </div>
+                <div class="field">
+                    <label>Department</label>
+                    <select name="dept_id" required>
+                        <option value="">-- Select Department --</option>
+                        <?php
+                        $depts = mysqli_query($conn, "SELECT * FROM departments ORDER BY dept_name");
+                        while($d = mysqli_fetch_assoc($depts)){
+                            echo "<option value='{$d['dept_id']}'>{$d['dept_name']}</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Assign To Employee</label>
+                    <select name="assigned_emp_id" required>
+                        <option value="">-- Select Employee --</option>
+                        <?php
+                        $emps = mysqli_query($conn, "SELECT e.emp_id, e.first_name, e.last_name, e.designation 
+                                                     FROM employees e 
+                                                     JOIN users u ON e.user_id = u.id 
+                                                     WHERE u.role='employee'");
+                        while($e = mysqli_fetch_assoc($emps)){
+                            echo "<option value='{$e['emp_id']}'>{$e['first_name']} {$e['last_name']} — {$e['designation']}</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Status</label>
+                    <select name="status">
+                        <option value="ongoing">Ongoing</option>
+                        <option value="completed">Completed</option>
+                        <option value="on_hold">On Hold</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Start Date</label>
+                    <input type="date" name="start_date" required>
+                </div>
+                <div class="field">
+                    <label>Target Date</label>
+                    <input type="date" name="target_date" required>
+                </div>
+                <div class="field" style="grid-column:1/-1">
+                    <label>Description</label>
+                    <textarea name="description" rows="3" placeholder="Project details..."></textarea>
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">Add Project</button>
+        </form>
+    </div>
+
+    <div class="form-card" style="margin-top:20px;">
+        <h3 class="section-title">All Projects</h3>
+        <table class="emp-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Project Name</th>
+                    <th>Department</th>
+                    <th>Assigned To</th>
+                    <th>Start Date</th>
+                    <th>Target Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php
+                $projects = mysqli_query($conn, "SELECT p.*, d.dept_name, 
+                                                CONCAT(e.first_name,' ',e.last_name) as emp_name,
+                                                e.designation
+                                                FROM projects p 
+                                                LEFT JOIN departments d ON p.dept_id = d.dept_id
+                                                LEFT JOIN employees e ON p.assigned_emp_id = e.emp_id
+                                                ORDER BY p.project_id DESC");
+                $found = false;
+                $cnt = 1;
+                while($proj = mysqli_fetch_assoc($projects)){
+                    $found = true;
+                    $status_colors = [
+                        'ongoing'   => 'background:#fef3c7;color:#d97706;',
+                        'completed' => 'background:#dcfce7;color:#16a34a;',
+                        'on_hold'   => 'background:#fee2e2;color:#dc2626;'
+                    ];
+                    $sc = $status_colors[$proj['status']] ?? 'background:#f3f4f6;color:#6b7280;';
+                    echo "<tr>
+                        <td>{$cnt}</td>
+                        <td><b>{$proj['project_name']}</b><br><small style='color:#9ca3af;'>{$proj['description']}</small></td>
+                        <td>{$proj['dept_name']}</td>
+                        <td>{$proj['emp_name']}<br><small style='color:#9ca3af;'>{$proj['designation']}</small></td>
+                        <td>{$proj['start_date']}</td>
+                        <td>{$proj['target_date']}</td>
+                        <td><span style='padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;{$sc}'>".ucfirst(str_replace('_',' ',$proj['status']))."</span></td>
+                    </tr>";
+                    $cnt++;
+                }
+                if(!$found) echo "<tr><td colspan='7' style='text-align:center;color:#9ca3af;'>No projects added yet.</td></tr>";
+            ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
     <!-- ===== HOLIDAY CALENDAR ===== -->
     <div id="holidays" class="section">
         <!-- Summary stats -->
@@ -638,6 +841,15 @@ function buildCalendar(year,month){
     html+=`</div>`;
     container.innerHTML=html;
 }
+
+// URL se section detect karo
+const urlParams = new URLSearchParams(window.location.search);
+const sec = urlParams.get('section');
+if(sec){
+    const el = document.querySelector(`[onclick*="${sec}"]`);
+    if(el) showSection(sec, el);
+}
+
 function changeMonth(dir){
     calMonth+=dir;
     if(calMonth>11){calMonth=0;calYear++;}
