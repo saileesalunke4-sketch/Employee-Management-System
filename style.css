@@ -135,6 +135,8 @@ button[type="submit"]:hover {
     flex-direction: column;
     flex-shrink: 0;
     overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 .nav-item {
     display: block;
@@ -310,5 +312,7 @@ button[type="submit"]:hover {
     font-size: 12px;
 }
 
+
 .section { display: none; }
 .section.active { display: block; }
+
