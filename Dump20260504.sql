@@ -23,7 +23,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '0d1ac67a-0965-11f1-9547-a8934aace692:1-395';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '0d1ac67a-0965-11f1-9547-a8934aace692:1-403';
 
 --
 -- Table structure for table `attendance`
@@ -497,4 +497,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-01 17:52:28
+-- Dump completed on 2026-05-04 11:06:26
