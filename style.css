@@ -170,10 +170,13 @@ button[type="submit"]:hover {
 .main-content {
     flex: 1;
     overflow-y: auto;
-    overflow-x: hidden; /* FIX: no horizontal scroll */
+    overflow-x: hidden;
     padding: 30px;
-    min-width: 0; /* FIX: prevents flex child from overflowing */
+    min-width: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+.main-content::-webkit-scrollbar { display: none; }
 .topbar {
     display: flex;
     justify-content: space-between;

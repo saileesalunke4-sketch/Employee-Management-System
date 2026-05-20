@@ -39,6 +39,11 @@ $page_title = "Dashboard";
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <?php include 'common_styles.php'; ?>
+<style>
+body { overflow: hidden; }
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
+</style>
 </head>
 <body>
 <div class="dashboard">

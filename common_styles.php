@@ -69,4 +69,18 @@
 .topbar { flex-wrap: wrap !important; gap: 10px !important; }
 .topbar-right { flex-wrap: wrap !important; max-width: 100% !important; }
 .user-info { white-space: nowrap !important; }
+* { scrollbar-width: none !important; }
+*::-webkit-scrollbar { display: none !important; }
+
+<style>
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
+
+.main-content { overflow: hidden !important; }
+
+
+html { overflow: hidden; }
+.main-content { overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.main-content::-webkit-scrollbar { display: none; }
+
 </style>
