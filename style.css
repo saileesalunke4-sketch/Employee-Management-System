@@ -122,21 +122,22 @@ button[type="submit"]:hover {
     box-shadow: 0 8px 25px rgba(99,102,241,0.4);
 }
 
-/* Dashboard Layout */
+/* ===== Dashboard Layout ===== */
 .dashboard {
     display: flex;
     height: 100vh;
     background: #f0f4f8;
+    overflow: hidden; /* FIX: no horizontal scroll on dashboard */
 }
 .sidebar {
     width: 220px;
+    min-width: 220px;
     background: #0a0f1e;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     overflow-y: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    overflow-x: hidden;
 }
 .nav-item {
     display: block;
@@ -146,6 +147,7 @@ button[type="submit"]:hover {
     font-size: 14px;
     transition: all 0.3s;
     cursor: pointer;
+    white-space: nowrap;
 }
 .nav-item:hover, .nav-item.active {
     background: rgba(59,130,246,0.15);
@@ -168,7 +170,9 @@ button[type="submit"]:hover {
 .main-content {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden; /* FIX: no horizontal scroll */
     padding: 30px;
+    min-width: 0; /* FIX: prevents flex child from overflowing */
 }
 .topbar {
     display: flex;
@@ -179,6 +183,8 @@ button[type="submit"]:hover {
     padding: 14px 24px;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    flex-wrap: wrap; /* FIX: topbar wraps on smaller screens */
+    gap: 10px;
 }
 .topbar h2 {
     font-size: 20px;
@@ -190,10 +196,12 @@ button[type="submit"]:hover {
     gap: 14px;
     position: relative;
     z-index: 100;
+    flex-wrap: wrap; /* FIX: notification/profile wraps properly */
 }
 .user-info {
     font-size: 13px;
     color: #666;
+    white-space: nowrap;
 }
 .cards {
     display: grid;
@@ -205,6 +213,7 @@ button[type="submit"]:hover {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    min-width: 0; /* FIX: cards don't overflow */
 }
 .card h3 {
     font-size: 13px;
@@ -232,6 +241,7 @@ button[type="submit"]:hover {
     color: #333;
     border: 1px solid #e0e0e0;
     padding: 10px 14px;
+    width: 100%;
 }
 .form-card .field input:focus,
 .form-card .field select:focus {
@@ -246,6 +256,7 @@ button[type="submit"]:hover {
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.06);
     overflow-x: auto;
+    margin-bottom: 20px;
 }
 .form-grid {
     display: grid;
@@ -286,6 +297,7 @@ button[type="submit"]:hover {
     padding: 12px 16px;
     text-align: left;
     font-weight: 500;
+    white-space: nowrap;
 }
 .emp-table td {
     padding: 12px 16px;
@@ -302,6 +314,7 @@ button[type="submit"]:hover {
     text-decoration: none;
     font-size: 12px;
     margin-right: 4px;
+    white-space: nowrap;
 }
 .reject-btn {
     background: #dc2626;
@@ -310,9 +323,18 @@ button[type="submit"]:hover {
     border-radius: 6px;
     text-decoration: none;
     font-size: 12px;
+    white-space: nowrap;
 }
 
-
-.section { display: none; }
-.section.active { display: block; }
-
+/* ===== Responsive ===== */
+@media(max-width:900px){
+    .dashboard { flex-direction: column; height: auto; }
+    .sidebar { width: 100% !important; min-width: unset; min-height: auto; }
+    .main-content { margin-left: 0 !important; padding: 16px; }
+    .cards { grid-template-columns: repeat(2,1fr) !important; }
+    .form-grid { grid-template-columns: 1fr !important; }
+}
+@media(max-width:600px){
+    .cards { grid-template-columns: 1fr !important; }
+    .topbar h2 { font-size: 15px; }
+}

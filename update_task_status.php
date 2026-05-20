@@ -34,22 +34,8 @@ if(mysqli_num_rows($check) == 0){
 
 $query = "UPDATE tasks SET status='$status' WHERE task_id='$task_id' AND emp_id='$emp_id'";
 if(mysqli_query($conn, $query)){
-    
-    // Task details fetch karo
-    $task_res = mysqli_query($conn, "SELECT t.*, e.first_name, e.last_name 
-                                     FROM tasks t 
-                                     JOIN employees e ON t.emp_id = e.emp_id 
-                                     WHERE t.task_id='$task_id'");
-    $task_data = mysqli_fetch_assoc($task_res);
-    $emp_name  = $task_data['first_name'] . ' ' . $task_data['last_name'];
-    $task_name = $task_data['task_name'];
-
-    // Notification save karo admin ke liye
-    $notif_msg = mysqli_real_escape_string($conn, "Task '$task_name' marked as '$status' by $emp_name");
-    mysqli_query($conn, "INSERT INTO notifications 
-        (emp_id, emp_name, leave_type, from_date, to_date, reason, is_read)
-        VALUES ('$emp_id', '$emp_name', 'task_update', CURDATE(), CURDATE(), '$notif_msg', 0)");
-
     echo "<script>alert('Task status updated successfully!'); window.location.href='emp_dashboard.php';</script>";
+} else {
+    echo "<script>alert('Failed to update status!'); window.history.back();</script>";
 }
 ?>

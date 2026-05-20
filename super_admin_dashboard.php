@@ -132,16 +132,16 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
         <span style="font-size:13px;font-weight:bold;color:rgba(255,255,255,.5);letter-spacing:3px;text-transform:uppercase;">EMS</span>
     </div>
     <nav>
-        <a class="nav-item active" onclick="showSection('dashboard',this)">&#127968; Dashboard</a>
-        <a class="nav-item" onclick="showSection('employees',this)">&#128100; All Employees</a>
-        <a class="nav-item" onclick="showSection('attendance',this)">&#128197; Attendance</a>
-        <a class="nav-item" onclick="showSection('leaves',this)">&#127809; Leaves</a>
-        <a class="nav-item" onclick="showSection('salary',this)">&#128176; Salary</a>
-        <a class="nav-item" onclick="showSection('tasks',this)">&#9989; Tasks</a>
-        <a class="nav-item" onclick="showSection('revenue',this)">&#128200; Monthly Revenue</a>
-        <a class="nav-item" onclick="showSection('performance',this)">&#127941; Performance</a>
-        <a class="nav-item" onclick="showSection('holidays',this)">&#127974; Holiday Calendar</a>
-        <a class="nav-item" onclick="showSection('my_profile',this)">&#128100; My Profile</a>
+        <a class="nav-item active" href="super_admin_dashboard.php" ">&#127968; Dashboard</a>
+        <a class="nav-item"href="all_employees.php"">&#128100; All Employees</a>
+        <a class="nav-item"href="sa_attendance.php"">&#128197; Attendance</a>
+        <a class="nav-item"href="sa_leaves.php"">&#127809; Leaves</a>
+        <a class="nav-item"href="sa_salary.php"">&#128176; Salary</a>
+        <a class="nav-item"href="sa_tasks.php"">&#9989; Tasks</a>
+        <a class="nav-item"href="revenue.php"">&#128200; Monthly Revenue</a>
+        <a class="nav-item"href="performance.php"">&#127941; Performance</a>
+        <a class="nav-item"href="sa_holidays.php"">&#127974; Holiday Calendar</a>
+        <a class="nav-item"href="sa_profile.php"">&#128100; My Profile</a>
     </nav>
     <a href="logout.php" class="logout-btn">Logout</a>
     <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.07);">
