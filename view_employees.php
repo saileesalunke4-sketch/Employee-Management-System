@@ -24,6 +24,9 @@ $page_title = "View Employees";
 <div class="section active">
     <div class="form-card">
         <h3 class="section-title">All Employees</h3>
+        <div style="text-align:right;margin-bottom:12px;">
+            <a href="export_employees.php" style="display:inline-block;background:#16a34a;color:white;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">📥 Download Excel</a>
+        </div>
         <div style="overflow-x:auto;">
         <table class="emp-table">
             <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Designation</th><th>Contact</th><th>Role</th><th>Department</th></tr></thead>

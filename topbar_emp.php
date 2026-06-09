@@ -1,6 +1,6 @@
 <?php
 // topbar_emp.php
-$user_id = $_SESSION['user']['id'];
+$user_id   = $_SESSION['user']['id'];
 $emp_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM users WHERE id='$user_id'"))['profile_photo'] ?? '';
 $emp_unread = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt FROM notifications WHERE emp_id='$emp_id' AND is_read=0"))['cnt'];
 $emp_notifs = mysqli_query($conn,"SELECT * FROM notifications WHERE emp_id='$emp_id' ORDER BY created_at DESC LIMIT 10");
@@ -15,17 +15,27 @@ $emp_notifs = mysqli_query($conn,"SELECT * FROM notifications WHERE emp_id='$emp
             <div class="notif-dropdown" id="notifDropdown">
                 <div class="notif-header">
                     <span>My Notifications</span>
-                    <?php if($emp_unread>0): ?><a href="mark_notifications_read.php" style="font-size:11px;color:#3b82f6;text-decoration:none;padding:4px 10px;border-radius:20px;border:1px solid #3b82f6;">Mark all read</a><?php endif; ?>
+                    <?php if($emp_unread>0): ?>
+                        <a href="mark_emp_notifications_read.php" style="font-size:11px;color:#3b82f6;text-decoration:none;padding:4px 10px;border-radius:20px;border:1px solid #3b82f6;">Mark all read</a>
+                    <?php endif; ?>
                 </div>
                 <div class="notif-list">
                 <?php
-                    $has_n=false;
-                    while($n=mysqli_fetch_assoc($emp_notifs)){
-                        $has_n=true; $nw=($n['is_read']==0)?'notif-new':'';
-                        echo "<div class='notif-item {$nw}'><div class='notif-icon'>&#128203;</div>
-                            <div class='notif-text'><span class='notif-type'>{$n['leave_type']}</span><br>
-                            <small>{$n['reason']}</small></div>
-                            ".($n['is_read']==0?"<span class='notif-dot'></span>":"")."</div>";
+                    $has_n = false;
+                    while($n = mysqli_fetch_assoc($emp_notifs)){
+                        $has_n = true;
+                        $nw    = ($n['is_read']==0) ? 'notif-new' : '';
+                        $icon  = ($n['type']=='task') ? '📋' : '🌿';
+                        $type_label = ($n['type']=='task') ? 'Task Assigned' : 'Leave '.$n['leave_type'];
+                        echo "<div class='notif-item {$nw}'>
+                            <div class='notif-icon'>{$icon}</div>
+                            <div class='notif-text'>
+                                <span class='notif-type'>{$type_label}</span><br>
+                                <small>".($n['message'] ?: $n['reason'])."</small><br>
+                                <small style='color:#9ca3af;'>".date('d M Y', strtotime($n['created_at']))."</small>
+                            </div>
+                            ".($n['is_read']==0?"<span class='notif-dot'></span>":"")."
+                        </div>";
                     }
                     if(!$has_n) echo "<div class='notif-empty'>No notifications yet</div>";
                 ?>

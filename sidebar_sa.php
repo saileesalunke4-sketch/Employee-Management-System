@@ -7,7 +7,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <span style="font-size:13px;font-weight:bold;color:rgba(255,255,255,.5);letter-spacing:3px;text-transform:uppercase;">EMS</span>
     </div>
     <nav>
-        <a class="nav-item <?php echo ($current_page=='super_dashboard.php')?'active':''; ?>" href="super_dashboard.php">&#127968; Dashboard</a>
+        <a class="nav-item <?php echo ($current_page=='super_admin_dashboard.php')?'active':''; ?>" href="super_admin_dashboard.php">&#127968; Dashboard</a>
         <a class="nav-item <?php echo ($current_page=='all_employees.php')?'active':''; ?>" href="all_employees.php">&#128100; All Employees</a>
         <a class="nav-item <?php echo ($current_page=='sa_attendance.php')?'active':''; ?>" href="sa_attendance.php">&#128197; Attendance</a>
         <a class="nav-item <?php echo ($current_page=='sa_leaves.php')?'active':''; ?>" href="sa_leaves.php">&#127809; Leaves</a>
@@ -16,7 +16,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a class="nav-item <?php echo ($current_page=='revenue.php')?'active':''; ?>" href="revenue.php">&#128200; Monthly Revenue</a>
         <a class="nav-item <?php echo ($current_page=='performance.php')?'active':''; ?>" href="performance.php">&#127941; Performance</a>
         <a class="nav-item <?php echo ($current_page=='sa_holidays.php')?'active':''; ?>" href="sa_holidays.php">&#127974; Holiday Calendar</a>
+        <a class="nav-item <?php echo ($current_page=='sa_rules.php')?'active':''; ?>" href="sa_rules.php">&#128221; Rules & Regulations</a>
         <a class="nav-item <?php echo ($current_page=='sa_profile.php')?'active':''; ?>" href="sa_profile.php">&#128100; My Profile</a>
+        <a class="nav-item <?php echo ($current_page=='employee_report.php')?'active':''; ?>" href="employee_report.php">&#128196; Employee Report</a>
     </nav>
     <a href="logout.php" class="logout-btn">Logout</a>
     <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.07);">

@@ -24,12 +24,28 @@ $page_title = "Attendance";
 <div class="section active">
     <div class="form-card">
         <h3 class="section-title">Attendance Records</h3>
+
+        <!-- Month Filter + Download -->
+        <form method="GET" style="display:flex;gap:12px;align-items:flex-end;margin-bottom:20px;">
+            <div class="field" style="margin:0;"><label>Filter Month</label>
+                <input type="month" name="ts_month" value="<?php echo isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m'); ?>" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;">
+            </div>
+            <button type="submit" class="submit-btn" style="margin:0;padding:8px 20px;">Filter</button>
+            <a href="export_attendance.php?ts_month=<?php echo isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m'); ?>"
+               style="display:inline-block;background:#16a34a;color:white;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+               📥 Download Excel
+            </a>
+        </form>
+
         <div style="overflow-x:auto;">
         <table class="emp-table">
             <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Type</th></tr></thead>
             <tbody>
             <?php
-                $res=mysqli_query($conn,"SELECT e.first_name,e.last_name,a.date,a.check_in,a.check_out,a.status FROM attendance a JOIN employees e ON a.emp_id=e.emp_id ORDER BY a.date DESC");
+                $ts_month = isset($_GET['ts_month']) ? $_GET['ts_month'] : date('Y-m');
+                $ts_year  = substr($ts_month,0,4);
+                $ts_mon   = substr($ts_month,5,2);
+                $res=mysqli_query($conn,"SELECT e.first_name,e.last_name,a.date,a.check_in,a.check_out,a.status FROM attendance a JOIN employees e ON a.emp_id=e.emp_id WHERE YEAR(a.date)='$ts_year' AND MONTH(a.date)='$ts_mon' ORDER BY a.date DESC");
                 while($row=mysqli_fetch_assoc($res)){
                     $type=($row['status']=='work_from_home')?"<span class='pill blue'>&#127968; WFH</span>":"<span class='pill green'>&#127970; Office</span>";
                     echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td><td>".ucfirst(str_replace('_',' ',$row['status']))."</td><td>{$type}</td></tr>";

@@ -64,23 +64,22 @@
 .cal-hname{font-size:9px;color:#dc2626;line-height:1.3;margin-top:2px;word-break:break-word;}
 
 /* ===== SCROLLBAR FIX ===== */
-.dashboard { overflow: hidden !important; }
-.main-content { overflow-x: hidden !important; min-width: 0 !important; }
+html, body { height: 100%; overflow: auto; }
+.dashboard { overflow: visible; }
+.main-content { overflow-y: auto; overflow-x: hidden; min-width: 0; }
 .topbar { flex-wrap: wrap !important; gap: 10px !important; }
 .topbar-right { flex-wrap: wrap !important; max-width: 100% !important; }
 .user-info { white-space: nowrap !important; }
-* { scrollbar-width: none !important; }
-*::-webkit-scrollbar { display: none !important; }
 
-<style>
-* { scrollbar-width: none; }
-*::-webkit-scrollbar { display: none; }
-
-.main-content { overflow: hidden !important; }
-
-
-html { overflow: hidden; }
-.main-content { overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
-.main-content::-webkit-scrollbar { display: none; }
-
+/* ===== HIDE SCROLLBAR (keep scroll working) ===== */
+html, body, .main-content, .sidebar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+.main-content::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar {
+    display: none;
+}
 </style>

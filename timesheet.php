@@ -43,6 +43,10 @@ $page_title = "Timesheet";
                 <input type="month" name="ts_month" value="<?php echo isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m');?>" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;">
             </div>
             <button type="submit" class="submit-btn" style="margin:0;padding:8px 20px;">Filter</button>
+            <a id="excel_link" href="export_timesheet.php?ts_month=<?php echo isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m'); ?>" 
+               style="display:inline-block;background:#16a34a;color:white;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+               📥 Download Excel
+            </a>
         </form>
         <?php
         $ts_month=isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m');

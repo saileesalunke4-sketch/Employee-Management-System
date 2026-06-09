@@ -42,6 +42,27 @@ $page_title = "Salary";
         </form>
 
         <h3 class="section-title" style="margin-top:28px;">Salary Records</h3>
+
+        <!-- Filter + Download -->
+        <form method="GET" style="display:flex;gap:12px;align-items:flex-end;margin-bottom:16px;">
+            <div class="field" style="margin:0;"><label>Month</label>
+                <select name="month" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;">
+                    <?php
+                    $months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+                    $sel_m = isset($_GET['month']) ? $_GET['month'] : date('F');
+                    foreach($months as $m) echo "<option value='$m'".($sel_m==$m?' selected':'').">$m</option>";
+                    ?>
+                </select>
+            </div>
+            <div class="field" style="margin:0;"><label>Year</label>
+                <input type="number" name="year" value="<?php echo isset($_GET['year'])?$_GET['year']:date('Y'); ?>" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;width:90px;">
+            </div>
+            <button type="submit" class="submit-btn" style="margin:0;padding:8px 20px;">Filter</button>
+            <a href="export_salary_report.php?month=<?php echo isset($_GET['month'])?$_GET['month']:date('F'); ?>&year=<?php echo isset($_GET['year'])?$_GET['year']:date('Y'); ?>"
+               style="display:inline-block;background:#16a34a;color:white;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
+               📥 Download Excel
+            </a>
+        </form>
         <div style="overflow-x:auto;">
         <table class="emp-table">
             <thead><tr><th>Employee</th><th>Basic Pay</th><th>Allowances</th><th>Deductions</th><th>LOP Days</th><th>LOP Amt</th><th>Net Pay</th><th>Month</th><th>Year</th></tr></thead>

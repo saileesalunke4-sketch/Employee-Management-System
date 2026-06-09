@@ -25,6 +25,9 @@ $page_title = "Performance";
 
     <div class="form-card">
         <h3 class="section-title">Employee Performance Overview</h3>
+        <div style="text-align:right;margin-bottom:12px;">
+            <a href="export_performance.php" style="display:inline-block;background:#16a34a;color:white;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">📥 Download Excel</a>
+        </div>
         <div style="overflow-x:auto;">
         <table class="emp-table">
             <thead><tr><th>Employee</th><th>Total Tasks</th><th>Completed</th><th>Pending</th><th>Attendance Days</th><th>Skills Added</th></tr></thead>

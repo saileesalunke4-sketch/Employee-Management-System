@@ -19,7 +19,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <a class="nav-item <?php echo ($current_page=='departments.php')?'active':''; ?>" href="departments.php">&#127970; Departments</a>
         <a class="nav-item <?php echo ($current_page=='projects.php')?'active':''; ?>" href="projects.php">&#128196; Projects</a>
         <a class="nav-item <?php echo ($current_page=='admin_holidays.php')?'active':''; ?>" href="admin_holidays.php">&#127974; Holiday Calendar</a>
+        <a class="nav-item <?php echo ($current_page=='admin_rules.php')?'active':''; ?>" href="admin_rules.php">&#128221; Rules & Regulations</a>
         <a class="nav-item <?php echo ($current_page=='admin_profile.php')?'active':''; ?>" href="admin_profile.php">&#128100; My Profile</a>
+        <a class="nav-item <?php echo ($current_page=='employee_report.php')?'active':''; ?>" href="employee_report.php">&#128196; Employee Report</a>
     </nav>
     <a href="logout.php" class="logout-btn">Logout</a>
     <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.07);">

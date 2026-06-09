@@ -1,81 +1,53 @@
 <?php
 session_start();
-require 'db.php';
-
-if(!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'employee'){
-    header("Location: index.php");
-    exit();
+if(!isset($_SESSION['user']) || $_SESSION['user']['role']!='employee'){
+    header("Location: index.php"); exit();
 }
-
-$user_id = $_SESSION['user']['id'];
-
-// Get emp_id
-$emp_result = mysqli_query($conn, "SELECT emp_id FROM employees WHERE user_id='$user_id'");
+require 'db.php';
+$user_id    = $_SESSION['user']['id'];
+$emp_result = mysqli_query($conn,"SELECT emp_id FROM employees WHERE user_id='$user_id'");
 $emp        = mysqli_fetch_assoc($emp_result);
 $emp_id     = $emp['emp_id'];
 
-$allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-$max_size      = 2 * 1024 * 1024; // 2MB max
+// Create upload directory
+if(!is_dir('uploads/documents')) mkdir('uploads/documents', 0777, true);
 
-function uploadFile($file_key, $emp_id){
-    global $allowed_types, $max_size;
+// Create table if not exists
+mysqli_query($conn,"CREATE TABLE IF NOT EXISTS employee_documents (
+    doc_id INT AUTO_INCREMENT PRIMARY KEY,
+    emp_id INT,
+    pan_card VARCHAR(255),
+    aadhar_card VARCHAR(255),
+    marks_card VARCHAR(255),
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)");
 
-    if(!isset($_FILES[$file_key]) || $_FILES[$file_key]['error'] == 4){
-        return null; // No file uploaded
+$doc_fields = ['pan_card','aadhar_card','marks_card'];
+$updates    = [];
+
+foreach($doc_fields as $field){
+    if(isset($_FILES[$field]) && $_FILES[$field]['error']==0){
+        $ext      = pathinfo($_FILES[$field]['name'], PATHINFO_EXTENSION);
+        $filename = $field.'_'.$emp_id.'_'.time().'.'.$ext;
+        $dest     = 'uploads/documents/'.$filename;
+        if(move_uploaded_file($_FILES[$field]['tmp_name'], $dest)){
+            $updates[$field] = $filename;
+        }
     }
-
-    $file     = $_FILES[$file_key];
-    $type     = $file['type'];
-    $size     = $file['size'];
-    $tmp_name = $file['tmp_name'];
-
-    // Validate type
-    if(!in_array($type, $allowed_types)){
-        return 'invalid_type';
-    }
-
-    // Validate size
-    if($size > $max_size){
-        return 'too_large';
-    }
-
-    // Generate unique filename
-    $ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
-    $filename = $emp_id . '_' . $file_key . '_' . time() . '.' . $ext;
-    $dest     = 'uploads/' . $filename;
-
-    if(move_uploaded_file($tmp_name, $dest)){
-        return $filename;
-    }
-
-    return null;
 }
-
-$pan_card    = uploadFile('pan_card', $emp_id);
-$aadhar_card = uploadFile('aadhar_card', $emp_id);
-$marks_card  = uploadFile('marks_card', $emp_id);
-
-// Check for errors
-if($pan_card === 'invalid_type' || $aadhar_card === 'invalid_type' || $marks_card === 'invalid_type'){
-    echo "<script>alert('Only JPG, PNG and PDF files are allowed!'); window.history.back();</script>";
-    exit();
-}
-
-if($pan_card === 'too_large' || $aadhar_card === 'too_large' || $marks_card === 'too_large'){
-    echo "<script>alert('File size must be less than 2MB!'); window.history.back();</script>";
-    exit();
-}
-
-// Build update query only for uploaded files
-$updates = [];
-if($pan_card)    $updates[] = "pan_card='$pan_card'";
-if($aadhar_card) $updates[] = "aadhar_card='$aadhar_card'";
-if($marks_card)  $updates[] = "marks_card='$marks_card'";
 
 if(!empty($updates)){
-    $query = "UPDATE employees SET " . implode(', ', $updates) . " WHERE emp_id='$emp_id'";
-    mysqli_query($conn, $query);
-    echo "<script>alert('Documents uploaded successfully!'); window.location.href='emp_dashboard.php';</script>";
+    // Check if record exists
+    $existing = mysqli_fetch_assoc(mysqli_query($conn,"SELECT doc_id FROM employee_documents WHERE emp_id='$emp_id'"));
+    if($existing){
+        $set = implode(',', array_map(fn($k,$v) => "$k='$v'", array_keys($updates), $updates));
+        mysqli_query($conn,"UPDATE employee_documents SET $set WHERE emp_id='$emp_id'");
+    } else {
+        $cols = 'emp_id,'.implode(',', array_keys($updates));
+        $vals = "'$emp_id','".implode("','", array_values($updates))."'";
+        mysqli_query($conn,"INSERT INTO employee_documents ($cols) VALUES ($vals)");
+    }
+    echo "<script>alert('Documents uploaded successfully!'); window.location.href='emp_profile.php';</script>";
 } else {
     echo "<script>alert('Please select at least one file!'); window.history.back();</script>";
 }

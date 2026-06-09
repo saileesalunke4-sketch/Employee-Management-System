@@ -138,7 +138,10 @@ button[type="submit"]:hover {
     flex-shrink: 0;
     overflow-y: auto;
     overflow-x: hidden;
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* IE / Edge */
 }
+.sidebar::-webkit-scrollbar { display: none; } /* Chrome / Safari */
 .nav-item {
     display: block;
     padding: 12px 24px;
@@ -170,13 +173,13 @@ button[type="submit"]:hover {
 .main-content {
     flex: 1;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: hidden; /* FIX: no horizontal scroll */
     padding: 30px;
-    min-width: 0;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    min-width: 0; /* FIX: prevents flex child from overflowing */
+    scrollbar-width: none;       /* Firefox */
+    -ms-overflow-style: none;    /* IE / Edge */
 }
-.main-content::-webkit-scrollbar { display: none; }
+.main-content::-webkit-scrollbar { display: none; } /* Chrome / Safari */
 .topbar {
     display: flex;
     justify-content: space-between;
