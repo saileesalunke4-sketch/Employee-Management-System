@@ -23,7 +23,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '0d1ac67a-0965-11f1-9547-a8934aace692:1-472';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '0d1ac67a-0965-11f1-9547-a8934aace692:1-735';
 
 --
 -- Table structure for table `attendance`
@@ -44,7 +44,7 @@ CREATE TABLE `attendance` (
   PRIMARY KEY (`attendance_id`),
   KEY `emp_id` (`emp_id`),
   CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`emp_id`) REFERENCES `employees` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -53,7 +53,7 @@ CREATE TABLE `attendance` (
 
 LOCK TABLES `attendance` WRITE;
 /*!40000 ALTER TABLE `attendance` DISABLE KEYS */;
-INSERT INTO `attendance` VALUES (2,3,'09:00:00','05:03:00','2026-03-20','present',0.00,0),(3,4,'09:00:00','17:49:00','2026-03-23','present',0.00,0),(4,5,'09:00:00','02:00:00','2026-03-20','half_day',0.00,0),(5,6,'09:00:00','17:00:00','2026-03-20','work_from_home',0.00,0),(6,7,'09:00:00','17:00:00','2026-03-23','present',0.00,0),(7,3,'09:00:00','18:00:00','2026-04-08','present',0.00,0),(8,8,'09:00:00','18:00:00','2026-04-10','present',0.00,0),(9,8,'09:00:00','00:00:00','2026-04-10','half_day',0.00,0),(10,8,'09:00:00','17:40:00','2026-04-12','present',0.00,0),(11,8,'09:00:00','17:00:00','2026-04-11','present',0.00,0),(12,8,'09:00:00','18:00:00','2026-04-13','work_from_home',0.00,0),(13,7,'09:00:00','17:00:00','2026-04-12','work_from_home',0.00,0),(14,5,'21:00:00','17:00:00','2026-04-12','work_from_home',0.00,0),(15,6,'21:00:00','18:00:00','2026-04-12','present',0.00,0),(16,5,'21:00:00','21:00:00','2026-04-12','present',0.00,0),(17,4,'09:00:00','17:00:00','2026-04-20','present',0.00,0),(18,9,'09:00:00','18:00:00','2026-04-24','present',0.00,0),(19,8,'09:00:00','14:00:00','2026-04-24','half_day',0.00,0),(20,6,'09:09:00','17:02:00','2026-04-30','present',0.00,0),(21,5,'09:00:00','19:19:00','2026-05-01','present',1.32,0),(22,4,'21:21:00','19:00:00','2026-05-01','present',1.00,0);
+INSERT INTO `attendance` VALUES (2,3,'09:00:00','05:03:00','2026-03-20','present',0.00,0),(3,4,'09:00:00','17:49:00','2026-03-23','present',0.00,0),(4,5,'09:00:00','02:00:00','2026-03-20','half_day',0.00,0),(5,6,'09:00:00','17:00:00','2026-03-20','work_from_home',0.00,0),(6,7,'09:00:00','17:00:00','2026-03-23','present',0.00,0),(7,3,'09:00:00','18:00:00','2026-04-08','present',0.00,0),(8,8,'09:00:00','18:00:00','2026-04-10','present',0.00,0),(9,8,'09:00:00','00:00:00','2026-04-10','half_day',0.00,0),(10,8,'09:00:00','17:40:00','2026-04-12','present',0.00,0),(11,8,'09:00:00','17:00:00','2026-04-11','present',0.00,0),(12,8,'09:00:00','18:00:00','2026-04-13','work_from_home',0.00,0),(13,7,'09:00:00','17:00:00','2026-04-12','work_from_home',0.00,0),(14,5,'21:00:00','17:00:00','2026-04-12','work_from_home',0.00,0),(15,6,'21:00:00','18:00:00','2026-04-12','present',0.00,0),(16,5,'21:00:00','21:00:00','2026-04-12','present',0.00,0),(17,4,'09:00:00','17:00:00','2026-04-20','present',0.00,0),(18,9,'09:00:00','18:00:00','2026-04-24','present',0.00,0),(19,8,'09:00:00','14:00:00','2026-04-24','half_day',0.00,0),(20,6,'09:09:00','17:02:00','2026-04-30','present',0.00,0),(21,5,'09:00:00','19:19:00','2026-05-01','present',1.32,0),(22,4,'21:21:00','19:00:00','2026-05-01','present',1.00,0),(23,8,'21:00:00','18:00:00','2026-05-25','present',0.00,0);
 /*!40000 ALTER TABLE `attendance` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -101,7 +101,7 @@ CREATE TABLE `departments` (
   `dept_head` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`dept_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -110,7 +110,7 @@ CREATE TABLE `departments` (
 
 LOCK TABLES `departments` WRITE;
 /*!40000 ALTER TABLE `departments` DISABLE KEYS */;
-INSERT INTO `departments` VALUES (1,'Development','Rahul Sharma','2026-05-01 11:39:30'),(4,'UI Design','Shreya Sathe','2026-05-07 03:14:09');
+INSERT INTO `departments` VALUES (1,'Development','Rahul Sharma','2026-05-01 11:39:30'),(4,'UI Design','Shreya Sathe','2026-05-07 03:14:09'),(5,'QA','Nisha','2026-05-23 02:03:17');
 /*!40000 ALTER TABLE `departments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -146,6 +146,34 @@ LOCK TABLES `emp_performance` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `employee_documents`
+--
+
+DROP TABLE IF EXISTS `employee_documents`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `employee_documents` (
+  `doc_id` int NOT NULL AUTO_INCREMENT,
+  `emp_id` int DEFAULT NULL,
+  `pan_card` varchar(255) DEFAULT NULL,
+  `aadhar_card` varchar(255) DEFAULT NULL,
+  `marks_card` varchar(255) DEFAULT NULL,
+  `uploaded_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`doc_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `employee_documents`
+--
+
+LOCK TABLES `employee_documents` WRITE;
+/*!40000 ALTER TABLE `employee_documents` DISABLE KEYS */;
+INSERT INTO `employee_documents` VALUES (1,8,'pan_card_8_1780735142.png','aadhar_card_8_1780735142.png','marks_card_8_1780735142.png','2026-06-06 08:39:02');
+/*!40000 ALTER TABLE `employee_documents` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `employees`
 --
 
@@ -177,7 +205,7 @@ CREATE TABLE `employees` (
   KEY `dept_id` (`dept_id`),
   CONSTRAINT `employees_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `employees_ibfk_2` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`dept_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -186,7 +214,7 @@ CREATE TABLE `employees` (
 
 LOCK TABLES `employees` WRITE;
 /*!40000 ALTER TABLE `employees` DISABLE KEYS */;
-INSERT INTO `employees` VALUES (3,6,'Rahul','sharma','1234567890','Software Developer','A+','2000-12-12','Hindu','Mumbai',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1),(4,7,'Priya','Patel','1234567895','Web Designer','A+','1999-03-31','Hindu','Mumbai',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(5,8,'Amit','Kumarr','5678234569','Backend Devloper','O+','2000-03-04','Hindu','Nashik',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1),(6,9,'Sneha ','Singh','2184734592','Tester','B+','1998-12-19','Hindu','Pune',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(7,10,'Ravi','Mehta','2356128945','Project Manager','A+','2002-06-23','Hindu','Nepal','Jaipur',NULL,'General','xyz','Pune',NULL,NULL,NULL,NULL),(8,11,'Sailee','Salunke','2356128945','Web Designer','A+','2002-07-28','Hindu','Nagar','nagar',NULL,'General','xyz','Pune','8_pan_card_1777306446.png','8_aadhar_card_1777306446.png','8_marks_card_1777306446.png',NULL),(9,12,'Nita','Seth','3278487358','QA','B-','2002-09-23','Hindu','Delhi',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(10,13,'Shlok','Thakur','3287487502','Devop Engineer','A+','2000-11-16','Hindu','Nashik',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+INSERT INTO `employees` VALUES (3,6,'Rahul','sharma','1234567890','Software Developer','A+','2000-12-12','Hindu','Mumbai',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1),(4,7,'Priya','Patel','1234567895','Web Designer','A+','1999-03-31','Hindu','Mumbai',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(5,8,'Amit','Kumarr','5678234569','Backend Devloper','O+','2000-03-04','Hindu','Nashik',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1),(6,9,'Sneha ','Singh','2184734592','Tester','B+','1998-12-19','Hindu','Pune',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(7,10,'Ravi','Mehta','2356128945','Project Manager','A+','2002-06-23','Hindu','Nepal','Jaipur',NULL,'General','xyz','Pune',NULL,NULL,NULL,NULL),(8,11,'Sailee','Salunke','2356128945','Web Designer','AB+','2002-07-28','','Nagar','',NULL,'','','','8_pan_card_1780726779.png','8_aadhar_card_1780726779.png','8_marks_card_1780726779.png',NULL),(9,12,'Nita','Seth','3278487358','QA','B-','2002-09-23','Hindu','Delhi',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),(10,13,'Shlok','Thakur','3287487502','Devop Engineer','A+','2000-11-16','Hindu','Nashik',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `employees` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -204,7 +232,7 @@ CREATE TABLE `holidays` (
   `description` varchar(255) DEFAULT NULL,
   `holiday_type` varchar(50) DEFAULT 'National',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -213,7 +241,7 @@ CREATE TABLE `holidays` (
 
 LOCK TABLES `holidays` WRITE;
 /*!40000 ALTER TABLE `holidays` DISABLE KEYS */;
-INSERT INTO `holidays` VALUES (2,'Republic Day','2026-01-26',NULL,'National'),(3,'Holi','2026-03-14',NULL,'Festival'),(4,'Gudi Padwa','2026-03-30',NULL,'State'),(5,'Good Friday','2026-04-03',NULL,'National'),(6,'Dr. Ambedkar Jayanti','2026-04-14',NULL,'National'),(7,'Maharashtra Day','2026-05-01',NULL,'State'),(8,'Independence Day','2026-08-15',NULL,'National'),(9,'Ganesh Chaturthi','2026-08-27',NULL,'Festival'),(10,'Gandhi Jayanti','2026-10-02',NULL,'National'),(11,'Dussehra','2026-10-02',NULL,'Festival'),(13,'Diwali Laxmi Puja','2026-10-21',NULL,'Festival'),(14,'Gurunanak Jayanti','2026-11-05',NULL,'National'),(15,'Christmas','2026-12-25',NULL,'National'),(16,'Eid','2026-03-21',NULL,'National'),(17,'Akshaya Tritiya ','2026-04-19',NULL,'Festival');
+INSERT INTO `holidays` VALUES (2,'Republic Day','2026-01-26',NULL,'National'),(3,'Holi','2026-03-14',NULL,'Festival'),(4,'Gudi Padwa','2026-03-30',NULL,'State'),(5,'Good Friday','2026-04-03',NULL,'National'),(6,'Dr. Ambedkar Jayanti','2026-04-14',NULL,'National'),(7,'Maharashtra Day','2026-05-01',NULL,'State'),(8,'Independence Day','2026-08-15',NULL,'National'),(9,'Ganesh Chaturthi','2026-08-27',NULL,'Festival'),(10,'Gandhi Jayanti','2026-10-02',NULL,'National'),(11,'Dussehra','2026-10-02',NULL,'Festival'),(14,'Gurunanak Jayanti','2026-11-05',NULL,'National'),(15,'Christmas','2026-12-25',NULL,'National'),(16,'Eid','2026-03-21',NULL,'National'),(17,'Akshaya Tritiya ','2026-04-19',NULL,'Festival'),(18,'Maha Navami','2026-10-20',NULL,'State'),(19,'Vijayadashmi','2026-10-21',NULL,'Festival'),(20,'Diwali Laxmi Puja','2026-11-08',NULL,'Festival');
 /*!40000 ALTER TABLE `holidays` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -230,7 +258,7 @@ CREATE TABLE `leave_types` (
   `total_days` int DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -239,7 +267,7 @@ CREATE TABLE `leave_types` (
 
 LOCK TABLES `leave_types` WRITE;
 /*!40000 ALTER TABLE `leave_types` DISABLE KEYS */;
-INSERT INTO `leave_types` VALUES (1,'Sick Leave',10,'2026-04-04 05:19:22'),(2,'Casual Leave',8,'2026-04-04 05:19:22'),(3,'Privilege Leave',15,'2026-04-04 05:19:22'),(4,'Unpaid Leave',0,'2026-04-04 05:19:22'),(5,'Materninty leave',90,'2026-04-04 06:15:30');
+INSERT INTO `leave_types` VALUES (1,'Sick Leave',10,'2026-04-04 05:19:22'),(2,'Casual Leave',8,'2026-04-04 05:19:22'),(3,'Privilege Leave',15,'2026-04-04 05:19:22'),(4,'Unpaid Leave',0,'2026-04-04 05:19:22'),(5,'Materninty leave',90,'2026-04-04 06:15:30'),(6,'Sabbatical',90,'2026-05-24 03:23:20'),(7,'Special Casual Leave',10,'2026-06-09 08:46:18'),(8,'Earned Leave',10,'2026-06-09 08:46:56'),(9,'Paternity Leave',10,'2026-06-09 08:47:40'),(10,'Sub Artical Leave',10,'2026-06-09 08:48:37');
 /*!40000 ALTER TABLE `leave_types` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -261,7 +289,7 @@ CREATE TABLE `leaves` (
   PRIMARY KEY (`leave_id`),
   KEY `emp_id` (`emp_id`),
   CONSTRAINT `leaves_ibfk_1` FOREIGN KEY (`emp_id`) REFERENCES `employees` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -270,7 +298,7 @@ CREATE TABLE `leaves` (
 
 LOCK TABLES `leaves` WRITE;
 /*!40000 ALTER TABLE `leaves` DISABLE KEYS */;
-INSERT INTO `leaves` VALUES (2,3,'sick','2026-03-10','2026-03-20','Fever','pending'),(3,5,'casual','2026-03-12','2026-03-19','Personal work','pending'),(4,7,'casual','2026-04-02','2026-04-04','Personal work','pending'),(5,4,'Sick Leave','2026-04-01','2026-04-05','Fever','approved'),(6,3,'Casual Leave','2026-04-08','2026-04-12','Out of Town','pending'),(7,3,'Sick Leave','2026-04-11','2026-04-15','fever','approved'),(8,8,'Unpaid Leave','2026-04-13','2026-04-14','xyz','pending'),(9,6,'Casual Leave','2026-04-13','2026-04-14','Personal work','pending'),(10,3,'Privilege Leave','2026-05-04','2026-05-05','Family function','approved'),(11,8,'Casual Leave','2026-05-04','2026-05-05','Family Gathering','approved');
+INSERT INTO `leaves` VALUES (2,3,'sick','2026-03-10','2026-03-20','Fever','pending'),(3,5,'casual','2026-03-12','2026-03-19','Personal work','pending'),(4,7,'casual','2026-04-02','2026-04-04','Personal work','pending'),(5,4,'Sick Leave','2026-04-01','2026-04-05','Fever','approved'),(6,3,'Casual Leave','2026-04-08','2026-04-12','Out of Town','pending'),(7,3,'Sick Leave','2026-04-11','2026-04-15','fever','approved'),(8,8,'Unpaid Leave','2026-04-13','2026-04-14','xyz','pending'),(9,6,'Casual Leave','2026-04-13','2026-04-14','Personal work','pending'),(10,3,'Privilege Leave','2026-05-04','2026-05-05','Family function','approved'),(11,8,'Casual Leave','2026-05-04','2026-05-05','Family Gathering','approved'),(12,6,'Casual Leave','2026-05-22','2026-05-25','Family function','approved'),(13,8,'Sick Leave','2026-05-31','2026-06-02','Fever ','pending'),(14,8,'Sick Leave','2026-06-08','2026-06-09','fever','approved'),(15,8,'Privilege Leave','2026-06-09','2026-06-10','Out of town','rejected'),(16,9,'Special Casual Leave','2026-06-11','2026-06-12','out of town','pending');
 /*!40000 ALTER TABLE `leaves` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -289,10 +317,13 @@ CREATE TABLE `notifications` (
   `from_date` date NOT NULL,
   `to_date` date NOT NULL,
   `reason` text,
+  `message` text,
+  `type` varchar(50) DEFAULT 'leave',
+  `for_role` varchar(20) DEFAULT 'admin',
   `is_read` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -301,7 +332,7 @@ CREATE TABLE `notifications` (
 
 LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
-INSERT INTO `notifications` VALUES (1,'7','Ravi Mehta','casual','2026-04-02','2026-04-04','Personal work',1,'2026-04-01 12:14:50'),(2,'4','Priya Patel','Sick Leave','2026-04-01','2026-04-05','Fever',1,'2026-04-04 06:24:45'),(3,'3','Rahul Sharma','Casual Leave','2026-04-08','2026-04-12','Out of Town',1,'2026-04-08 06:38:48'),(4,'3','Rahul Sharma','Sick Leave','2026-04-11','2026-04-15','fever',1,'2026-04-08 06:43:44'),(5,'8','Sailee Salunke','task_completion','2026-04-10','2026-04-10','Task completed by Sailee Salunke: creating Dashboard',1,'2026-04-10 11:24:38'),(6,'6','Sneha  Singh','task_completion','2026-04-10','2026-04-10','Task completed by Sneha  Singh: Testing',1,'2026-04-10 11:27:59'),(7,'8','Sailee Salunke','Unpaid Leave','2026-04-13','2026-04-14','xyz',1,'2026-04-11 17:47:53'),(8,'6','Sneha Singh','Casual Leave','2026-04-13','2026-04-14','Personal work',1,'2026-04-12 11:05:44'),(9,'3','Rahul Sharma','Privilege Leave','2026-05-04','2026-05-05','Family function',0,'2026-04-30 04:03:41'),(10,'8','Sailee Salunke','Casual Leave','2026-05-04','2026-05-05','Family Gathering',0,'2026-05-01 07:16:33'),(11,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'in_progress\' by Sailee Salunke',0,'2026-05-01 07:40:10'),(12,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Fixing bugs and improving performance\' marked as \'completed\' by Sailee Salunke',0,'2026-05-01 07:40:36'),(13,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'completed\' by Sailee Salunke',0,'2026-05-01 07:40:55'),(14,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'pending\' by Sailee Salunke',0,'2026-05-01 07:41:02'),(15,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Developing new features for applications\' marked as \'completed\' by Sailee Salunke',0,'2026-05-01 07:41:17');
+INSERT INTO `notifications` VALUES (1,'7','Ravi Mehta','casual','2026-04-02','2026-04-04','Personal work',NULL,'leave','admin',1,'2026-04-01 12:14:50'),(2,'4','Priya Patel','Sick Leave','2026-04-01','2026-04-05','Fever',NULL,'leave','admin',1,'2026-04-04 06:24:45'),(3,'3','Rahul Sharma','Casual Leave','2026-04-08','2026-04-12','Out of Town',NULL,'leave','admin',1,'2026-04-08 06:38:48'),(4,'3','Rahul Sharma','Sick Leave','2026-04-11','2026-04-15','fever',NULL,'leave','admin',1,'2026-04-08 06:43:44'),(5,'8','Sailee Salunke','task_completion','2026-04-10','2026-04-10','Task completed by Sailee Salunke: creating Dashboard',NULL,'leave','admin',1,'2026-04-10 11:24:38'),(6,'6','Sneha  Singh','task_completion','2026-04-10','2026-04-10','Task completed by Sneha  Singh: Testing',NULL,'leave','admin',1,'2026-04-10 11:27:59'),(7,'8','Sailee Salunke','Unpaid Leave','2026-04-13','2026-04-14','xyz',NULL,'leave','admin',1,'2026-04-11 17:47:53'),(8,'6','Sneha Singh','Casual Leave','2026-04-13','2026-04-14','Personal work',NULL,'leave','admin',1,'2026-04-12 11:05:44'),(9,'3','Rahul Sharma','Privilege Leave','2026-05-04','2026-05-05','Family function',NULL,'leave','admin',0,'2026-04-30 04:03:41'),(10,'8','Sailee Salunke','Casual Leave','2026-05-04','2026-05-05','Family Gathering',NULL,'leave','admin',0,'2026-05-01 07:16:33'),(11,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'in_progress\' by Sailee Salunke',NULL,'leave','admin',0,'2026-05-01 07:40:10'),(12,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Fixing bugs and improving performance\' marked as \'completed\' by Sailee Salunke',NULL,'leave','admin',0,'2026-05-01 07:40:36'),(13,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'completed\' by Sailee Salunke',NULL,'leave','admin',0,'2026-05-01 07:40:55'),(14,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'pending\' by Sailee Salunke',NULL,'leave','admin',0,'2026-05-01 07:41:02'),(15,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Developing new features for applications\' marked as \'completed\' by Sailee Salunke',NULL,'leave','admin',0,'2026-05-01 07:41:17'),(16,'6','Sneha Singh','Casual Leave','2026-05-22','2026-05-25','Family function',NULL,'leave','admin',0,'2026-05-22 08:38:02'),(17,'8','Sailee Salunke','Sick Leave','2026-05-31','2026-06-02','Fever ',NULL,'leave','admin',0,'2026-05-30 15:54:30'),(18,'8','Sailee Salunke','Sick Leave','2026-06-08','2026-06-09','fever',NULL,'leave','admin',0,'2026-06-06 07:46:40'),(19,'8','Sailee Salunke','Sick Leave','2026-06-08','2026-06-09','✅ Your Sick Leave request (2026-06-08 to 2026-06-09) has been Approved by Admin.','✅ Your Sick Leave request (2026-06-08 to 2026-06-09) has been Approved by Admin.','leave_status','employee',0,'2026-06-06 07:57:37'),(20,'8','Sailee Salunke','Privilege Leave','2026-06-09','2026-06-10','Out of town',NULL,'leave','admin',0,'2026-06-06 14:02:21'),(21,'8','Sailee Salunke','Privilege Leave','2026-06-09','2026-06-10','❌ Your Privilege Leave request (2026-06-09 to 2026-06-10) has been Rejected by Admin.','❌ Your Privilege Leave request (2026-06-09 to 2026-06-10) has been Rejected by Admin.','leave_status','employee',0,'2026-06-06 14:02:59'),(22,'9','Nita seth','Special Casual Leave','2026-06-11','2026-06-12','out of town',NULL,'leave','admin',0,'2026-06-09 08:51:11');
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -395,6 +426,33 @@ INSERT INTO `revenue` VALUES (1,'February',2026,500000.00);
 UNLOCK TABLES;
 
 --
+-- Table structure for table `rules`
+--
+
+DROP TABLE IF EXISTS `rules`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `rules` (
+  `rule_id` int NOT NULL AUTO_INCREMENT,
+  `category` varchar(100) DEFAULT NULL,
+  `title` varchar(200) DEFAULT NULL,
+  `description` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`rule_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `rules`
+--
+
+LOCK TABLES `rules` WRITE;
+/*!40000 ALTER TABLE `rules` DISABLE KEYS */;
+INSERT INTO `rules` VALUES (1,'General','Office Timing Policy','All employees must report to office by 9:00 AM. Late arrivals beyond 9:15 AM will be marked as late. Three late marks in a month will result in half day deduction.','2026-05-24 12:10:53');
+/*!40000 ALTER TABLE `rules` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `salary`
 --
 
@@ -415,7 +473,7 @@ CREATE TABLE `salary` (
   PRIMARY KEY (`salary_id`),
   KEY `emp_id` (`emp_id`),
   CONSTRAINT `salary_ibfk_1` FOREIGN KEY (`emp_id`) REFERENCES `employees` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -424,7 +482,7 @@ CREATE TABLE `salary` (
 
 LOCK TABLES `salary` WRITE;
 /*!40000 ALTER TABLE `salary` DISABLE KEYS */;
-INSERT INTO `salary` VALUES (2,3,25000.00,5000.00,3000.00,27000.00,'February',2026,0,0.00),(3,4,22000.00,4000.00,2500.00,23500.00,'February',2026,0,0.00),(4,5,28000.00,6000.00,3500.00,30500.00,'February',2026,0,0.00),(5,6,20000.00,3500.00,2000.00,21500.00,'February',2026,0,0.00),(6,7,35000.00,7000.00,4000.00,38000.00,'February',2026,0,0.00),(7,3,30000.00,5000.00,2000.00,30000.00,'April',2026,3,3000.00),(8,8,30000.00,5000.00,2500.00,32500.00,'April',2026,0,0.00),(9,9,22000.00,4000.00,2500.00,23500.00,'April',2026,0,0.00),(10,7,25000.00,5000.00,3000.00,27000.00,'April',2026,0,0.00);
+INSERT INTO `salary` VALUES (2,3,25000.00,5000.00,3000.00,27000.00,'February',2026,0,0.00),(3,4,22000.00,4000.00,2500.00,23500.00,'February',2026,0,0.00),(4,5,28000.00,6000.00,3500.00,30500.00,'February',2026,0,0.00),(5,6,20000.00,3500.00,2000.00,21500.00,'February',2026,0,0.00),(6,7,35000.00,7000.00,4000.00,38000.00,'February',2026,0,0.00),(7,3,30000.00,5000.00,2000.00,30000.00,'April',2026,3,3000.00),(8,8,30000.00,5000.00,2500.00,32500.00,'April',2026,0,0.00),(9,9,22000.00,4000.00,2500.00,23500.00,'April',2026,0,0.00),(10,7,25000.00,5000.00,3000.00,27000.00,'April',2026,0,0.00),(11,8,35000.00,7000.00,4000.00,38000.00,'May',2026,0,0.00),(12,8,30000.00,50000.00,2500.00,77500.00,'May',2026,0,0.00);
 /*!40000 ALTER TABLE `salary` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -474,7 +532,7 @@ CREATE TABLE `users` (
   `role` enum('admin','employee','super_admin') DEFAULT NULL,
   `profile_photo` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -483,7 +541,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Admin User','admin@ems.com','$2y$10$0zfTk1gl5cAbVDarV6nesuyoSzRC63On/P/2M.3g4SnAiUooJ5lJK','admin','profile_1_1775956446.jpg'),(5,'Super Admin','superadmin@ems.com','$2y$10$B02yvdU1TDnlDERtjPSt.O1h4tvCqo6wb6npiXJUNAm.pLBva7vaK','super_admin','profile_5_1775956497.jpg'),(6,'Rahul Sharma','rahul@ems.com','$2y$10$OIkr0Ye3muXcdHCdpRtUjuWWvWeYFyArIWm9eF.wVsNod2Tcciewe','employee','profile_6_1775955728.jpg'),(7,'Priya Patel','priya@ems.com','$2y$10$kMP/mzyBQWjiUHiV8zBR/OSlSBK8CPyOPXO6hGKGrvYMnVqFPIUmm','employee','profile_7_1775955549.jpg'),(8,'Amit Kumar','amit@ems.com','$2y$10$cqhNQ2LWXGGUbZ.2jRt3MeUrO8qGlDmVA70k23iTXyRife8eiVtX2','employee','profile_8_1775955762.jpg'),(9,'Sneha Singh','sneha@ems.com','$2y$10$xlTcrXKS46Pz4Rij7DZmrOQG0R5J2s.ntkTPchFAJbyx8PK6gtz7a','employee','profile_9_1775955596.jpg'),(10,'Ravi Mehta','ravi@ems.com','$2y$10$bADPjTRhBZuP.qIWbCsy2.b2m7VfJWcSh5eODGZBsMv0s/1nbByVu','employee','profile_10_1775955953.jpg'),(11,'Sailee Salunke','saileesalunke4@gmail.com','$2y$10$ComV8fpfdqU.fskquwwYbe2Zyw5daT4o1JcJfoY6cLskzrkRYHO2C','employee','profile_11_1775955652.jpg'),(12,'Nita seth','nita@ems.com','$2y$10$Toir4P791bcM0u//SShTC.WLpCe6MZuuoi7.B9w380So9LizoCDf6','employee',NULL),(13,'Shlok Thakur','shlok@ems.com','$2y$10$BAVD3/8qQ8De60h5mKhd8uYZ538IG8tFwId/o6jextkbZsXoLcs..','employee',NULL);
+INSERT INTO `users` VALUES (1,'Admin User','admin@ems.com','$2y$10$0zfTk1gl5cAbVDarV6nesuyoSzRC63On/P/2M.3g4SnAiUooJ5lJK','admin','profile_1_1775956446.jpg'),(5,'Super Admin','superadmin@ems.com','$2y$10$B02yvdU1TDnlDERtjPSt.O1h4tvCqo6wb6npiXJUNAm.pLBva7vaK','super_admin','profile_5_1775956497.jpg'),(6,'Rahul Sharma','rahul@ems.com','$2y$10$OIkr0Ye3muXcdHCdpRtUjuWWvWeYFyArIWm9eF.wVsNod2Tcciewe','employee','profile_6_1775955728.jpg'),(7,'Priya Patel','priya@ems.com','$2y$10$kMP/mzyBQWjiUHiV8zBR/OSlSBK8CPyOPXO6hGKGrvYMnVqFPIUmm','employee','profile_7_1775955549.jpg'),(8,'Amit Kumar','amit@ems.com','$2y$10$cqhNQ2LWXGGUbZ.2jRt3MeUrO8qGlDmVA70k23iTXyRife8eiVtX2','employee','profile_8_1775955762.jpg'),(9,'Sneha Singh','sneha@ems.com','$2y$10$xlTcrXKS46Pz4Rij7DZmrOQG0R5J2s.ntkTPchFAJbyx8PK6gtz7a','employee','profile_9_1775955596.jpg'),(10,'Ravi Mehta','ravi@ems.com','$2y$10$bADPjTRhBZuP.qIWbCsy2.b2m7VfJWcSh5eODGZBsMv0s/1nbByVu','employee','profile_10_1775955953.jpg'),(11,'Sailee Salunke','saileesalunke4@gmail.com','$2y$10$Aky181.ra5efLgGr/juoueE7KuH6SmNk6B3uNTOrltLRVXmjihQEu','employee','profile_11_1775955652.jpg'),(12,'Nita seth','nita@ems.com','$2y$10$Toir4P791bcM0u//SShTC.WLpCe6MZuuoi7.B9w380So9LizoCDf6','employee',NULL),(13,'Shlok Thakur','shlok@ems.com','$2y$10$BAVD3/8qQ8De60h5mKhd8uYZ538IG8tFwId/o6jextkbZsXoLcs..','employee',NULL),(14,'Kalpana Salunke','skalpana1662@gmail.com','$2y$10$15drouU4KtiT1iM8H.NhJOJ2F8g0VfQOyeNrgOqFe/Ko5SvhL3WRm','admin',NULL),(15,'Surendra Salunke','ssysurendra@gmail.com','$2y$10$sF0tmyec4HFG0BG3ePQNAeiyZ20ngdSl6bOGRJYyexLCLtvkHLVkG','super_admin',NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
@@ -497,4 +555,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-20 10:57:28
+-- Dump completed on 2026-06-09 17:51:16
