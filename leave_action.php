@@ -2,18 +2,34 @@
 session_start();
 require 'db.php';
 
-if(!isset($_SESSION['user'])){
+// SECURITY: only admin/super_admin can approve/reject leave requests
+if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['admin','super_admin'])){
     header("Location: index.php"); exit();
 }
 
-$leave_id = $_GET['id'];
-$action   = $_GET['action'];
+// SECURITY: CSRF check — this link must have originated from a page we
+// rendered ourselves (with a valid token), not a forged external link.
+if(!csrf_verify($_GET['csrf'] ?? '')){
+    echo "<script>alert('Security check failed (invalid or expired link). Please try again from the Leaves page.'); window.location.href='admin_leaves.php';</script>";
+    exit();
+}
+
+$leave_id = (int) ($_GET['id'] ?? 0);
+$action   = $_GET['action'] ?? '';
 $redirect = isset($_GET['redirect']) ? $_GET['redirect'] : 'admin_leaves.php';
 
-// Get leave details for notification
-$leave = mysqli_fetch_assoc(mysqli_query($conn,"SELECT l.*, e.first_name, e.last_name FROM leaves l JOIN employees e ON l.emp_id=e.emp_id WHERE l.leave_id='$leave_id'"));
+if(!in_array($action, ['approved','rejected'], true) || $leave_id <= 0){
+    header("Location: $redirect"); exit();
+}
 
-if(mysqli_query($conn,"UPDATE leaves SET status='$action' WHERE leave_id='$leave_id'")){
+// Get leave details for notification
+$leave = mysqli_fetch_assoc(mysqli_query($conn,"SELECT l.*, e.first_name, e.last_name FROM leaves l JOIN employees e ON l.emp_id=e.emp_id WHERE l.leave_id=$leave_id"));
+
+if(!$leave){
+    header("Location: $redirect"); exit();
+}
+
+if(mysqli_query($conn,"UPDATE leaves SET status='$action' WHERE leave_id=$leave_id")){
 
     // Notify employee about leave status
     $emp_id   = $leave['emp_id'];

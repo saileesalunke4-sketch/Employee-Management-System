@@ -57,6 +57,32 @@ if ($leave_type === 'Sabbatical') {
     }
 }
 
+// ===== LEAVE BALANCE CHECK =====
+// Sabbatical and Unpaid Leave are exempt (Sabbatical has its own validation
+// above; Unpaid Leave has 0 allotted days by design and is meant to be
+// unlimited, subject to salary/LOP deduction elsewhere in the system).
+if($leave_type !== 'Sabbatical' && $leave_type !== 'Unpaid Leave'){
+    $requested_days = getLeaveDaysWithSandwich($from_date, $to_date);
+
+    $lt_row = mysqli_fetch_assoc(mysqli_query($conn,
+        "SELECT total_days FROM leave_types WHERE leave_type_name='".mysqli_real_escape_string($conn,$leave_type)."'"));
+    $allotted = $lt_row ? (int)$lt_row['total_days'] : 0;
+
+    $used_days = 0;
+    $used_res = mysqli_query($conn,
+        "SELECT from_date, to_date FROM leaves WHERE emp_id='$emp_id' AND leave_type='".mysqli_real_escape_string($conn,$leave_type)."' AND status='approved'");
+    while($u = mysqli_fetch_assoc($used_res)){
+        $used_days += getLeaveDaysWithSandwich($u['from_date'], $u['to_date']);
+    }
+
+    $remaining = $allotted - $used_days;
+
+    if($requested_days > $remaining){
+        echo "<script>alert('Insufficient leave balance for $leave_type. Remaining: {$remaining} day(s), Requested: {$requested_days} day(s).'); window.history.back();</script>";
+        exit();
+    }
+}
+
 // Save the leave request
 $query = "INSERT INTO leaves (emp_id, leave_type, from_date, to_date, reason, status)
           VALUES ('$emp_id', '$leave_type', '$from_date', '$to_date', '$reason', 'pending')";

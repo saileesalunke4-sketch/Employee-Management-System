@@ -29,10 +29,10 @@ $page_title = "View Employees";
         </div>
         <div style="overflow-x:auto;">
         <table class="emp-table">
-            <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Designation</th><th>Contact</th><th>Role</th><th>Department</th></tr></thead>
+            <thead><tr><th>Employee ID</th><th>Name</th><th>Email</th><th>Designation</th><th>Contact</th><th>Role</th><th>Department</th></tr></thead>
             <tbody>
             <?php
-                $res = mysqli_query($conn,"SELECT u.id,u.name,u.email,u.role,e.designation,e.contact,e.emp_id,e.dept_id FROM users u LEFT JOIN employees e ON u.id=e.user_id WHERE u.role='employee'");
+                $res = mysqli_query($conn,"SELECT u.id,u.name,u.email,u.role,e.designation,e.contact,e.emp_id,e.dept_id,e.employee_code FROM users u LEFT JOIN employees e ON u.id=e.user_id WHERE u.role='employee'");
                 while($row=mysqli_fetch_assoc($res)){
                     $depts_opt='';
                     $d_res=mysqli_query($conn,"SELECT * FROM departments ORDER BY dept_name");
@@ -41,7 +41,7 @@ $page_title = "View Employees";
                         $depts_opt.="<option value='{$d['dept_id']}' {$sel}>{$d['dept_name']}</option>";
                     }
                     echo "<tr>
-                        <td>{$row['id']}</td>
+                        <td><span class='pill blue' style='font-weight:700;'>".htmlspecialchars($row['employee_code'] ?: '-')."</span></td>
                         <td>{$row['name']}</td>
                         <td>{$row['email']}</td>
                         <td>{$row['designation']}</td>

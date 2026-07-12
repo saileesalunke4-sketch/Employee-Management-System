@@ -22,6 +22,50 @@ $page_title = "Attendance";
 <?php include 'topbar_admin.php'; ?>
 
 <div class="section active">
+    <?php if(isset($_GET['rr_msg']) && in_array($_GET['rr_msg'], ['approved','rejected'])):
+        $rr_is_approved = $_GET['rr_msg'] === 'approved';
+        $rr_emp  = htmlspecialchars($_GET['rr_emp'] ?? '');
+        $rr_date = htmlspecialchars($_GET['rr_date'] ?? '');
+    ?>
+    <div style="background:<?php echo $rr_is_approved?'#dcfce7':'#fee2e2'; ?>;border:1px solid <?php echo $rr_is_approved?'#86efac':'#fca5a5'; ?>;color:<?php echo $rr_is_approved?'#166534':'#7f1d1d'; ?>;padding:14px 18px;border-radius:10px;margin-bottom:18px;font-size:14px;">
+        <?php echo $rr_is_approved ? '✅' : '❌'; ?>
+        Regularization request for <b><?php echo $rr_emp; ?></b> (<?php echo $rr_date; ?>) has been
+        <b><?php echo ucfirst($_GET['rr_msg']); ?></b>.
+    </div>
+    <?php endif; ?>
+
+    <div class="form-card">
+        <h3 class="section-title">Pending Regularization Requests</h3>
+        <div style="overflow-x:auto;">
+        <table class="emp-table">
+            <thead><tr><th>Employee</th><th>Date</th><th>Requested Check In</th><th>Requested Check Out</th><th>Requested Status</th><th>Reason</th><th>Action</th></tr></thead>
+            <tbody>
+            <?php
+                $rr_res = mysqli_query($conn, "SELECT r.*, e.first_name, e.last_name FROM regularization_requests r JOIN employees e ON r.emp_id=e.emp_id WHERE r.status='pending' ORDER BY r.request_id DESC");
+                if(mysqli_num_rows($rr_res) === 0){
+                    echo "<tr><td colspan='7' style='text-align:center;color:#9ca3af;padding:16px;'>No pending regularization requests.</td></tr>";
+                } else {
+                    while($rr = mysqli_fetch_assoc($rr_res)){
+                        echo "<tr>
+                            <td>{$rr['first_name']} {$rr['last_name']}</td>
+                            <td>{$rr['att_date']}</td>
+                            <td>".($rr['requested_check_in'] ?: '-')."</td>
+                            <td>".($rr['requested_check_out'] ?: '-')."</td>
+                            <td>".ucfirst(str_replace('_',' ',$rr['requested_status']))."</td>
+                            <td>".htmlspecialchars($rr['reason'])."</td>
+                            <td>
+                                <a href='handle_regularization.php?id={$rr['request_id']}&action=approved&redirect=admin_attendance.php&csrf=".csrf_token()."' class='approve-btn'>Approve</a>
+                                <a href='handle_regularization.php?id={$rr['request_id']}&action=rejected&redirect=admin_attendance.php&csrf=".csrf_token()."' class='approve-btn' style='background:#dc2626;margin-left:6px;'>Reject</a>
+                            </td>
+                        </tr>";
+                    }
+                }
+            ?>
+            </tbody>
+        </table>
+        </div>
+    </div>
+
     <div class="form-card">
         <h3 class="section-title">Attendance Records</h3>
 

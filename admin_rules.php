@@ -64,17 +64,15 @@ $page_title = "Rules & Regulations";
         'Conduct'   => ['icon'=>'','class'=>'cat-conduct'],
         'Privacy'   => ['icon'=>'','class'=>'cat-privacy'],
     ];
-    foreach($categories as $cat => $meta){
+   foreach($categories as $cat => $meta){
         $rules = mysqli_query($conn,"SELECT * FROM rules WHERE category='$cat' ORDER BY rule_id ASC");
         $count = mysqli_num_rows($rules);
+        if($count == 0) continue;
         echo "<div style='margin-bottom:24px;'>
             <h4 style='font-size:14px;color:#6b7280;margin-bottom:12px;display:flex;align-items:center;gap:8px;'>
                 {$meta['icon']} {$cat} Rules
                 <span style='background:#f3f4f6;color:#6b7280;border-radius:20px;padding:1px 10px;font-size:12px;'>{$count}</span>
             </h4>";
-        if($count == 0){
-            echo "<p style='color:#9ca3af;font-size:13px;padding:12px 16px;background:#f9fafb;border-radius:8px;'>No {$cat} rules added yet.</p>";
-        }
         while($r = mysqli_fetch_assoc($rules)){
             echo "<div class='rule-card'>
                 <div class='rule-header'>

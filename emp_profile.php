@@ -60,6 +60,7 @@ $docs = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM employee_documents 
     <div class="form-card" style="margin-top:0;">
         <h3 class="section-title">My Details</h3>
         <table class="emp-table">
+            <tr><td><b>Employee ID</b></td><td><span class="pill blue" style="font-weight:700;"><?php echo htmlspecialchars($emp['employee_code'] ?: '-'); ?></span></td></tr>
             <tr><td><b>Name</b></td><td><?php echo $emp['first_name'].' '.$emp['last_name'];?></td></tr>
             <tr><td><b>Contact</b></td><td><?php echo $emp['contact'];?></td></tr>
             <tr><td><b>Designation</b></td><td><?php echo $emp['designation'];?></td></tr>

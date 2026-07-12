@@ -2,13 +2,13 @@
 session_start();
 require 'db.php';
 
-if(!isset($_SESSION['user'])){
+if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['admin','super_admin'], true)){
     header("Location: index.php");
     exit();
 }
 
-$emp_id  = $_POST['emp_id'];
-$dept_id = $_POST['dept_id'];
+$emp_id  = (int) $_POST['emp_id'];
+$dept_id = (int) $_POST['dept_id'];
 
 // Empty check
 if(empty($dept_id)){
@@ -16,7 +16,7 @@ if(empty($dept_id)){
     exit();
 }
 
-$query = "UPDATE employees SET dept_id='$dept_id' WHERE emp_id='$emp_id'";
+$query = "UPDATE employees SET dept_id=$dept_id WHERE emp_id=$emp_id";
 
 if(mysqli_query($conn, $query)){
     echo "<script>alert('Department assigned successfully!'); window.location.href='admin_dashboard.php?section=view_employees';</script>";

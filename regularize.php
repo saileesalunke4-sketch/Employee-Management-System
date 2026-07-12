@@ -2,12 +2,12 @@
 session_start();
 require 'db.php';
 
-if(!isset($_SESSION['user'])){
+if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['admin','super_admin'])){
     header("Location: index.php");
     exit();
 }
 
-$attendance_id = $_GET['id'];
+$attendance_id = (int) $_GET['id'];
 
 // Get current attendance record
 $att_res = mysqli_query($conn, "SELECT a.*, e.first_name, e.last_name FROM attendance a JOIN employees e ON a.emp_id = e.emp_id WHERE a.attendance_id='$attendance_id'");
@@ -33,6 +33,7 @@ $att = mysqli_fetch_assoc($att_res);
 
     <form action="save_regularize.php" method="POST">
         <input type="hidden" name="attendance_id" value="<?php echo $attendance_id; ?>">
+        <input type="hidden" name="csrf" value="<?php echo csrf_token(); ?>">
 
         <div class="field">
             <label>Update Status</label>

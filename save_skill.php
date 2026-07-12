@@ -15,7 +15,7 @@ $emp_id  = $emp_row['emp_id'];
 $skill_name  = mysqli_real_escape_string($conn, $_POST['skill_name']);
 $skill_level = $_POST['skill_level'];
 $description = mysqli_real_escape_string($conn, $_POST['description']);
-$added_date  = $_POST['added_date'];
+$added_date  = mysqli_real_escape_string($conn, $_POST['added_date']);
 
 $allowed_levels = ['Beginner','Intermediate','Advanced','Expert'];
 if(!in_array($skill_level, $allowed_levels)){

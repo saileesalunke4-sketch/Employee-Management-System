@@ -62,6 +62,25 @@ body { overflow: hidden; }
         <div class="card"><h3>Completed Tasks</h3><p class="num"><?php $r=mysqli_query($conn,"SELECT COUNT(*) as t FROM tasks WHERE status='completed'"); echo mysqli_fetch_assoc($r)['t']; ?></p></div>
     </div>
 
+    <!-- Real-Time Attendance Status Widget -->
+    <div style="background:#fff;border-radius:10px;padding:20px;margin-top:20px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #eee;">
+            <h3 style="font-size:14px;color:#60a5fa;margin:0;">🟢 Live Attendance Status — Today</h3>
+            <span id="attLastUpdated" style="font-size:11px;color:#9ca3af;"></span>
+        </div>
+
+        <div id="attSummaryRow" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
+
+        <div style="max-height:340px;overflow-y:auto;">
+            <table class="emp-table" style="width:100%;">
+                <thead><tr><th>Employee</th><th>Department</th><th>Status</th><th>Check In</th></tr></thead>
+                <tbody id="attStatusBody">
+                    <tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:20px;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Charts -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
         <div style="background:#fff;padding:24px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
@@ -105,6 +124,54 @@ body { overflow: hidden; }
 const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 new Chart(document.getElementById('adminAttChart'),{type:'bar',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
 new Chart(document.getElementById('adminLeaveChart'),{type:'bar',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+
+// ===== LIVE ATTENDANCE STATUS WIDGET =====
+const attStatusColors = {
+    present:         { bg:'#dcfce7', color:'#16a34a', label:'Present' },
+    late:            { bg:'#fef3c7', color:'#d97706', label:'Late' },
+    half_day:        { bg:'#fef3c7', color:'#d97706', label:'Half Day' },
+    work_from_home:  { bg:'#dbeafe', color:'#1d4ed8', label:'WFH' },
+    not_checked_in:  { bg:'#fee2e2', color:'#dc2626', label:'Not Checked-in' }
+};
+
+function loadAttendanceStatus(){
+    fetch('get_attendance_status.php')
+        .then(r => r.json())
+        .then(data => {
+            if(data.error) return;
+
+            // Summary pills
+            const counts = data.counts;
+            const summaryHtml = Object.keys(attStatusColors).map(key => {
+                const c = attStatusColors[key];
+                const n = counts[key] || 0;
+                return `<div style="background:${c.bg};color:${c.color};padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">${c.label}: ${n}</div>`;
+            }).join('');
+            document.getElementById('attSummaryRow').innerHTML = summaryHtml;
+
+            // Employee rows
+            const body = document.getElementById('attStatusBody');
+            if(!data.employees.length){
+                body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:20px;">No employees found.</td></tr>';
+            } else {
+                body.innerHTML = data.employees.map(emp => {
+                    const c = attStatusColors[emp.status] || attStatusColors.not_checked_in;
+                    return `<tr>
+                        <td>${emp.name}</td>
+                        <td>${emp.department || '-'}</td>
+                        <td><span style="background:${c.bg};color:${c.color};padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;">${c.label}</span></td>
+                        <td>${emp.check_in || '-'}</td>
+                    </tr>`;
+                }).join('');
+            }
+
+            document.getElementById('attLastUpdated').textContent = 'Last updated: ' + data.as_of;
+        })
+        .catch(err => console.error('Attendance status fetch failed', err));
+}
+
+loadAttendanceStatus();               // initial load
+setInterval(loadAttendanceStatus, 20000); // auto-refresh every 20 seconds
 </script>
 <?php include 'common_js.php'; ?>
 </body>

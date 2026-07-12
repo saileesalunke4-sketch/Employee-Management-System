@@ -155,6 +155,41 @@ if(isset($_SESSION['user'])){
         .contact-field textarea { resize:vertical; min-height:80px; }
         .contact-submit { background:linear-gradient(135deg,#1a3a6e,#3b82f6); color:white; border:none; padding:10px 24px; border-radius:8px; font-size:13px; cursor:pointer; font-weight:600; }
         .contact-submit:hover { opacity:0.9; }
+
+        /* ===== ENTRANCE ANIMATIONS (moderate, tasteful) ===== */
+        @keyframes containerIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .login-container { animation: containerIn 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .logo-wrap { animation: fadeInUp 0.5s ease 0.1s both; }
+        .features .feat { animation: fadeInUp 0.45s ease both; }
+        .features .feat:nth-child(1) { animation-delay: 0.2s; }
+        .features .feat:nth-child(2) { animation-delay: 0.28s; }
+        .features .feat:nth-child(3) { animation-delay: 0.36s; }
+        .features .feat:nth-child(4) { animation-delay: 0.44s; }
+        .login-right .welcome, .login-right .sub { animation: fadeInUp 0.5s ease 0.15s both; }
+        .inp-group { animation: fadeInUp 0.45s ease both; }
+        .inp-group:nth-of-type(1) { animation-delay: 0.25s; }
+        .inp-group:nth-of-type(2) { animation-delay: 0.32s; }
+        .login-btn { animation: fadeInUp 0.45s ease 0.4s both; }
+
+        /* Slow ambient drift on the background blur circles — subtle, non-distracting */
+        @keyframes ambientDrift {
+            0%, 100% { transform: translate(0,0) scale(1); }
+            50% { transform: translate(15px,-15px) scale(1.06); }
+        }
+        body::before { animation: ambientDrift 16s ease-in-out infinite; }
+        body::after  { animation: ambientDrift 16s ease-in-out infinite 4s; }
+        .login-left::before { animation: ambientDrift 12s ease-in-out infinite 1s; }
+        .login-left::after  { animation: ambientDrift 12s ease-in-out infinite 3s; }
+
+        .modal-box { animation: containerIn 0.3s cubic-bezier(0.16,1,0.3,1) both; }
     </style>
 </head>
 <body>
@@ -180,7 +215,9 @@ if(isset($_SESSION['user'])){
         <p class="welcome">Welcome Back</p>
         <p class="sub">Sign in to your EMS account</p>
 
-        <?php if(isset($_GET['error'])): ?>
+        <?php if(isset($_GET['error']) && $_GET['error'] === 'locked'): ?>
+            <div class="error-box">🔒 Too many failed attempts. Account temporarily locked — please try again in <?php echo (int)($_GET['minutes'] ?? 15); ?> minute(s).</div>
+        <?php elseif(isset($_GET['error'])): ?>
             <div class="error-box">⚠️ Invalid email or password. Please try again.</div>
         <?php endif; ?>
 

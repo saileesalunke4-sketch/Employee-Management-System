@@ -6,19 +6,23 @@ if(!isset($_SESSION['user'])){
     header("Location: index.php"); exit();
 }
 
+if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['admin','super_admin'], true)){
+    header("Location: index.php"); exit();
+}
+
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
     $name        = mysqli_real_escape_string($conn, $_POST['name']);
     $email       = mysqli_real_escape_string($conn, $_POST['email']);
     $plain_pass  = $_POST['password']; // save for welcome mail
     $password    = password_hash($plain_pass, PASSWORD_DEFAULT);
-    $role        = $_POST['role'];
+    $role        = in_array($_POST['role'], ['employee','admin','super_admin'], true) ? $_POST['role'] : 'employee';
     $first_name  = mysqli_real_escape_string($conn, $_POST['first_name']);
     $last_name   = mysqli_real_escape_string($conn, $_POST['last_name']);
     $contact     = mysqli_real_escape_string($conn, $_POST['contact']);
     $designation = mysqli_real_escape_string($conn, $_POST['designation']);
-    $blood_group = $_POST['blood_group'];
-    $dob         = $_POST['dob'];
+    $blood_group = mysqli_real_escape_string($conn, $_POST['blood_group']);
+    $dob         = mysqli_real_escape_string($conn, $_POST['dob']);
     $religion    = mysqli_real_escape_string($conn, $_POST['religion']);
     $address     = mysqli_real_escape_string($conn, $_POST['address']);
 

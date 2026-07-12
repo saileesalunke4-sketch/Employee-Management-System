@@ -4,43 +4,44 @@ require 'db.php';
 
 $error   = '';
 $success = '';
-$email_found = false;
-$email_val   = '';
 
 if(isset($_POST['check_email'])){
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $result = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
-    
-    if(mysqli_num_rows($result) > 0){
-        $email_found = true;
-        $email_val   = $email;
-    } else {
-        $error = "No account found with this email!";
-    }
-}
+    $user = mysqli_fetch_assoc($result);
 
-if(isset($_POST['reset_password'])){
-    $email    = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = $_POST['new_password'];
-    $confirm  = $_POST['confirm_password'];
+    // SECURITY: always show the same generic message whether or not the
+    // email exists — this prevents an attacker from using this form to
+    // discover which email addresses are registered in the system.
+    $success = "If an account exists with that email, a password reset link has been sent to it. Please check your inbox.";
 
-    // Validation
-    if(empty($password) || empty($confirm)){
-        $error = "Password fields cannot be blank!";
-        $email_found = true;
-        $email_val   = $email;
-    } elseif($password !== $confirm){
-        $error = "Passwords do not match!";
-        $email_found = true;
-        $email_val   = $email;
-    } elseif(!preg_match('/^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/', $password)){
-        $error = "Password must have uppercase letter, number & special character (e.g. Pass@123)";
-        $email_found = true;
-        $email_val   = $email;
-    } else {
-        $hashed = password_hash($password, PASSWORD_DEFAULT);
-        mysqli_query($conn, "UPDATE users SET password='$hashed' WHERE email='$email'");
-        $success = "Password updated successfully! You can now login.";
+    if($user){
+        // Generate a secure, single-use, time-limited reset token
+        $token      = bin2hex(random_bytes(32));
+        $expires_at = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+
+        mysqli_query($conn, "INSERT INTO password_resets (user_id, token, expires_at) VALUES ({$user['id']}, '$token', '$expires_at')");
+
+        $reset_link = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/reset_password.php?token=' . $token;
+
+        $subject = "Password Reset Request — EMS Aller Technologies";
+        $body = "
+        <div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
+            <div style='background:#1a3a6e;padding:20px;text-align:center;border-radius:10px 10px 0 0;'>
+                <h2 style='color:white;margin:0;'>Aller Technologies — EMS</h2>
+            </div>
+            <div style='background:#f9fafb;padding:24px;border-radius:0 0 10px 10px;border:1px solid #e5e7eb;'>
+                <p>Dear <strong>{$user['name']}</strong>,</p>
+                <p>We received a request to reset your EMS password. Click the button below to set a new password. This link is valid for <strong>30 minutes</strong> and can only be used once.</p>
+                <p style='text-align:center;margin:24px 0;'>
+                    <a href='{$reset_link}' style='background:#2563eb;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;'>Reset My Password</a>
+                </p>
+                <p style='color:#6b7280;font-size:12px;'>If you didn't request this, you can safely ignore this email — your password will not be changed.</p>
+                <p style='color:#6b7280;font-size:12px;'>This is an auto-generated email from EMS — Aller Technologies.</p>
+            </div>
+        </div>";
+
+        sendEMSMail($email, $user['name'], $subject, $body);
     }
 }
 ?>
@@ -93,45 +94,15 @@ if(isset($_POST['reset_password'])){
             <?php endif; ?>
 
             <?php if($success): ?>
-                <div class="success"><?php echo $success; ?>
-                    <br><a href="index.php" style="color:#16a34a;">Click here to Login</a>
-                </div>
-            <?php endif; ?>
-
-            <?php if(!$success): ?>
-
-                <?php if(!$email_found): ?>
-                <!-- Step 1 - Enter Email -->
+                <div class="success"><?php echo $success; ?></div>
+            <?php else: ?>
                 <form method="POST">
                     <div class="field">
                         <label>Enter Your Registered Email</label>
-                        <input type="email" name="email"
-                        placeholder="Enter your email" required>
+                        <input type="email" name="email" placeholder="Enter your email" required>
                     </div>
-                    <button type="submit" name="check_email">Find Account</button>
+                    <button type="submit" name="check_email">Send Reset Link</button>
                 </form>
-
-                <?php else: ?>
-                <!-- Step 2 - Enter New Password -->
-                <form method="POST">
-                    <input type="hidden" name="email" value="<?php echo $email_val; ?>">
-                    <div class="field">
-                        <label>New Password</label>
-                        <input type="password" name="new_password"
-                        placeholder="e.g. Pass@123" required>
-                    </div>
-                    <div class="field">
-                        <label>Confirm New Password</label>
-                        <input type="password" name="confirm_password"
-                        placeholder="Re-enter new password" required>
-                    </div>
-                    <small style="color:#9ca3af; font-size:11px; display:block; margin-bottom:16px;">
-                        Password must have uppercase letter, number & special character
-                    </small>
-                    <button type="submit" name="reset_password">Update Password</button>
-                </form>
-                <?php endif; ?>
-
             <?php endif; ?>
         </div>
     </div>

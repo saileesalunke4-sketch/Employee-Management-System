@@ -12,9 +12,9 @@ $emp_result = mysqli_query($conn, "SELECT emp_id FROM employees WHERE user_id='$
 $emp = mysqli_fetch_assoc($emp_result);
 $emp_id = $emp['emp_id'];
 
-$log_date    = $_POST['log_date'];
+$log_date    = mysqli_real_escape_string($conn, $_POST['log_date']);
 $work_done   = mysqli_real_escape_string($conn, $_POST['work_done']);
-$hours_spent = $_POST['hours_spent'];
+$hours_spent = (float) $_POST['hours_spent'];
 
 // Duplicate check - ek din mein ek hi log
 $dup = mysqli_query($conn, "SELECT * FROM daily_logs WHERE emp_id='$emp_id' AND log_date='$log_date'");

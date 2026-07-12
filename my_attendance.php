@@ -9,10 +9,6 @@ $emp_result = mysqli_query($conn, "SELECT * FROM employees WHERE user_id='$user_
 $emp = mysqli_fetch_assoc($emp_result);
 $emp_id = $emp['emp_id'];
 $page_title = "My Attendance";
-
-// Check today's attendance status
-$today = date('Y-m-d');
-$today_att = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM attendance WHERE emp_id='$emp_id' AND date='$today'"));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,15 +25,7 @@ $today_att = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM attendance WHE
 .status-pill.pending{background:#fef3c7;color:#d97706;}
 .status-pill.completed{background:#dcfce7;color:#16a34a;}
 .status-pill.in_progress{background:#fef3c7;color:#d97706;}
-.checkin-box{background:linear-gradient(135deg,#1a3a6e,#3b82f6);border-radius:14px;padding:28px;text-align:center;color:white;margin-bottom:20px;}
-.time-display{font-size:32px;font-weight:800;margin:6px 0;}
-.checkin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
-.checkin-card{background:rgba(255,255,255,0.12);border-radius:10px;padding:16px;}
-.action-btn{display:inline-block;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:700;border:none;cursor:pointer;margin-top:10px;}
-.btn-checkin{background:#16a34a;color:white;}
-.btn-checkout{background:#dc2626;color:white;}
-.btn-disabled{background:#9ca3af;color:white;cursor:not-allowed;}
-.live-clock{font-size:14px;opacity:0.85;margin-bottom:8px;}
+.skill-tag{display:inline-block;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;margin:4px;}
 </style>
 </head>
 <body>
@@ -48,51 +36,177 @@ $today_att = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM attendance WHE
 
 <div class="section active">
 
-    <!-- Check In / Check Out Box -->
-    <div class="checkin-box">
-        <div class="live-clock" id="liveClock"></div>
-        <h3 style="margin:0;font-size:16px;">📍 Today's Attendance — <?php echo date('d M Y'); ?></h3>
+    <?php
+        // Check today's attendance status for this employee (server-side truth)
+        $today = date('Y-m-d');
+        $today_res = mysqli_query($conn, "SELECT * FROM attendance WHERE emp_id='$emp_id' AND date='$today'");
+        $today_att = mysqli_fetch_assoc($today_res);
+    ?>
+    <div class="form-card">
+        <h3 class="section-title">Today's Attendance — <?php echo date('d M Y'); ?></h3>
 
-        <div class="checkin-grid">
-            <div class="checkin-card">
-                <p style="font-size:12px;opacity:0.8;margin:0;">CHECK IN TIME</p>
-                <p class="time-display"><?php echo ($today_att && $today_att['check_in']) ? date('h:i A', strtotime($today_att['check_in'])) : '--:--'; ?></p>                <?php if(!$today_att): ?>
-                    <form action="save_attendance.php" method="POST">
-                        <input type="hidden" name="action" value="check_in">
-                        <select name="status" style="padding:6px 10px;border-radius:6px;border:none;margin-bottom:8px;color:#1a1a2e;">
-                            <option value="present">🏢 Office</option>
-                            <option value="work_from_home">🏠 Work From Home</option>
-                        </select><br>
-                        <button type="submit" class="action-btn btn-checkin">✅ Check In Now</button>
-                    </form>
-                <?php else: ?>
-                    <button class="action-btn btn-disabled" disabled>✅ Already Checked In</button>
+        <?php if(!$today_att): ?>
+            <!-- Not checked in yet -->
+            <form action="save_attendance.php" method="POST" id="checkinForm">
+                <div class="field" style="margin-bottom:14px;">
+                    <label><input type="checkbox" name="wfh" id="wfhCheckbox" value="1" style="width:auto;margin-right:6px;">Working From Home today</label>
+                </div>
+                <input type="hidden" name="lat" id="checkinLat">
+                <input type="hidden" name="lng" id="checkinLng">
+                <div id="locStatusIn" style="font-size:12px;color:#d97706;margin-bottom:10px;">📍 Detecting your location...</div>
+                <button type="submit" class="submit-btn" id="checkinBtn" disabled>Check In Now</button>
+            </form>
+            <p style="font-size:12px;color:#888;margin-top:10px;">Time is captured automatically from the server when you check in. Check-in needs to happen from within office premises (unless marked WFH).</p>
+
+        <?php elseif($today_att && !$today_att['check_out']): ?>
+            <!-- Checked in, not checked out -->
+            <p style="font-size:14px;color:#1d4ed8;margin-bottom:14px;">
+                Checked in at <b><?php echo $today_att['check_in']; ?></b> —
+                status: <b><?php echo ucfirst(str_replace('_',' ',$today_att['status'])); ?></b>
+            </p>
+            <form action="save_checkout.php" method="POST" id="checkoutForm">
+                <input type="hidden" name="lat" id="checkoutLat">
+                <input type="hidden" name="lng" id="checkoutLng">
+                <?php if($today_att['status'] !== 'work_from_home'): ?>
+                <div id="locStatusOut" style="font-size:12px;color:#d97706;margin-bottom:10px;">📍 Detecting your location...</div>
                 <?php endif; ?>
-            </div>
+                <button type="submit" class="submit-btn" id="checkoutBtn" <?php echo ($today_att['status'] !== 'work_from_home') ? 'disabled' : ''; ?>>Check Out Now</button>
+            </form>
 
-            <div class="checkin-card">
-                <p style="font-size:12px;opacity:0.8;margin:0;">CHECK OUT TIME</p>
-                <p class="time-display"><?php echo ($today_att && $today_att['check_out']) ? date('h:i A', strtotime($today_att['check_out'])) : '--:--'; ?></p>                <?php if($today_att && empty($today_att['check_out'])): ?>
-                    <form action="save_attendance.php" method="POST">
-                        <input type="hidden" name="action" value="check_out">
-                        <button type="submit" class="action-btn btn-checkout">🚪 Check Out Now</button>
-                    </form>
-                <?php elseif($today_att && !empty($today_att['check_out'])): ?>
-                    <button class="action-btn btn-disabled" disabled>🚪 Already Checked Out</button>
-                <?php else: ?>
-                    <button class="action-btn btn-disabled" disabled>Check In First</button>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <p style="font-size:11px;opacity:0.7;margin-top:14px;">
-            ⏱️ Time is automatically captured by the system using server time. Manual time entry is not allowed for accuracy.<br>
-            ⚠️ Check-in after <strong>9:15 AM</strong> will be automatically marked as <strong>Late</strong>.
-        </p>
+        <?php else: ?>
+            <!-- Already completed for today -->
+            <p style="font-size:14px;color:#16a34a;">
+                Attendance completed for today — Check In: <b><?php echo $today_att['check_in']; ?></b>,
+                Check Out: <b><?php echo $today_att['check_out']; ?></b>
+            </p>
+        <?php endif; ?>
     </div>
 
-    <!-- Attendance History -->
-    <div class="form-card">
+    <script>
+    // Office coordinates, exposed to JS just for a live "in office or not" preview.
+    // Real validation always happens again on the server (this is client-side UX only).
+    var OFFICE_LAT    = <?php echo OFFICE_LAT; ?>;
+    var OFFICE_LNG    = <?php echo OFFICE_LNG; ?>;
+    var OFFICE_RADIUS = <?php echo OFFICE_RADIUS_METERS; ?>;
+
+    function distanceMeters(lat1, lon1, lat2, lon2){
+        var R = 6371000;
+        var dLat = (lat2-lat1) * Math.PI/180;
+        var dLon = (lon2-lon1) * Math.PI/180;
+        var a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+                Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180) *
+                Math.sin(dLon/2)*Math.sin(dLon/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    // Capture browser geolocation, populate hidden fields, and show whether
+    // the detected location falls inside or outside the office radius.
+    function captureLocation(latFieldId, lngFieldId, statusId, btnId){
+        var statusEl = document.getElementById(statusId);
+        var btnEl = document.getElementById(btnId);
+        if(!navigator.geolocation){
+            if(statusEl){ statusEl.innerHTML = '❌ Geolocation not supported by your browser.'; statusEl.style.color = '#dc2626'; }
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(function(pos){
+            var lat = pos.coords.latitude, lng = pos.coords.longitude;
+            document.getElementById(latFieldId).value = lat;
+            document.getElementById(lngFieldId).value = lng;
+
+            var dist = distanceMeters(lat, lng, OFFICE_LAT, OFFICE_LNG);
+            if(statusEl){
+                if(dist <= OFFICE_RADIUS){
+                    statusEl.innerHTML = '✅ You are at office premises (' + Math.round(dist) + ' m from office).';
+                    statusEl.style.color = '#16a34a';
+                } else {
+                    var distKm = (dist/1000).toFixed(2);
+                    statusEl.innerHTML = '⚠️ You are ' + distKm + ' km away from office — check-in will be rejected unless you tick Work From Home.';
+                    statusEl.style.color = '#d97706';
+                }
+            }
+            if(btnEl) btnEl.disabled = false; // server still re-checks distance on submit
+        }, function(err){
+            if(statusEl){ statusEl.innerHTML = '❌ Location access denied. Please allow location permission and reload this page.'; statusEl.style.color = '#dc2626'; }
+        }, { enableHighAccuracy: true, timeout: 10000 });
+    }
+
+    var wfhCheckbox = document.getElementById('wfhCheckbox');
+    var checkinBtn  = document.getElementById('checkinBtn');
+    var locStatusIn = document.getElementById('locStatusIn');
+
+    if(wfhCheckbox){
+        wfhCheckbox.addEventListener('change', function(){
+            if(this.checked){
+                // WFH ticked: location not required
+                if(locStatusIn){ locStatusIn.innerHTML = '🏠 Work From Home — location check skipped.'; locStatusIn.style.color = '#1d4ed8'; }
+                if(checkinBtn) checkinBtn.disabled = false;
+            } else {
+                captureLocation('checkinLat','checkinLng','locStatusIn','checkinBtn');
+            }
+        });
+        // Try capturing location right away for the default (non-WFH) case
+        captureLocation('checkinLat','checkinLng','locStatusIn','checkinBtn');
+    }
+
+    if(document.getElementById('checkoutForm') && document.getElementById('locStatusOut')){
+        captureLocation('checkoutLat','checkoutLng','locStatusOut','checkoutBtn');
+    }
+    </script>
+    <div class="form-card" style="margin-top:20px;">
+        <h3 class="section-title">Request Attendance Regularization</h3>
+        <p style="font-size:12px;color:#888;margin-top:-6px;margin-bottom:14px;">Forgot to check in/out on a past day, or attendance marked incorrectly? Request a correction here — your Admin will review and approve/reject it.</p>
+        <form action="save_regularization_request.php" method="POST">
+            <div class="form-grid">
+                <div class="field"><label>Date</label>
+                    <input type="date" name="att_date" max="<?php echo date('Y-m-d', strtotime('-1 day')); ?>" required>
+                </div>
+                <div class="field"><label>Requested Check In</label><input type="time" name="requested_check_in"></div>
+                <div class="field"><label>Requested Check Out</label><input type="time" name="requested_check_out"></div>
+                <div class="field"><label>Requested Status</label>
+                    <select name="requested_status">
+                        <option value="present">Present</option>
+                        <option value="late">Late</option>
+                        <option value="half_day">Half Day</option>
+                        <option value="work_from_home">Work From Home</option>
+                    </select>
+                </div>
+                <div class="field" style="grid-column:1/-1"><label>Reason</label><textarea name="reason" rows="2" placeholder="e.g. Forgot to check out, system issue, etc." required></textarea></div>
+            </div>
+            <button type="submit" class="submit-btn">Submit Request</button>
+        </form>
+    </div>
+
+    <div class="form-card" style="margin-top:20px;">
+        <h3 class="section-title">My Regularization Requests</h3>
+        <div style="overflow-x:auto;">
+        <table class="emp-table">
+            <thead><tr><th>Date</th><th>Requested Check In</th><th>Requested Check Out</th><th>Requested Status</th><th>Reason</th><th>Status</th></tr></thead>
+            <tbody>
+            <?php
+                $rr_res = mysqli_query($conn, "SELECT * FROM regularization_requests WHERE emp_id='$emp_id' ORDER BY request_id DESC");
+                if(mysqli_num_rows($rr_res) === 0){
+                    echo "<tr><td colspan='6' style='text-align:center;color:#9ca3af;padding:16px;'>No regularization requests yet.</td></tr>";
+                } else {
+                    while($rr = mysqli_fetch_assoc($rr_res)){
+                        $rr_pill_map = ['pending'=>'pending','approved'=>'approved','rejected'=>'rejected'];
+                        $rr_pill = $rr_pill_map[$rr['status']] ?? 'pending';
+                        echo "<tr>
+                            <td>{$rr['att_date']}</td>
+                            <td>".($rr['requested_check_in'] ?: '-')."</td>
+                            <td>".($rr['requested_check_out'] ?: '-')."</td>
+                            <td>".ucfirst(str_replace('_',' ',$rr['requested_status']))."</td>
+                            <td>".htmlspecialchars($rr['reason'])."</td>
+                            <td><span class='status-pill {$rr_pill}'>".ucfirst($rr['status'])."</span></td>
+                        </tr>";
+                    }
+                }
+            ?>
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <div class="form-card" style="margin-top:20px;">
         <h3 class="section-title">All My Attendance Records</h3>
         <div style="overflow-x:auto;">
         <table class="emp-table">
@@ -105,7 +219,7 @@ $today_att = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM attendance WHE
                     if($row['check_in']&&$row['check_out']){ $in=strtotime($row['check_in']); $out=strtotime($row['check_out']); if($out>$in) $hrs=($out-$in)/3600; }
                     $st_map=['present'=>'approved','late'=>'pending','half_day'=>'pending','work_from_home'=>'approved','absent'=>'rejected'];
                     $pill=$st_map[$row['status']]??'pending';
-                    echo "<tr><td>{$row['date']}</td><td>".($row['check_in']?:'-')."</td><td>".($row['check_out']?:'-')."</td>
+                    echo "<tr><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td>
                     <td><span class='status-pill $pill'>".ucfirst(str_replace('_',' ',$row['status']))."</span></td>
                     <td>".($hrs>0?number_format($hrs,1)." hrs":"-")."</td>
                     <td>".($row['overtime_hours']>0?"<span style='color:#d97706;font-weight:600;'>".$row['overtime_hours']." hrs</span>":"-")."</td>
@@ -121,15 +235,6 @@ $today_att = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM attendance WHE
 
 </div>
 </div>
-
-<script>
-function updateClock(){
-    const now = new Date();
-    document.getElementById('liveClock').innerText = '🕐 ' + now.toLocaleTimeString();
-}
-setInterval(updateClock, 1000);
-updateClock();
-</script>
 
 <?php include 'common_js.php'; ?>
 </body>

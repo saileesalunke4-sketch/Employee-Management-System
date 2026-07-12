@@ -12,6 +12,14 @@ $emp_id     = $emp['emp_id'];
 // Create upload directory
 if(!is_dir('uploads/documents')) mkdir('uploads/documents', 0777, true);
 
+// SECURITY: prevent any script from ever being executed if it somehow ends
+// up in this folder (defense-in-depth on top of the extension/MIME checks
+// below). Written once; harmless if it already exists.
+$htaccess_path = 'uploads/documents/.htaccess';
+if(!file_exists($htaccess_path)){
+    file_put_contents($htaccess_path, "php_flag engine off\nAddHandler cgi-script .php .php3 .php4 .php5 .phtml .pl .py .jsp .asp .sh .cgi\nOptions -ExecCGI\n");
+}
+
 // Create table if not exists
 mysqli_query($conn,"CREATE TABLE IF NOT EXISTS employee_documents (
     doc_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -22,15 +30,60 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS employee_documents (
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )");
 
+// SECURITY: only these document types are allowed. Both the file extension
+// AND the actual file content (MIME type, detected server-side — not trusting
+// what the browser/client claims) must match, so a renamed .php file cannot
+// slip through as a "PDF" or "JPG".
+$allowed_ext_mime = [
+    'pdf'  => 'application/pdf',
+    'jpg'  => 'image/jpeg',
+    'jpeg' => 'image/jpeg',
+    'png'  => 'image/png',
+];
+$max_file_size = 5 * 1024 * 1024; // 5 MB
+
 $doc_fields = ['pan_card','aadhar_card','marks_card'];
 $updates    = [];
+$upload_errors = [];
 
 foreach($doc_fields as $field){
     if(isset($_FILES[$field]) && $_FILES[$field]['error']==0){
-        $ext      = pathinfo($_FILES[$field]['name'], PATHINFO_EXTENSION);
+
+        $orig_name = $_FILES[$field]['name'];
+        $tmp_path  = $_FILES[$field]['tmp_name'];
+        $size      = $_FILES[$field]['size'];
+
+        $ext = strtolower(pathinfo($orig_name, PATHINFO_EXTENSION));
+
+        if(!array_key_exists($ext, $allowed_ext_mime)){
+            $upload_errors[] = "$field: only PDF, JPG or PNG files are allowed.";
+            continue;
+        }
+
+        if($size > $max_file_size){
+            $upload_errors[] = "$field: file is too large (max 5 MB).";
+            continue;
+        }
+
+        // Verify the file's REAL content type server-side (finfo reads the
+        // actual bytes, not the filename), so a .php file renamed to .pdf
+        // is still rejected.
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $real_mime = finfo_file($finfo, $tmp_path);
+        finfo_close($finfo);
+
+        if($real_mime !== $allowed_ext_mime[$ext]){
+            $upload_errors[] = "$field: file content does not match a valid $ext file.";
+            continue;
+        }
+
+        // Filename is fully server-generated (field + emp_id + timestamp + our
+        // own validated extension) — the original filename is never reused,
+        // so there's no path-traversal or double-extension risk.
         $filename = $field.'_'.$emp_id.'_'.time().'.'.$ext;
         $dest     = 'uploads/documents/'.$filename;
-        if(move_uploaded_file($_FILES[$field]['tmp_name'], $dest)){
+
+        if(move_uploaded_file($tmp_path, $dest)){
             $updates[$field] = $filename;
         }
     }
@@ -47,7 +100,15 @@ if(!empty($updates)){
         $vals = "'$emp_id','".implode("','", array_values($updates))."'";
         mysqli_query($conn,"INSERT INTO employee_documents ($cols) VALUES ($vals)");
     }
-    echo "<script>alert('Documents uploaded successfully!'); window.location.href='emp_profile.php';</script>";
+    if(!empty($upload_errors)){
+        $err_msg = implode('\\n', $upload_errors);
+        echo "<script>alert('Some documents were uploaded, but others were rejected:\\n$err_msg'); window.location.href='emp_profile.php';</script>";
+    } else {
+        echo "<script>alert('Documents uploaded successfully!'); window.location.href='emp_profile.php';</script>";
+    }
+} elseif(!empty($upload_errors)){
+    $err_msg = implode('\\n', $upload_errors);
+    echo "<script>alert('Upload failed:\\n$err_msg'); window.history.back();</script>";
 } else {
     echo "<script>alert('Please select at least one file!'); window.history.back();</script>";
 }

@@ -2,17 +2,17 @@
 session_start();
 require 'db.php';
 
-if(!isset($_SESSION['user'])){
+if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['admin','super_admin'], true)){
     header("Location: index.php"); exit();
 }
 
-$emp_id     = $_POST['emp_id'];
-$basic_pay  = $_POST['basic_pay'];
-$allowances = $_POST['allowances'];
-$deductions = $_POST['deductions'];
-$lop_days   = $_POST['lop_days'];
-$month      = $_POST['month'];
-$year       = $_POST['year'];
+$emp_id     = (int) $_POST['emp_id'];
+$basic_pay  = (float) $_POST['basic_pay'];
+$allowances = (float) $_POST['allowances'];
+$deductions = (float) $_POST['deductions'];
+$lop_days   = (float) $_POST['lop_days'];
+$month      = mysqli_real_escape_string($conn, $_POST['month']);
+$year       = (int) $_POST['year'];
 
 // Calculate
 $per_day    = $basic_pay / 30;
@@ -20,12 +20,12 @@ $lop_amount = $per_day * $lop_days;
 $net_pay    = ($basic_pay + $allowances) - $deductions - $lop_amount;
 
 $query = "INSERT INTO salary (emp_id, basic_pay, allowances, deductions, lop_days, lop_amount, net_pay, month, year)
-          VALUES ('$emp_id','$basic_pay','$allowances','$deductions','$lop_days','$lop_amount','$net_pay','$month','$year')";
+          VALUES ($emp_id,$basic_pay,$allowances,$deductions,$lop_days,$lop_amount,$net_pay,'$month',$year)";
 
 if(mysqli_query($conn, $query)){
 
     // Get employee details
-    $emp = mysqli_fetch_assoc(mysqli_query($conn,"SELECT e.first_name, e.last_name, u.email FROM employees e JOIN users u ON e.user_id=u.id WHERE e.emp_id='$emp_id'"));
+    $emp = mysqli_fetch_assoc(mysqli_query($conn,"SELECT e.first_name, e.last_name, u.email FROM employees e JOIN users u ON e.user_id=u.id WHERE e.emp_id=$emp_id"));
     $emp_name  = $emp['first_name'].' '.$emp['last_name'];
     $emp_email = $emp['email'];
 

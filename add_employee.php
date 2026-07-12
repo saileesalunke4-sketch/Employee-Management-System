@@ -14,13 +14,13 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $name = mysqli_real_escape_string($conn, $_POST['name']);
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    $role = $_POST['role'];
+    $role = in_array($_POST['role'], ['employee','admin','super_admin'], true) ? $_POST['role'] : 'employee';
     $first_name = mysqli_real_escape_string($conn, $_POST['first_name']);
     $last_name = mysqli_real_escape_string($conn, $_POST['last_name']);
     $contact = mysqli_real_escape_string($conn, $_POST['contact']);
     $designation = mysqli_real_escape_string($conn, $_POST['designation']);
-    $blood_group = $_POST['blood_group'];
-    $dob = $_POST['dob'];
+    $blood_group = mysqli_real_escape_string($conn, $_POST['blood_group']);
+    $dob = mysqli_real_escape_string($conn, $_POST['dob']);
     $religion = mysqli_real_escape_string($conn, $_POST['religion']);
     $address = mysqli_real_escape_string($conn, $_POST['address']);
 
@@ -29,7 +29,12 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         $user_id = mysqli_insert_id($conn);
         $emp_query = "INSERT INTO employees (user_id, first_name, last_name, contact, designation, blood_group, dob, religion, address) VALUES ('$user_id','$first_name','$last_name','$contact','$designation','$blood_group','$dob','$religion','$address')";
         if(mysqli_query($conn, $emp_query)){
-            $success = "Employee added successfully!";
+            // Auto-generate a human-friendly Employee ID (e.g. EMP0001) from the new emp_id
+            $new_emp_id = mysqli_insert_id($conn);
+            $employee_code = 'EMP' . str_pad($new_emp_id, 4, '0', STR_PAD_LEFT);
+            mysqli_query($conn, "UPDATE employees SET employee_code='$employee_code' WHERE emp_id=$new_emp_id");
+
+            $success = "Employee added successfully! Employee ID: $employee_code";
         }
     } else {
         $error = "Email already exists!";

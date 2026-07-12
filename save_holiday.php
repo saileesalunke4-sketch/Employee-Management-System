@@ -8,7 +8,7 @@ if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['admin','s
 }
 
 $holiday_name = mysqli_real_escape_string($conn, $_POST['holiday_name']);
-$holiday_date = $_POST['holiday_date'];
+$holiday_date = mysqli_real_escape_string($conn, $_POST['holiday_date']);
 $holiday_type = mysqli_real_escape_string($conn, $_POST['holiday_type'] ?? 'National');
 
 $check = mysqli_query($conn,"SELECT id FROM holidays WHERE holiday_date='$holiday_date' AND holiday_name='$holiday_name'");

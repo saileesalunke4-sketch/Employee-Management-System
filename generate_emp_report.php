@@ -6,13 +6,16 @@ if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'],['admin','su
 require 'db.php';
 require 'fpdf/fpdf.php';
 
-$emp_id  = $_GET['emp_id'];
-$month   = $_GET['month']  ?? date('F');
-$year    = $_GET['year']   ?? date('Y');
+// SECURITY: emp_id must be an integer, month must be a known month name,
+// year must be an integer — all previously went straight into SQL unescaped.
+$emp_id  = (int) $_GET['emp_id'];
+$valid_months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+$month   = in_array($_GET['month'] ?? '', $valid_months, true) ? $_GET['month'] : date('F');
+$year    = (int) ($_GET['year'] ?? date('Y'));
 $mon_num = date('m', strtotime("$month 1 $year"));
 
 // Employee details
-$emp = mysqli_fetch_assoc(mysqli_query($conn,"SELECT e.*, u.name, u.email FROM employees e JOIN users u ON e.user_id=u.id WHERE e.emp_id='$emp_id'"));
+$emp = mysqli_fetch_assoc(mysqli_query($conn,"SELECT e.*, u.name, u.email FROM employees e JOIN users u ON e.user_id=u.id WHERE e.emp_id=$emp_id"));
 if(!$emp) die("Employee not found!");
 
 // Attendance
@@ -22,10 +25,10 @@ $att = mysqli_fetch_assoc(mysqli_query($conn,"SELECT
     SUM(status='absent') as absent,
     SUM(status='late') as late,
     SUM(status='work_from_home') as wfh
-    FROM attendance WHERE emp_id='$emp_id' AND YEAR(date)='$year' AND MONTH(date)='$mon_num'"));
+    FROM attendance WHERE emp_id=$emp_id AND YEAR(date)=$year AND MONTH(date)='$mon_num'"));
 
 // Hours
-$hrs_res = mysqli_query($conn,"SELECT check_in,check_out FROM attendance WHERE emp_id='$emp_id' AND YEAR(date)='$year' AND MONTH(date)='$mon_num' AND check_in IS NOT NULL AND check_out IS NOT NULL");
+$hrs_res = mysqli_query($conn,"SELECT check_in,check_out FROM attendance WHERE emp_id=$emp_id AND YEAR(date)=$year AND MONTH(date)='$mon_num' AND check_in IS NOT NULL AND check_out IS NOT NULL");
 $total_hrs = 0; $ot_hrs = 0;
 while($h = mysqli_fetch_assoc($hrs_res)){
     $diff = (strtotime($h['check_out']) - strtotime($h['check_in'])) / 3600;

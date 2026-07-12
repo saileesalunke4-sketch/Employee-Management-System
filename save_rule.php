@@ -5,14 +5,14 @@ if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'],['admin','su
 }
 require 'db.php';
 
-$rule_id    = $_POST['rule_id'];
+$rule_id    = (int) ($_POST['rule_id'] ?? 0);
 $category   = mysqli_real_escape_string($conn, $_POST['category']);
 $title      = mysqli_real_escape_string($conn, $_POST['title']);
 $description= mysqli_real_escape_string($conn, $_POST['description']);
 
 if(!empty($rule_id)){
     // Update
-    $q = "UPDATE rules SET category='$category', title='$title', description='$description' WHERE rule_id='$rule_id'";
+    $q = "UPDATE rules SET category='$category', title='$title', description='$description' WHERE rule_id=$rule_id";
 } else {
     // Insert
     $q = "INSERT INTO rules (category, title, description) VALUES ('$category','$title','$description')";

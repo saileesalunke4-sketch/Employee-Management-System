@@ -1,11 +1,16 @@
+/* ===== Font ===== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
 }
 
-/* Login Page */
+html { scroll-behavior: smooth; }
+
+/* ===== Login Page ===== */
 .login-wrapper {
     display: flex;
     height: 100vh;
@@ -13,23 +18,55 @@
 }
 .login-left {
     flex: 1;
-    background: #0d1b3e;
+    position: relative;
+    background: linear-gradient(160deg, #0d1b3e 0%, #0a1530 60%, #0a0f1e 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding: 60px;
     color: white;
+    overflow: hidden;
 }
+/* Soft ambient glow blobs — subtle, slow drift (moderate animation, not distracting) */
+.login-left::before,
+.login-left::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.35;
+    pointer-events: none;
+    animation: drift 14s ease-in-out infinite;
+}
+.login-left::before {
+    width: 320px; height: 320px;
+    background: #3b82f6;
+    top: -80px; left: -80px;
+}
+.login-left::after {
+    width: 260px; height: 260px;
+    background: #6366f1;
+    bottom: -60px; right: -40px;
+    animation-delay: 3s;
+}
+@keyframes drift {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(20px, -20px) scale(1.08); }
+}
+.brand, .features { position: relative; z-index: 1; }
 .brand h1 {
     font-size: 48px;
+    font-weight: 800;
     color: #60a5fa;
     margin-bottom: 8px;
+    animation: fadeInUp 0.6s ease both;
 }
 .brand p {
     color: rgba(255,255,255,0.5);
     font-size: 14px;
     letter-spacing: 2px;
     text-transform: uppercase;
+    animation: fadeInUp 0.6s ease 0.1s both;
 }
 .features { margin-top: 40px; }
 .feat {
@@ -40,9 +77,13 @@
     color: rgba(255,255,255,0.6);
     font-size: 13px;
     margin-bottom: 8px;
+    animation: fadeInUp 0.5s ease both;
 }
+.features .feat:nth-child(1) { animation-delay: 0.2s; }
+.features .feat:nth-child(2) { animation-delay: 0.3s; }
+.features .feat:nth-child(3) { animation-delay: 0.4s; }
 .feat:hover {
-    background: rgba(59,130,246,0.1);
+    background: rgba(59,130,246,0.12);
     color: white;
     transform: translateX(4px);
     transition: all 0.3s;
@@ -54,9 +95,11 @@
     justify-content: center;
     padding: 60px;
     background: #080d1a;
+    animation: fadeIn 0.5s ease both;
 }
 .login-right h2 {
     font-size: 28px;
+    font-weight: 700;
     color: white;
     margin-bottom: 6px;
 }
@@ -65,7 +108,7 @@
     font-size: 13px;
     margin-bottom: 30px;
 }
-.error {
+.error, .error-box {
     background: rgba(220,38,38,0.1);
     border: 0.5px solid rgba(220,38,38,0.3);
     color: #f87171;
@@ -73,6 +116,12 @@
     border-radius: 8px;
     font-size: 13px;
     margin-bottom: 20px;
+    animation: shake 0.4s ease;
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
 }
 .field { margin-bottom: 18px; }
 .field label {
@@ -80,8 +129,9 @@
     font-size: 12px;
     color: rgba(255,255,255,0.4);
     margin-bottom: 8px;
+    font-weight: 500;
 }
-.field input {
+.field input, .field select, .field textarea {
     width: 100%;
     padding: 12px 16px;
     background: rgba(255,255,255,0.05);
@@ -90,11 +140,12 @@
     color: white;
     font-size: 14px;
     outline: none;
-    transition: all 0.3s;
+    transition: all 0.25s ease;
 }
-.field input:focus {
+.field input:focus, .field select:focus, .field textarea:focus {
     border-color: rgba(59,130,246,0.6);
     background: rgba(59,130,246,0.06);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
 }
 .field input::placeholder { color: rgba(255,255,255,0.2); }
 .forgot {
@@ -105,7 +156,9 @@
     font-size: 12px;
     color: #60a5fa;
     text-decoration: none;
+    transition: color .2s;
 }
+.forgot a:hover { color: #93c5fd; }
 button[type="submit"] {
     width: 100%;
     padding: 13px;
@@ -114,12 +167,23 @@ button[type="submit"] {
     border-radius: 8px;
     color: white;
     font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
 }
 button[type="submit"]:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 25px rgba(99,102,241,0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(99,102,241,0.4);
+}
+button[type="submit"]:active { transform: translateY(0); }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 /* ===== Dashboard Layout ===== */
@@ -127,36 +191,53 @@ button[type="submit"]:hover {
     display: flex;
     height: 100vh;
     background: #f0f4f8;
-    overflow: hidden; /* FIX: no horizontal scroll on dashboard */
+    overflow: hidden;
 }
 .sidebar {
     width: 220px;
     min-width: 220px;
-    background: #0a0f1e;
+    background: linear-gradient(180deg, #0a0f1e 0%, #0d1530 100%);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    scrollbar-width: none;       /* Firefox */
-    -ms-overflow-style: none;    /* IE / Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
-.sidebar::-webkit-scrollbar { display: none; } /* Chrome / Safari */
+.sidebar::-webkit-scrollbar { display: none; }
 .nav-item {
     display: block;
     padding: 12px 24px;
-    color: rgba(255,255,255,0.5);
+    color: rgba(255,255,255,0.55);
     text-decoration: none;
     font-size: 14px;
-    transition: all 0.3s;
+    font-weight: 500;
+    transition: all 0.25s ease;
     cursor: pointer;
     white-space: nowrap;
+    border-left: 3px solid transparent;
 }
-.nav-item:hover, .nav-item.active {
-    background: rgba(59,130,246,0.15);
+.nav-item:hover {
+    background: rgba(59,130,246,0.1);
+    color: #93c5fd;
+    padding-left: 28px;
+}
+.nav-item.active {
+    background: rgba(59,130,246,0.16);
     color: #60a5fa;
     border-left: 3px solid #60a5fa;
+    font-weight: 600;
 }
+.nav-section-label {
+    padding: 16px 24px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.28);
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+}
+nav > .nav-section-label:first-child { padding-top: 10px; }
 .logout-btn {
     margin-top: auto;
     display: block;
@@ -164,22 +245,24 @@ button[type="submit"]:hover {
     color: rgba(255,100,100,0.7);
     text-decoration: none;
     font-size: 14px;
-    transition: all 0.3s;
+    font-weight: 500;
+    transition: all 0.25s;
 }
 .logout-btn:hover {
     color: #f87171;
     background: rgba(220,38,38,0.1);
+    padding-left: 28px;
 }
 .main-content {
     flex: 1;
     overflow-y: auto;
-    overflow-x: hidden; /* FIX: no horizontal scroll */
+    overflow-x: hidden;
     padding: 30px;
-    min-width: 0; /* FIX: prevents flex child from overflowing */
-    scrollbar-width: none;       /* Firefox */
-    -ms-overflow-style: none;    /* IE / Edge */
+    min-width: 0;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
-.main-content::-webkit-scrollbar { display: none; } /* Chrome / Safari */
+.main-content::-webkit-scrollbar { display: none; }
 .topbar {
     display: flex;
     justify-content: space-between;
@@ -187,13 +270,15 @@ button[type="submit"]:hover {
     margin-bottom: 30px;
     background: white;
     padding: 14px 24px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-    flex-wrap: wrap; /* FIX: topbar wraps on smaller screens */
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(15,23,42,0.06);
+    flex-wrap: wrap;
     gap: 10px;
+    animation: fadeInUp 0.4s ease both;
 }
 .topbar h2 {
     font-size: 20px;
+    font-weight: 700;
     color: #1a1a2e;
 }
 .topbar-right {
@@ -202,7 +287,7 @@ button[type="submit"]:hover {
     gap: 14px;
     position: relative;
     z-index: 100;
-    flex-wrap: wrap; /* FIX: notification/profile wraps properly */
+    flex-wrap: wrap;
 }
 .user-info {
     font-size: 13px;
@@ -217,40 +302,54 @@ button[type="submit"]:hover {
 .card {
     background: white;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-    min-width: 0; /* FIX: cards don't overflow */
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(15,23,42,0.06);
+    min-width: 0;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    animation: fadeInUp 0.4s ease both;
 }
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 26px rgba(15,23,42,0.1);
+}
+.cards .card:nth-child(1), .card:nth-child(1) { animation-delay: 0.05s; }
+.cards .card:nth-child(2), .card:nth-child(2) { animation-delay: 0.1s; }
+.cards .card:nth-child(3), .card:nth-child(3) { animation-delay: 0.15s; }
+.cards .card:nth-child(4), .card:nth-child(4) { animation-delay: 0.2s; }
+.cards .card:nth-child(5), .card:nth-child(5) { animation-delay: 0.25s; }
+.cards .card:nth-child(6), .card:nth-child(6) { animation-delay: 0.3s; }
 .card h3 {
     font-size: 13px;
     color: #888;
     margin-bottom: 10px;
+    font-weight: 500;
 }
 .card .num {
     font-size: 32px;
-    font-weight: bold;
+    font-weight: 800;
     color: #1a1a2e;
 }
 .section {
     display: none;
-    animation: fadeIn 0.3s ease;
 }
-.section.active { display: block; }
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+.section.active {
+    display: block;
+    animation: fadeInUp 0.35s ease both;
 }
-.form-card .field label { color: #555; }
+.form-card .field label { color: #555; font-weight: 500; }
 .form-card .field input,
-.form-card .field select {
+.form-card .field select,
+.form-card .field textarea {
     background: white;
     color: #333;
     border: 1px solid #e0e0e0;
     padding: 10px 14px;
     width: 100%;
+    transition: all 0.25s ease;
 }
 .form-card .field input:focus,
-.form-card .field select:focus {
+.form-card .field select:focus,
+.form-card .field textarea:focus {
     border-color: #3b82f6;
     background: white;
     box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
@@ -259,10 +358,12 @@ button[type="submit"]:hover {
 .form-card {
     background: white;
     padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(15,23,42,0.06);
     overflow-x: auto;
     margin-bottom: 20px;
+    transition: box-shadow 0.25s ease;
+    animation: fadeInUp 0.4s ease both;
 }
 .form-grid {
     display: grid;
@@ -272,6 +373,7 @@ button[type="submit"]:hover {
 }
 .section-title {
     font-size: 15px;
+    font-weight: 700;
     color: #1a1a2e;
     margin-bottom: 16px;
     padding-bottom: 8px;
@@ -285,12 +387,20 @@ button[type="submit"]:hover {
     border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
-    transition: all 0.3s;
+    font-weight: 600;
+    transition: all 0.25s ease;
     width: auto !important;
 }
 .submit-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(99,102,241,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(99,102,241,0.3);
+}
+.submit-btn:active { transform: translateY(0); }
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
 }
 .emp-table {
     width: 100%;
@@ -302,7 +412,7 @@ button[type="submit"]:hover {
     color: white;
     padding: 12px 16px;
     text-align: left;
-    font-weight: 500;
+    font-weight: 600;
     white-space: nowrap;
 }
 .emp-table td {
@@ -310,6 +420,7 @@ button[type="submit"]:hover {
     border-bottom: 1px solid #f0f0f0;
     color: #333;
 }
+.emp-table tr { transition: background 0.15s ease; }
 .emp-table tr:hover { background: #f8fafc; }
 .emp-table tr:nth-child(even) { background: #f5f8ff; }
 .approve-btn {
@@ -321,7 +432,10 @@ button[type="submit"]:hover {
     font-size: 12px;
     margin-right: 4px;
     white-space: nowrap;
+    transition: all 0.2s ease;
+    display: inline-block;
 }
+.approve-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(22,163,74,0.3); }
 .reject-btn {
     background: #dc2626;
     color: white;
@@ -330,7 +444,10 @@ button[type="submit"]:hover {
     text-decoration: none;
     font-size: 12px;
     white-space: nowrap;
+    transition: all 0.2s ease;
+    display: inline-block;
 }
+.reject-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(220,38,38,0.3); }
 
 /* ===== Responsive ===== */
 @media(max-width:900px){

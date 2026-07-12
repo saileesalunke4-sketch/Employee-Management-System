@@ -70,8 +70,13 @@ $employees = mysqli_query($conn, "SELECT e.emp_id, e.first_name, e.last_name, e.
                 <input type="number" name="year" value="<?php echo isset($_GET['year'])?$_GET['year']:date('Y'); ?>" style="padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;width:90px;color:#1a1a2e;">
             </div>
             <button type="submit" class="submit-btn" style="margin:0;padding:9px 22px;"> Preview Report</button>
-            <?php if(isset($_GET['emp_id']) && !empty($_GET['emp_id'])): ?>
-            <a href="generate_emp_report.php?emp_id=<?php echo $_GET['emp_id']; ?>&month=<?php echo $_GET['month']??date('F'); ?>&year=<?php echo $_GET['year']??date('Y'); ?>"
+            <?php if(isset($_GET['emp_id']) && !empty($_GET['emp_id'])):
+                $dl_emp_id = (int) $_GET['emp_id'];
+                $valid_months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                $dl_month = in_array($_GET['month'] ?? '', $valid_months, true) ? $_GET['month'] : date('F');
+                $dl_year  = (int) ($_GET['year'] ?? date('Y'));
+            ?>
+            <a href="generate_emp_report.php?emp_id=<?php echo $dl_emp_id; ?>&month=<?php echo urlencode($dl_month); ?>&year=<?php echo $dl_year; ?>"
                style="display:inline-block;background:#dc2626;color:white;padding:9px 22px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
                 Download PDF
             </a>
@@ -81,13 +86,16 @@ $employees = mysqli_query($conn, "SELECT e.emp_id, e.first_name, e.last_name, e.
 
     <?php
     if(isset($_GET['emp_id']) && !empty($_GET['emp_id'])){
-        $emp_id  = $_GET['emp_id'];
-        $month   = $_GET['month'] ?? date('F');
-        $year    = $_GET['year']  ?? date('Y');
+        // SECURITY: emp_id must be an integer, month must match a known name,
+        // year must be an integer — all previously went straight into SQL unescaped.
+        $emp_id  = (int) $_GET['emp_id'];
+        $valid_months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        $month   = in_array($_GET['month'] ?? '', $valid_months, true) ? $_GET['month'] : date('F');
+        $year    = (int) ($_GET['year'] ?? date('Y'));
         $mon_num = date('m', strtotime("$month 1 $year"));
 
         // Employee details
-        $emp = mysqli_fetch_assoc(mysqli_query($conn,"SELECT e.*, u.name, u.email FROM employees e JOIN users u ON e.user_id=u.id WHERE e.emp_id='$emp_id'"));
+        $emp = mysqli_fetch_assoc(mysqli_query($conn,"SELECT e.*, u.name, u.email FROM employees e JOIN users u ON e.user_id=u.id WHERE e.emp_id=$emp_id"));
 
         // Attendance
         $att = mysqli_fetch_assoc(mysqli_query($conn,"SELECT
@@ -96,10 +104,10 @@ $employees = mysqli_query($conn, "SELECT e.emp_id, e.first_name, e.last_name, e.
             SUM(status='absent') as absent,
             SUM(status='late') as late,
             SUM(status='work_from_home') as wfh
-            FROM attendance WHERE emp_id='$emp_id' AND YEAR(date)='$year' AND MONTH(date)='$mon_num'"));
+            FROM attendance WHERE emp_id=$emp_id AND YEAR(date)=$year AND MONTH(date)='$mon_num'"));
 
         // Hours
-        $hrs_res = mysqli_query($conn,"SELECT check_in, check_out FROM attendance WHERE emp_id='$emp_id' AND YEAR(date)='$year' AND MONTH(date)='$mon_num' AND check_in IS NOT NULL AND check_out IS NOT NULL");
+        $hrs_res = mysqli_query($conn,"SELECT check_in, check_out FROM attendance WHERE emp_id=$emp_id AND YEAR(date)=$year AND MONTH(date)='$mon_num' AND check_in IS NOT NULL AND check_out IS NOT NULL");
         $total_hrs = 0; $ot_hrs = 0;
         while($h = mysqli_fetch_assoc($hrs_res)){
             $diff = (strtotime($h['check_out']) - strtotime($h['check_in'])) / 3600;
@@ -107,15 +115,16 @@ $employees = mysqli_query($conn, "SELECT e.emp_id, e.first_name, e.last_name, e.
         }
 
         // Leaves
-        $leaves = mysqli_query($conn,"SELECT * FROM leaves WHERE emp_id='$emp_id' ORDER BY leave_id DESC LIMIT 5");
-        $leave_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE emp_id='$emp_id' AND status='approved'"))['t'];
+        $leaves = mysqli_query($conn,"SELECT * FROM leaves WHERE emp_id=$emp_id ORDER BY leave_id DESC LIMIT 5");
+        $leave_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE emp_id=$emp_id AND status='approved'"))['t'];
 
         // Salary
-        $salary = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM salary WHERE emp_id='$emp_id' AND month='$month' AND year='$year'"));
+        $month_esc = mysqli_real_escape_string($conn, $month);
+        $salary = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM salary WHERE emp_id=$emp_id AND month='$month_esc' AND year=$year"));
 
         // Performance
-        $tasks = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as total, SUM(status='completed') as done, SUM(status='pending') as pend FROM tasks WHERE emp_id='$emp_id'"));
-        $skills_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM performance WHERE emp_id='$emp_id'"))['t'];
+        $tasks = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as total, SUM(status='completed') as done, SUM(status='pending') as pend FROM tasks WHERE emp_id=$emp_id"));
+        $skills_count = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM performance WHERE emp_id=$emp_id"))['t'];
 
         // Score
         $task_score = $tasks['total'] > 0 ? round(($tasks['done']/$tasks['total'])*40) : 0;

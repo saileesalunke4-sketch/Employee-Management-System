@@ -9,17 +9,25 @@ if(!isset($_SESSION['user'])){
 
 require 'fpdf/fpdf.php';
 
-$salary_id = $_GET['salary_id'];
+$salary_id = (int) $_GET['salary_id'];
 
 // Get salary details
-$sal_result = mysqli_query($conn, "SELECT s.*, e.first_name, e.last_name, e.designation, e.emp_id 
-                                   FROM salary s 
-                                   JOIN employees e ON s.emp_id = e.emp_id 
-                                   WHERE s.salary_id = '$salary_id'");
+$sal_result = mysqli_query($conn, "SELECT s.*, e.first_name, e.last_name, e.designation, e.emp_id, e.user_id
+                                   FROM salary s
+                                   JOIN employees e ON s.emp_id = e.emp_id
+                                   WHERE s.salary_id = $salary_id");
 $sal = mysqli_fetch_assoc($sal_result);
 
 if(!$sal){
     die("Salary record not found!");
+}
+
+// SECURITY: an employee may only view/download their OWN salary slip.
+// Previously any logged-in employee could change salary_id in the URL and
+// download anyone else's confidential salary details.
+if($_SESSION['user']['role'] === 'employee' && $sal['user_id'] != $_SESSION['user']['id']){
+    header("Location: index.php");
+    exit();
 }
 
 // Create PDF

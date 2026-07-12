@@ -42,6 +42,50 @@ $sab_used = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM lea
 $sab_eligible = ($sab_used == 0);
 ?>
 
+<?php
+// ===== LEAVE BALANCE TRACKER =====
+// For every leave type that has an allotment (total_days > 0), show
+// Allotted / Used / Remaining, calculated consistently with the Sandwich Policy.
+$leave_type_icons = [
+    'Sick Leave' => '🤒', 'Casual Leave' => '🌴', 'Privilege Leave' => '⭐',
+    'Maternity leave' => '🤰', 'Materninty leave' => '🤰', 'Sabbatical' => '📖',
+    'Special Casual Leave' => '🎯', 'Earned Leave' => '💰', 'Paternity Leave' => '👶',
+    'Sub Artical Leave' => '📄', 'Unpaid Leave' => '💸'
+];
+$lt_all = mysqli_query($conn, "SELECT * FROM leave_types ORDER BY leave_type_name");
+$balance_cards = [];
+while($lt = mysqli_fetch_assoc($lt_all)){
+    $allotted = (int)$lt['total_days'];
+    if($allotted <= 0) continue; // skip Unpaid Leave etc — no fixed balance to track
+
+    $used_days = 0;
+    $ures = mysqli_query($conn, "SELECT from_date, to_date FROM leaves WHERE emp_id='$emp_id' AND leave_type='".mysqli_real_escape_string($conn,$lt['leave_type_name'])."' AND status='approved'");
+    while($u = mysqli_fetch_assoc($ures)){
+        $used_days += getLeaveDaysWithSandwich($u['from_date'], $u['to_date']);
+    }
+    $remaining = max(0, $allotted - $used_days);
+    $balance_cards[] = ['name'=>$lt['leave_type_name'], 'allotted'=>$allotted, 'used'=>$used_days, 'remaining'=>$remaining];
+}
+?>
+<div class="form-card">
+    <h3 class="section-title">Leave Balance</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:10px;">
+        <?php foreach($balance_cards as $bc):
+            $icon = $leave_type_icons[$bc['name']] ?? '📅';
+            $low  = $bc['remaining'] <= 2; // highlight low balance
+        ?>
+        <div style="border:1px solid <?php echo $low?'#fca5a5':'#e5e7eb'; ?>;background:<?php echo $low?'#fef2f2':'#fafafa'; ?>;border-radius:12px;padding:16px;text-align:center;">
+            <div style="font-size:22px;"><?php echo $icon; ?></div>
+            <div style="font-size:13px;font-weight:600;color:#374151;margin:6px 0 10px;"><?php echo htmlspecialchars($bc['name']); ?></div>
+            <div style="font-size:22px;font-weight:700;color:<?php echo $low?'#dc2626':'#16a34a'; ?>;"><?php echo $bc['remaining']; ?></div>
+            <div style="font-size:11px;color:#9ca3af;">days remaining</div>
+            <div style="font-size:11px;color:#9ca3af;margin-top:6px;">Used <?php echo $bc['used']; ?> / <?php echo $bc['allotted']; ?></div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+
     <div class="form-card">
         <h3 class="section-title">Apply for Leave</h3>
         <form action="save_leave.php" method="POST" onsubmit="return confirmLeave()">
@@ -93,7 +137,7 @@ $sab_eligible = ($sab_used == 0);
             <?php
                 $res=mysqli_query($conn,"SELECT * FROM leaves WHERE emp_id='$emp_id' ORDER BY leave_id DESC");
                 while($row=mysqli_fetch_assoc($res)){
-                    $days=(strtotime($row['to_date'])-strtotime($row['from_date']))/86400+1;
+                    $days = getLeaveDaysWithSandwich($row['from_date'], $row['to_date']);
                     echo "<tr>
                         <td>{$row['leave_type']}</td>
                         <td>{$row['from_date']}</td>

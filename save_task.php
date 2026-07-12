@@ -2,24 +2,24 @@
 session_start();
 require 'db.php';
 
-if(!isset($_SESSION['user'])){
+if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['admin','super_admin'], true)){
     header("Location: index.php"); exit();
 }
 
-$emp_id       = $_POST['emp_id'];
+$emp_id       = (int) $_POST['emp_id'];
 $task_name    = mysqli_real_escape_string($conn, $_POST['task_name']);
 $description  = mysqli_real_escape_string($conn, $_POST['description']);
-$target_date  = $_POST['target_date'];
-$status       = $_POST['status'];
-$hours_worked = $_POST['hours_worked'];
+$target_date  = mysqli_real_escape_string($conn, $_POST['target_date']);
+$status       = in_array($_POST['status'], ['pending','in_progress','completed'], true) ? $_POST['status'] : 'pending';
+$hours_worked = (float) ($_POST['hours_worked'] ?? 0);
 
 $query = "INSERT INTO tasks (emp_id, task_name, description, target_date, status, hours_worked)
-          VALUES ('$emp_id','$task_name','$description','$target_date','$status','$hours_worked')";
+          VALUES ($emp_id,'$task_name','$description','$target_date','$status',$hours_worked)";
 
 if(mysqli_query($conn, $query)){
 
     // Get employee details
-    $emp = mysqli_fetch_assoc(mysqli_query($conn,"SELECT e.first_name, e.last_name, u.email FROM employees e JOIN users u ON e.user_id=u.id WHERE e.emp_id='$emp_id'"));
+    $emp = mysqli_fetch_assoc(mysqli_query($conn,"SELECT e.first_name, e.last_name, u.email FROM employees e JOIN users u ON e.user_id=u.id WHERE e.emp_id=$emp_id"));
     $emp_name  = $emp['first_name'].' '.$emp['last_name'];
     $emp_email = $emp['email'];
 

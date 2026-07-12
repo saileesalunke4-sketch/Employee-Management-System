@@ -74,6 +74,7 @@ $page_title = "Leaves";
                     $total_days = $cal_days + $sandwich_days;
 
                     $pc = ['approved'=>'green','rejected'=>'red','pending'=>'yellow'][$row['status']] ?? 'yellow';
+                    $csrf_tok = csrf_token();
 
                     // Sabbatical badge
                     $type_display = $row['leave_type'];
@@ -99,8 +100,8 @@ $page_title = "Leaves";
                         <td>{$row['reason']}</td>
                         <td><span class='pill {$pc}'>".ucfirst($row['status'])."</span></td>
                         <td>
-                            <a href='leave_action.php?id={$row['leave_id']}&action=approved&redirect=admin_leaves.php' class='approve-btn'>Approve</a>
-                            <a href='leave_action.php?id={$row['leave_id']}&action=rejected&redirect=admin_leaves.php' class='reject-btn'>Reject</a>
+                            <a href='leave_action.php?id={$row['leave_id']}&action=approved&redirect=admin_leaves.php&csrf={$csrf_tok}' class='approve-btn'>Approve</a>
+                            <a href='leave_action.php?id={$row['leave_id']}&action=rejected&redirect=admin_leaves.php&csrf={$csrf_tok}' class='reject-btn'>Reject</a>
                         </td>
                     </tr>";
                 }
