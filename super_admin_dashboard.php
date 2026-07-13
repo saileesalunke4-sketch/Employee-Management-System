@@ -123,7 +123,7 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
 </style>
 </head>
 <body>
-<div class="dashboard">
+<div class="dashboard super-theme">
 
 <!-- Sidebar -->
 <?php include 'sidebar_sa.php'; ?>
@@ -179,18 +179,66 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
 
     <!-- ===== DASHBOARD ===== -->
     <div id="dashboard" class="section active">
-        <div class="six-cards">
-            <div class="card"><h3>Total Employees</h3><p class="num"><?php echo mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM users WHERE role='employee'"))['t']; ?></p></div>
-            <div class="card"><h3>Present Today</h3><p class="num"><?php echo mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM attendance WHERE date=CURDATE() AND status='present'"))['t']; ?></p></div>
-            <div class="card"><h3>Pending Leaves</h3><p class="num"><?php echo mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE status='pending'"))['t']; ?></p></div>
-            <div class="card"><h3>Approved Leaves</h3><p class="num"><?php echo mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE status='approved'"))['t']; ?></p></div>
-            <div class="card"><h3>Pending Tasks</h3><p class="num"><?php echo mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM tasks WHERE status='pending'"))['t']; ?></p></div>
-            <div class="card"><h3>Completed Tasks</h3><p class="num"><?php echo mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM tasks WHERE status='completed'"))['t']; ?></p></div>
+        <?php
+        $sa_total_emp   = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM users WHERE role='employee'"))['t'];
+        $sa_present_tdy = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM attendance WHERE date=CURDATE() AND status='present'"))['t'];
+        $sa_pend_leaves = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE status='pending'"))['t'];
+        $sa_appr_leaves = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE status='approved'"))['t'];
+        $sa_pend_tasks  = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM tasks WHERE status='pending'"))['t'];
+        $sa_comp_tasks  = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM tasks WHERE status='completed'"))['t'];
+        $sa_pct = $sa_total_emp>0 ? round(($sa_present_tdy/$sa_total_emp)*100) : 0;
+        ?>
+
+        <!-- Hero -->
+        <div class="hero-card">
+            <div class="hero-left">
+                <div class="hero-eyebrow">Organization Insights · <?php echo date('l, d M Y'); ?></div>
+                <div class="hero-name">Hi <?php echo htmlspecialchars($_SESSION['user']['name']); ?> 👋</div>
+                <div class="hero-sub">Full visibility across <?php echo $sa_total_emp; ?> employees, org-wide</div>
+                <div class="hero-actions">
+                    <a href="#" onclick="showSection('employees',document.querySelector('[onclick*=employees]'));return false;" class="hero-btn solid">👥 Manage Employees</a>
+                    <a href="departments.php" class="hero-btn">🏢 Departments</a>
+                    <a href="announcements.php" class="hero-btn">📣 Announcements</a>
+                </div>
+            </div>
+            <div class="day-ring-wrap">
+                <div class="day-ring">
+                    <svg width="118" height="118" viewBox="0 0 120 120">
+                        <circle class="ring-bg" cx="60" cy="60" r="50"/>
+                        <circle class="ring-fill" cx="60" cy="60" r="50"
+                            stroke-dasharray="<?php echo 2*M_PI*50; ?>"
+                            stroke-dashoffset="<?php echo (2*M_PI*50) - ($sa_pct/100)*(2*M_PI*50); ?>"/>
+                    </svg>
+                    <div class="day-ring-label">
+                        <span class="t"><?php echo $sa_pct; ?>%</span>
+                        <span class="s">present today</span>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- Stats -->
+        <div class="stat-tiles" style="grid-template-columns:repeat(6,1fr);">
+            <div class="stat-tile"><div class="ico">👥</div><div class="label">Total Employees</div><div class="val"><?php echo $sa_total_emp; ?></div></div>
+            <div class="stat-tile"><div class="ico">✅</div><div class="label">Present Today</div><div class="val"><?php echo $sa_present_tdy; ?></div></div>
+            <div class="stat-tile"><div class="ico">⏳</div><div class="label">Pending Leaves</div><div class="val"><?php echo $sa_pend_leaves; ?></div></div>
+            <div class="stat-tile"><div class="ico">🌿</div><div class="label">Approved Leaves</div><div class="val"><?php echo $sa_appr_leaves; ?></div></div>
+            <div class="stat-tile"><div class="ico">📋</div><div class="label">Pending Tasks</div><div class="val"><?php echo $sa_pend_tasks; ?></div></div>
+            <div class="stat-tile"><div class="ico">🏁</div><div class="label">Completed Tasks</div><div class="val"><?php echo $sa_comp_tasks; ?></div></div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="qa-grid">
+            <a href="#" onclick="showSection('employees',document.querySelector('[onclick*=employees]'));return false;" class="qa-btn"><span class="qa-ico">👥</span>All Employees</a>
+            <a href="departments.php" class="qa-btn"><span class="qa-ico">🏢</span>Departments</a>
+            <a href="admin_rules.php" class="qa-btn"><span class="qa-ico">📜</span>Rules & Regulations</a>
+            <a href="assign_department.php" class="qa-btn"><span class="qa-ico">🔀</span>Assign Department</a>
+        </div>
+
         <!-- Real-Time Attendance Status Widget -->
-        <div style="background:#fff;border-radius:10px;padding:20px;margin-top:20px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #eee;">
-                <h3 style="font-size:14px;color:#60a5fa;margin:0;">🟢 Live Attendance Status — Today</h3>
+        <div class="timeline-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h3 style="margin:0;">🟢 Live Attendance Status — Today</h3>
                 <span id="attLastUpdated" style="font-size:11px;color:#9ca3af;"></span>
             </div>
 
@@ -207,12 +255,12 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
-            <div style="background:#fff;padding:24px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);min-width:0;">
-                <h3 style="font-size:14px;color:#60a5fa;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #eee;">Company Monthly Attendance</h3>
+            <div class="timeline-card" style="margin-top:0;min-width:0;">
+                <h3 style="color:var(--role-accent);">📊 Company Monthly Attendance</h3>
                 <canvas id="attendanceChart"></canvas>
             </div>
-            <div style="background:#fff;padding:24px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);min-width:0;">
-                <h3 style="font-size:14px;color:#60a5fa;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #eee;">Company Monthly Leaves</h3>
+            <div class="timeline-card" style="margin-top:0;min-width:0;">
+                <h3 style="color:var(--role-accent);">📊 Company Monthly Leaves</h3>
                 <canvas id="leaveChart"></canvas>
             </div>
         </div>
@@ -221,14 +269,14 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
         $uph=mysqli_query($conn,"SELECT * FROM holidays WHERE holiday_date>=CURDATE() ORDER BY holiday_date LIMIT 4");
         $uphrows=[];while($u=mysqli_fetch_assoc($uph))$uphrows[]=$u;
         if(!empty($uphrows)):?>
-        <div style="background:#fff;border-radius:10px;padding:20px;margin-top:20px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
-            <h3 style="font-size:14px;color:#60a5fa;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #eee;">&#127974; Upcoming Holidays</h3>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+        <div class="timeline-card">
+            <h3>🏖 Upcoming Holidays</h3>
+            <div class="hscroll">
             <?php foreach($uphrows as $uh):
                 $ht=$uh['holiday_type']??'National';
                 $cc=['National'=>'#1d4ed8','Festival'=>'#d97706','State'=>'#16a34a'];$c=$cc[$ht]??'#6b7280';
             ?>
-                <div style="border-left:4px solid <?php echo $c;?>;padding:10px 14px;background:#f8fafc;border-radius:8px;">
+                <div class="hscroll-item" style="border-left-color:<?php echo $c;?>;">
                     <p style="font-size:11px;color:#9ca3af;margin:0;"><?php echo date('D, d M',strtotime($uh['holiday_date']));?></p>
                     <p style="font-size:13px;font-weight:700;color:#1a1a2e;margin:4px 0;"><?php echo $uh['holiday_name'];?></p>
                     <span class="hl-badge <?php echo $ht;?>"><?php echo $ht;?></span>

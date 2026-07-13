@@ -1,10 +1,42 @@
 <script>
 function toggleNotif(){
-    document.getElementById('notifDropdown').classList.toggle('open');
+    const dropdown = document.getElementById('notifDropdown');
+    const bell = document.querySelector('.notif-bell');
+    const isOpening = !dropdown.classList.contains('open');
+
+    if(isOpening && bell){
+        // Position the dropdown dynamically based on the bell's real location,
+        // so it always lines up correctly no matter what the page layout is.
+        const rect = bell.getBoundingClientRect();
+        const dropdownWidth = 340;
+        let left = rect.right - dropdownWidth;
+        if(left < 12) left = 12; // don't overflow off the left edge on small screens
+        dropdown.style.top  = (rect.bottom + 10) + 'px';
+        dropdown.style.left = left + 'px';
+        dropdown.style.right = 'auto';
+
+        let overlay = document.getElementById('notifOverlay');
+        if(!overlay){
+            overlay = document.createElement('div');
+            overlay.id = 'notifOverlay';
+            overlay.className = 'notif-overlay';
+            document.body.appendChild(overlay);
+        }
+        overlay.classList.add('open');
+    } else {
+        const overlay = document.getElementById('notifOverlay');
+        if(overlay) overlay.classList.remove('open');
+    }
+
+    dropdown.classList.toggle('open');
 }
 document.addEventListener('click',function(e){
     const w = document.getElementById('notifWrapper');
-    if(w && !w.contains(e.target)) document.getElementById('notifDropdown').classList.remove('open');
+    if(w && !w.contains(e.target)){
+        document.getElementById('notifDropdown').classList.remove('open');
+        const overlay = document.getElementById('notifOverlay');
+        if(overlay) overlay.classList.remove('open');
+    }
 });
 // Auto logout 30 min
 let timeLeft = 1800;

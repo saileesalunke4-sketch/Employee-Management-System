@@ -461,3 +461,115 @@ nav > .nav-section-label:first-child { padding-top: 10px; }
     .cards { grid-template-columns: 1fr !important; }
     .topbar h2 { font-size: 15px; }
 }
+
+/* ===========================================================
+   DASHBOARD 2.0 — shared design system additions
+   Role accent set per-dashboard via a theme class on .dashboard:
+   .emp-theme / .admin-theme / .super-theme
+   =========================================================== */
+:root{
+    --role-accent: #3b82f6;
+    --role-accent-2: #6366f1;
+    --role-accent-soft: #eff6ff;
+}
+.emp-theme{ --role-accent:#3b82f6; --role-accent-2:#6366f1; --role-accent-soft:#eff6ff; }
+.admin-theme{ --role-accent:#0d9488; --role-accent-2:#0891b2; --role-accent-soft:#ecfdf9; }
+.super-theme{ --role-accent:#7c3aed; --role-accent-2:#c026d3; --role-accent-soft:#f5f0ff; }
+
+/* ---- Hero / greeting card ---- */
+.hero-card{
+    background: linear-gradient(135deg, var(--role-accent), var(--role-accent-2));
+    border-radius: 18px;
+    padding: 28px 30px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+    box-shadow: 0 12px 32px -12px rgba(15,23,42,0.35);
+    animation: fadeInUp 0.4s ease both;
+    position: relative;
+    overflow: hidden;
+}
+.hero-card::after{
+    content:'';
+    position:absolute; right:-60px; top:-60px;
+    width:220px; height:220px; border-radius:50%;
+    background: rgba(255,255,255,0.08);
+}
+.hero-left{ position: relative; z-index: 1; }
+.hero-eyebrow{ font-size:11px; letter-spacing:1.5px; text-transform:uppercase; opacity:.75; font-weight:600; margin-bottom:6px; }
+.hero-name{ font-size:24px; font-weight:800; margin-bottom:4px; }
+.hero-sub{ font-size:13px; opacity:.85; }
+.hero-actions{ display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+.hero-btn{
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.28);
+    color: #fff; padding:9px 16px; border-radius:10px;
+    font-size:13px; font-weight:600; text-decoration:none;
+    transition: all .2s ease; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+}
+.hero-btn:hover{ background: rgba(255,255,255,0.28); transform: translateY(-2px); }
+.hero-btn.solid{ background:#fff; color: var(--role-accent-2); border-color:#fff; }
+.hero-btn.solid:hover{ background: rgba(255,255,255,0.9); }
+
+/* ---- Day ring (check-in progress) ---- */
+.day-ring-wrap{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.day-ring{ position:relative; width:118px; height:118px; }
+.day-ring svg{ transform: rotate(-90deg); }
+.day-ring circle{ fill:none; stroke-width:9; }
+.day-ring .ring-bg{ stroke: rgba(255,255,255,0.22); }
+.day-ring .ring-fill{ stroke:#fff; stroke-linecap:round; transition: stroke-dashoffset 1s ease; }
+.day-ring-label{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.day-ring-label .t{ font-size:19px; font-weight:800; color:#fff; }
+.day-ring-label .s{ font-size:10px; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:1px; }
+
+/* ---- Stat tiles (redesigned cards, additive so old .card untouched) ---- */
+.stat-tiles{ display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-top:20px; }
+.stat-tile{
+    background:#fff; border-radius:14px; padding:18px 18px 16px;
+    box-shadow:0 2px 12px rgba(15,23,42,0.06);
+    display:flex; flex-direction:column; gap:10px;
+    transition: transform .25s ease, box-shadow .25s ease;
+    animation: fadeInUp .4s ease both;
+    border-top:3px solid transparent;
+}
+.stat-tile:hover{ transform: translateY(-3px); box-shadow:0 12px 26px rgba(15,23,42,0.1); border-top-color: var(--role-accent); }
+.stat-tile .ico{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; background: var(--role-accent-soft); }
+.stat-tile .label{ font-size:12px; color:#8a8f9a; font-weight:600; }
+.stat-tile .val{ font-size:26px; font-weight:800; color:#1a1a2e; }
+
+/* ---- Today timeline strip ---- */
+.timeline-card{ background:#fff; border-radius:14px; padding:20px 22px; margin-top:20px; box-shadow:0 2px 12px rgba(15,23,42,0.06); animation: fadeInUp .4s ease both; }
+.timeline-card h3{ font-size:14px; font-weight:700; color:#1a1a2e; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.timeline-track{ position:relative; height:6px; border-radius:6px; background:#eef0f4; margin:26px 0 10px; }
+.timeline-fill{ position:absolute; top:0; left:0; height:100%; border-radius:6px; background: linear-gradient(90deg, var(--role-accent), var(--role-accent-2)); }
+.timeline-point{ position:absolute; top:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:#fff; border:3px solid var(--role-accent); }
+.timeline-marks{ display:flex; justify-content:space-between; font-size:11px; color:#9ca3af; }
+.timeline-marks span b{ color:#1a1a2e; display:block; font-size:12px; margin-bottom:2px; }
+
+/* ---- Horizontal scroll cards (holidays etc) ---- */
+.hscroll{ display:flex; gap:12px; overflow-x:auto; padding-bottom:6px; scrollbar-width:thin; }
+.hscroll::-webkit-scrollbar{ height:6px; }
+.hscroll::-webkit-scrollbar-thumb{ background:#e2e5eb; border-radius:10px; }
+.hscroll-item{ min-width:150px; background:#f8fafc; border-radius:12px; padding:12px 14px; border-left:4px solid var(--role-accent); flex-shrink:0; }
+
+/* ---- Quick action grid ---- */
+.qa-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:20px; }
+.qa-btn{
+    background:#fff; border-radius:14px; padding:18px 14px; text-align:center;
+    box-shadow:0 2px 12px rgba(15,23,42,0.06); text-decoration:none; color:#1a1a2e;
+    transition: all .25s ease; font-size:13px; font-weight:600;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    animation: fadeInUp .4s ease both;
+}
+.qa-btn .qa-ico{ width:42px; height:42px; border-radius:12px; background: var(--role-accent-soft); display:flex; align-items:center; justify-content:center; font-size:19px; }
+.qa-btn:hover{ transform: translateY(-3px); box-shadow:0 12px 26px rgba(15,23,42,0.1); }
+
+@media(max-width:900px){
+    .stat-tiles{ grid-template-columns:repeat(2,1fr) !important; }
+    .qa-grid{ grid-template-columns:repeat(2,1fr) !important; }
+    .hero-card{ flex-direction:column; text-align:center; }
+}

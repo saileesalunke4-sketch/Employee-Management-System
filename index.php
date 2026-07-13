@@ -1,7 +1,14 @@
 <?php
 session_start();
 if(isset($_SESSION['user'])){
-    header("Location: admin_dashboard.php");
+    $role = $_SESSION['user']['role'];
+    if($role === 'admin'){
+        header("Location: admin_dashboard.php");
+    } elseif($role === 'super_admin'){
+        header("Location: super_admin_dashboard.php");
+    } else {
+        header("Location: emp_dashboard.php");
+    }
     exit();
 }
 ?>

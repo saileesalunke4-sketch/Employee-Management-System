@@ -34,7 +34,7 @@ $page_title = "Dashboard";
 </style>
 </head>
 <body>
-<div class="dashboard">
+<div class="dashboard emp-theme">
 <?php include 'sidebar_emp.php'; ?>
 <div class="main-content">
 <?php include 'topbar_emp.php'; ?>
@@ -43,34 +43,91 @@ $page_title = "Dashboard";
 
     <?php
     $today_att = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM attendance WHERE emp_id='$emp_id' AND date=CURDATE()"));
+
+    // ---- Day-ring progress calc (shift assumed 9:00 - 18:00 = 540 min) ----
+    $shift_minutes = 540;
+    $elapsed = 0;
+    if($today_att && !empty($today_att['check_in'])){
+        $start_ts = strtotime(date('Y-m-d').' '.$today_att['check_in']);
+        $end_ts   = !empty($today_att['check_out']) ? strtotime(date('Y-m-d').' '.$today_att['check_out']) : time();
+        $elapsed  = max(0, round(($end_ts - $start_ts)/60));
+    }
+    $pct = max(0, min(100, round(($elapsed/$shift_minutes)*100)));
+    $radius = 50; $circumference = 2*M_PI*$radius;
+    $dashoffset = $circumference - ($pct/100)*$circumference;
+    $hrs = floor($elapsed/60); $mins = $elapsed%60;
+
+    $stat_att   = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM attendance WHERE emp_id='$emp_id'"))['t'];
+    $stat_leave = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE emp_id='$emp_id'"))['t'];
+    $stat_task  = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM tasks WHERE emp_id='$emp_id'"))['t'];
+    $stat_pend  = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE emp_id='$emp_id' AND status='pending'"))['t'];
+    $stat_wfh   = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM attendance WHERE emp_id='$emp_id' AND status='work_from_home' AND MONTH(date)=MONTH(CURDATE()) AND YEAR(date)=YEAR(CURDATE())"))['t'];
     ?>
 
-    <!-- Stats Cards -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;">
-        <div class="card"><h3>My Attendance</h3><p class="num"><?php echo mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM attendance WHERE emp_id='$emp_id'"))['t'];?></p></div>
-        <div class="card"><h3>My Leaves</h3><p class="num"><?php echo mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE emp_id='$emp_id'"))['t'];?></p></div>
-        <div class="card"><h3>My Tasks</h3><p class="num"><?php echo mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM tasks WHERE emp_id='$emp_id'"))['t'];?></p></div>
-        <div class="card"><h3>Pending Leaves</h3><p class="num"><?php echo mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE emp_id='$emp_id' AND status='pending'"))['t'];?></p></div>
-        <div class="card"><h3>WFH This Month</h3><p class="num"><?php echo mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM attendance WHERE emp_id='$emp_id' AND status='work_from_home' AND MONTH(date)=MONTH(CURDATE()) AND YEAR(date)=YEAR(CURDATE())"))['t'];?></p></div>
+    <!-- Hero: greeting + day ring -->
+    <div class="hero-card">
+        <div class="hero-left">
+            <div class="hero-eyebrow">Good <?php echo (date('H')<12?'Morning':(date('H')<17?'Afternoon':'Evening')); ?>, <?php echo date('l, d M Y'); ?></div>
+            <div class="hero-name">Hi <?php echo htmlspecialchars($emp['first_name']); ?> 👋</div>
+            <div class="hero-sub"><?php echo htmlspecialchars($emp['designation'] ?? ''); ?> · ID <?php echo htmlspecialchars($emp['employee_code'] ?? $emp_id); ?></div>
+            <div class="hero-actions">
+                <?php if(!$today_att || empty($today_att['check_in'])): ?>
+                    <a href="my_attendance.php" class="hero-btn solid">✅ Check In</a>
+                <?php elseif(empty($today_att['check_out'])): ?>
+                    <a href="my_attendance.php" class="hero-btn solid">⏹ Check Out</a>
+                <?php else: ?>
+                    <span class="hero-btn">✔ Day Completed</span>
+                <?php endif; ?>
+                <a href="my_leaves.php" class="hero-btn">🌿 Apply Leave</a>
+                <a href="hr_requests.php" class="hero-btn">📋 Raise HR Query</a>
+            </div>
+        </div>
+        <div class="day-ring-wrap">
+            <div class="day-ring">
+                <svg width="118" height="118" viewBox="0 0 120 120">
+                    <circle class="ring-bg" cx="60" cy="60" r="<?php echo $radius; ?>"/>
+                    <circle class="ring-fill" cx="60" cy="60" r="<?php echo $radius; ?>"
+                        stroke-dasharray="<?php echo $circumference; ?>"
+                        stroke-dashoffset="<?php echo $dashoffset; ?>"/>
+                </svg>
+                <div class="day-ring-label">
+                    <span class="t"><?php echo $hrs.'h '.$mins.'m'; ?></span>
+                    <span class="s">of 9h shift</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Check In / Out -->
-    <?php if($today_att): ?>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
-        <div style="background:#eff6ff;border-radius:10px;padding:20px;text-align:center;">
-            <p style="color:#6b7280;font-size:12px;margin:4px 0;">Today Check-In</p>
-            <p style="font-size:22px;font-weight:700;color:#1d4ed8;"><?php echo $today_att['check_in'];?></p>
+    <!-- Today timeline -->
+    <div class="timeline-card">
+        <h3>🕐 Today at a Glance</h3>
+        <div class="timeline-track">
+            <div class="timeline-fill" style="width:<?php echo $pct; ?>%;"></div>
+            <div class="timeline-point" style="left:<?php echo $pct; ?>%;"></div>
         </div>
-        <div style="background:#f0fdf4;border-radius:10px;padding:20px;text-align:center;">
-            <p style="color:#6b7280;font-size:12px;margin:4px 0;">Today Check-Out</p>
-            <p style="font-size:22px;font-weight:700;color:#16a34a;"><?php echo $today_att['check_out'];?></p>
+        <div class="timeline-marks">
+            <span><b><?php echo $today_att['check_in'] ?? '—'; ?></b>Check-In</span>
+            <span style="text-align:center;"><b><?php echo $pct; ?>%</b>Shift Progress</span>
+            <span style="text-align:right;"><b><?php echo $today_att['check_out'] ?? '6:00 PM (exp.)'; ?></b>Check-Out</span>
         </div>
     </div>
-    <?php else: ?>
-    <div style="background:#fef3c7;border-radius:10px;padding:16px;margin-top:20px;text-align:center;color:#92400e;font-size:14px;">
-        &#9888; Attendance not marked yet for today!
+
+    <!-- Stats -->
+    <div class="stat-tiles">
+        <div class="stat-tile"><div class="ico">📅</div><div class="label">My Attendance</div><div class="val"><?php echo $stat_att; ?></div></div>
+        <div class="stat-tile"><div class="ico">🌿</div><div class="label">My Leaves</div><div class="val"><?php echo $stat_leave; ?></div></div>
+        <div class="stat-tile"><div class="ico">✅</div><div class="label">My Tasks</div><div class="val"><?php echo $stat_task; ?></div></div>
+        <div class="stat-tile"><div class="ico">⏳</div><div class="label">Pending Leaves</div><div class="val"><?php echo $stat_pend; ?></div></div>
+        <div class="stat-tile"><div class="ico">🏠</div><div class="label">WFH This Month</div><div class="val"><?php echo $stat_wfh; ?></div></div>
     </div>
-    <?php endif; ?>
+
+    <!-- Quick actions -->
+    <div class="qa-grid">
+        <a href="my_leaves.php" class="qa-btn"><span class="qa-ico">🌿</span>Apply Leave</a>
+        <a href="hr_requests.php" class="qa-btn"><span class="qa-ico">📋</span>Raise HR Query</a>
+        <a href="my_salary.php" class="qa-btn"><span class="qa-ico">💰</span>View Payslip</a>
+        <a href="my_tasks.php" class="qa-btn"><span class="qa-ico">✅</span>My Tasks</a>
+    </div>
 
     <!-- Charts -->
     <?php
@@ -82,12 +139,12 @@ $page_title = "Dashboard";
     while($r=mysqli_fetch_assoc($leave_res)) $leave_data[$r['mon']-1]=$r['cnt'];
     ?>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
-        <div style="background:#fff;padding:24px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
-            <h3 style="font-size:14px;color:#60a5fa;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #eee;">Monthly Attendance</h3>
+        <div class="timeline-card" style="margin-top:0;">
+            <h3 style="color:var(--role-accent);">📊 Monthly Attendance</h3>
             <canvas id="attendanceChart"></canvas>
         </div>
-        <div style="background:#fff;padding:24px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
-            <h3 style="font-size:14px;color:#60a5fa;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #eee;">Monthly Leaves</h3>
+        <div class="timeline-card" style="margin-top:0;">
+            <h3 style="color:var(--role-accent);">📊 Monthly Leaves</h3>
             <canvas id="leaveChart"></canvas>
         </div>
     </div>
@@ -98,14 +155,14 @@ $page_title = "Dashboard";
     $uphrows=[]; while($u=mysqli_fetch_assoc($uph)) $uphrows[]=$u;
     if(!empty($uphrows)):
     ?>
-    <div style="background:#fff;border-radius:10px;padding:20px;margin-top:20px;box-shadow:0 2px 10px rgba(0,0,0,.06);">
-        <h3 style="font-size:14px;color:#60a5fa;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #eee;">&#127974; Upcoming Holidays</h3>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+    <div class="timeline-card">
+        <h3>🏖 Upcoming Holidays</h3>
+        <div class="hscroll">
         <?php foreach($uphrows as $uh):
             $ht=$uh['holiday_type']??'National';
             $cc=['National'=>'#1d4ed8','Festival'=>'#d97706','State'=>'#16a34a']; $c=$cc[$ht]??'#6b7280';
         ?>
-            <div style="border-left:4px solid <?php echo $c;?>;padding:10px 14px;background:#f8fafc;border-radius:8px;">
+            <div class="hscroll-item" style="border-left-color:<?php echo $c;?>;">
                 <p style="font-size:11px;color:#9ca3af;margin:0;"><?php echo date('D, d M',strtotime($uh['holiday_date']));?></p>
                 <p style="font-size:13px;font-weight:700;color:#1a1a2e;margin:4px 0;"><?php echo $uh['holiday_name'];?></p>
                 <span class="hl-badge <?php echo $ht;?>"><?php echo $ht;?></span>
