@@ -1,4 +1,3 @@
-
 <?php
 // ===== SENSITIVE CONFIG — DO NOT COMMIT THIS FILE TO GIT/VERSION CONTROL =====
 // This file holds real credentials for THIS environment (local/staging/production).
