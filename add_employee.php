@@ -41,47 +41,23 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     }
 }
 ?>
+<?php $page_title = "Add New Employee"; ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Add Employee - EMS</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Add Employee - EMS</title>
+<link rel="stylesheet" href="style.css">
+<?php include 'common_styles.php'; ?>
 </head>
 <body>
-<div class="dashboard">
+<div class="dashboard admin-theme">
+<?php include 'sidebar_admin.php'; ?>
+<div class="main-content">
+<?php include 'topbar_admin.php'; ?>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div style="padding:20px 16px 24px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08);">
-            <img src="allerlogo.png" alt="Aller" style="height:55px;display:block;margin:0 auto 8px;">
-            <span style="font-size:13px;font-weight:bold;color:rgba(255,255,255,.5);letter-spacing:3px;text-transform:uppercase;">EMS</span>
-        </div>
-        <nav>
-            <a href="admin_dashboard.php" class="nav-item">&#127968; Dashboard</a>
-            <a href="add_employee.php" class="nav-item active">&#43; Add Employee</a>
-            <a href="view_employees.php" class="nav-item">&#128100; View Employees</a>
-            <a href="admin_attendance.php" class="nav-item">&#128197; Attendance</a>
-            <a href="admin_leaves.php" class="nav-item">&#127809; Leaves</a>
-            <a href="admin_salary.php" class="nav-item">&#128176; Salary</a>
-            <a href="admin_tasks.php" class="nav-item">&#9989; Tasks</a>
-            <a href="leave_types.php" class="nav-item">&#128221; Leave Types</a>
-            <a href="departments.php" class="nav-item">&#127970; Departments</a>
-            <a href="projects.php" class="nav-item">&#128196; Projects</a>
-            <a href="admin_holidays.php" class="nav-item">&#127974; Holiday Calendar</a>
-            <a href="admin_profile.php" class="nav-item">&#128100; My Profile</a>
-        </nav>
-        <a href="logout.php" class="logout-btn">Logout</a>
-        <div style="padding:14px 16px;border-top:1px solid rgba(255,255,255,.07);">
-            <p style="font-size:10px;color:rgba(255,255,255,.22);text-align:center;line-height:1.8;">&copy; <?php echo date('Y'); ?> Aller Technologies<br>All rights reserved.</p>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="topbar">
-            <h2>Add New Employee</h2>
-            <div class="user-info">Welcome, <?php echo $_SESSION['user']['name']; ?></div>
-        </div>
+<div class="section active">
 
         <?php if($success){ ?>
             <div style="background:#dcfce7;color:#16a34a;padding:12px 20px;border-radius:10px;margin-bottom:20px;font-weight:600;">&#10003; <?php echo $success; ?></div>
@@ -126,7 +102,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 <button type="submit" class="submit-btn">Add Employee</button>
             </form>
         </div>
-    </div>
+
 </div>
+</div>
+</div>
+<?php include 'common_js.php'; ?>
 </body>
 </html>

@@ -16,8 +16,10 @@ $page_title = "Dashboard";
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Dashboard - EMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 <?php include 'common_styles.php'; ?>
 <style>
 .status-pill{display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;}
@@ -38,6 +40,7 @@ $page_title = "Dashboard";
 <?php include 'sidebar_emp.php'; ?>
 <div class="main-content">
 <?php include 'topbar_emp.php'; ?>
+<div class="app-content">
 
 <div class="section active">
 
@@ -68,18 +71,18 @@ $page_title = "Dashboard";
     <div class="hero-card">
         <div class="hero-left">
             <div class="hero-eyebrow">Good <?php echo (date('H')<12?'Morning':(date('H')<17?'Afternoon':'Evening')); ?>, <?php echo date('l, d M Y'); ?></div>
-            <div class="hero-name">Hi <?php echo htmlspecialchars($emp['first_name']); ?> 👋</div>
+            <div class="hero-name">Hi <?php echo htmlspecialchars($emp['first_name']); ?></div>
             <div class="hero-sub"><?php echo htmlspecialchars($emp['designation'] ?? ''); ?> · ID <?php echo htmlspecialchars($emp['employee_code'] ?? $emp_id); ?></div>
             <div class="hero-actions">
                 <?php if(!$today_att || empty($today_att['check_in'])): ?>
-                    <a href="my_attendance.php" class="hero-btn solid">✅ Check In</a>
+                    <a href="my_attendance.php" class="hero-btn solid"><?php echo ems_icon('check-circle',15); ?> Check In</a>
                 <?php elseif(empty($today_att['check_out'])): ?>
-                    <a href="my_attendance.php" class="hero-btn solid">⏹ Check Out</a>
+                    <a href="my_attendance.php" class="hero-btn solid"><?php echo ems_icon('clock',15); ?> Check Out</a>
                 <?php else: ?>
-                    <span class="hero-btn">✔ Day Completed</span>
+                    <span class="hero-btn"><?php echo ems_icon('check-circle',15); ?> Day Completed</span>
                 <?php endif; ?>
-                <a href="my_leaves.php" class="hero-btn">🌿 Apply Leave</a>
-                <a href="hr_requests.php" class="hero-btn">📋 Raise HR Query</a>
+                <a href="my_leaves.php" class="hero-btn"><?php echo ems_icon('leaf',15); ?> Apply Leave</a>
+                <a href="hr_requests.php" class="hero-btn"><?php echo ems_icon('inbox',15); ?> Raise HR Query</a>
             </div>
         </div>
         <div class="day-ring-wrap">
@@ -100,7 +103,7 @@ $page_title = "Dashboard";
 
     <!-- Today timeline -->
     <div class="timeline-card">
-        <h3>🕐 Today at a Glance</h3>
+        <h3 style="display:flex;align-items:center;gap:8px;"><?php echo ems_icon('clock',17); ?> Today at a Glance</h3>
         <div class="timeline-track">
             <div class="timeline-fill" style="width:<?php echo $pct; ?>%;"></div>
             <div class="timeline-point" style="left:<?php echo $pct; ?>%;"></div>
@@ -114,19 +117,19 @@ $page_title = "Dashboard";
 
     <!-- Stats -->
     <div class="stat-tiles">
-        <div class="stat-tile"><div class="ico">📅</div><div class="label">My Attendance</div><div class="val"><?php echo $stat_att; ?></div></div>
-        <div class="stat-tile"><div class="ico">🌿</div><div class="label">My Leaves</div><div class="val"><?php echo $stat_leave; ?></div></div>
-        <div class="stat-tile"><div class="ico">✅</div><div class="label">My Tasks</div><div class="val"><?php echo $stat_task; ?></div></div>
-        <div class="stat-tile"><div class="ico">⏳</div><div class="label">Pending Leaves</div><div class="val"><?php echo $stat_pend; ?></div></div>
-        <div class="stat-tile"><div class="ico">🏠</div><div class="label">WFH This Month</div><div class="val"><?php echo $stat_wfh; ?></div></div>
+        <div class="stat-tile"><div class="ico"><?php echo ems_icon('calendar',20); ?></div><div class="label">My Attendance</div><div class="val"><?php echo $stat_att; ?></div></div>
+        <div class="stat-tile"><div class="ico"><?php echo ems_icon('leaf',20); ?></div><div class="label">My Leaves</div><div class="val"><?php echo $stat_leave; ?></div></div>
+        <div class="stat-tile"><div class="ico"><?php echo ems_icon('check-square',20); ?></div><div class="label">My Tasks</div><div class="val"><?php echo $stat_task; ?></div></div>
+        <div class="stat-tile"><div class="ico"><?php echo ems_icon('clock',20); ?></div><div class="label">Pending Leaves</div><div class="val"><?php echo $stat_pend; ?></div></div>
+        <div class="stat-tile"><div class="ico"><?php echo ems_icon('building',20); ?></div><div class="label">WFH This Month</div><div class="val"><?php echo $stat_wfh; ?></div></div>
     </div>
 
     <!-- Quick actions -->
     <div class="qa-grid">
-        <a href="my_leaves.php" class="qa-btn"><span class="qa-ico">🌿</span>Apply Leave</a>
-        <a href="hr_requests.php" class="qa-btn"><span class="qa-ico">📋</span>Raise HR Query</a>
-        <a href="my_salary.php" class="qa-btn"><span class="qa-ico">💰</span>View Payslip</a>
-        <a href="my_tasks.php" class="qa-btn"><span class="qa-ico">✅</span>My Tasks</a>
+        <a href="my_leaves.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('leaf',18); ?></span>Apply Leave</a>
+        <a href="hr_requests.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('inbox',18); ?></span>Raise HR Query</a>
+        <a href="my_salary.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('wallet',18); ?></span>View Payslip</a>
+        <a href="my_tasks.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('check-square',18); ?></span>My Tasks</a>
     </div>
 
     <!-- Charts -->
@@ -140,11 +143,11 @@ $page_title = "Dashboard";
     ?>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
         <div class="timeline-card" style="margin-top:0;">
-            <h3 style="color:var(--role-accent);">📊 Monthly Attendance</h3>
+            <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Monthly Attendance</h3>
             <canvas id="attendanceChart"></canvas>
         </div>
         <div class="timeline-card" style="margin-top:0;">
-            <h3 style="color:var(--role-accent);">📊 Monthly Leaves</h3>
+            <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Monthly Leaves</h3>
             <canvas id="leaveChart"></canvas>
         </div>
     </div>
@@ -156,7 +159,7 @@ $page_title = "Dashboard";
     if(!empty($uphrows)):
     ?>
     <div class="timeline-card">
-        <h3>🏖 Upcoming Holidays</h3>
+        <h3 style="display:flex;align-items:center;gap:8px;"><?php echo ems_icon('flag',17); ?> Upcoming Holidays</h3>
         <div class="hscroll">
         <?php foreach($uphrows as $uh):
             $ht=$uh['holiday_type']??'National';
@@ -175,11 +178,14 @@ $page_title = "Dashboard";
 </div>
 </div>
 </div>
+</div>
 
 <script>
 const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-new Chart(document.getElementById('attendanceChart'),{type:'bar',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
-new Chart(document.getElementById('leaveChart'),{type:'bar',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+document.addEventListener('DOMContentLoaded', function(){
+    new Chart(document.getElementById('attendanceChart'),{type:'bar',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+    new Chart(document.getElementById('leaveChart'),{type:'bar',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+});
 </script>
 <?php include 'common_js.php'; ?>
 </body>

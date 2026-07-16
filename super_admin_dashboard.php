@@ -130,52 +130,9 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
 
 <div class="main-content">
 
-    <!-- Topbar -->
-    <div class="topbar">
-        <h2 id="page-title">Dashboard</h2>
-        <div class="topbar-right">
-            <?php
-            $unread_count=mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as cnt FROM notifications WHERE is_read=0"))['cnt'];
-            $all_notif=mysqli_query($conn,"SELECT * FROM notifications ORDER BY created_at DESC LIMIT 15");
-            ?>
-            <div class="notif-wrapper" id="notifWrapper">
-                <div class="notif-bell" onclick="toggleNotif()">&#128276;
-                    <?php if($unread_count>0): ?><span class="notif-badge"><?php echo $unread_count; ?></span><?php endif; ?>
-                </div>
-                <div class="notif-dropdown" id="notifDropdown">
-                    <div class="notif-header">
-                        <span>Leave Notifications</span>
-                        <?php if($unread_count>0): ?><a href="mark_notifications_read.php" style="font-size:11px;color:#3b82f6;text-decoration:none;padding:4px 10px;border-radius:20px;border:1px solid #3b82f6;">Mark all read</a><?php endif; ?>
-                    </div>
-                    <div class="notif-list">
-                    <?php
-                        $has_n=false;
-                        while($n=mysqli_fetch_assoc($all_notif)){
-                            $has_n=true;$nw=($n['is_read']==0)?'notif-new':'';
-                            echo "<div class='notif-item {$nw}'><div class='notif-icon'>&#128203;</div>
-                                <div class='notif-text'><strong>{$n['emp_name']}</strong> &mdash; <span class='notif-type'>{$n['leave_type']}</span><br>
-                                <small>&#128197; {$n['from_date']} to {$n['to_date']}</small><br>
-                                <small style='color:#9ca3af;font-style:italic;'>Reason: {$n['reason']}</small></div>
-                                ".($n['is_read']==0?"<span class='notif-dot'></span>":"")."</div>";
-                        }
-                        if(!$has_n) echo "<div class='notif-empty'>No notifications yet</div>";
-                    ?>
-                    </div>
-                </div>
-            </div>
-            <?php if(!empty($sa_photo)&&file_exists('uploads/'.$sa_photo)): ?>
-                <img src="uploads/<?php echo htmlspecialchars($sa_photo); ?>"
-                     onclick="showSection('my_profile',document.querySelector('[onclick*=my_profile]'))"
-                     style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6;cursor:pointer;">
-            <?php else: ?>
-                <div onclick="showSection('my_profile',document.querySelector('[onclick*=my_profile]'))"
-                     style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:15px;cursor:pointer;">
-                    <?php echo strtoupper(substr($_SESSION['user']['name'],0,1)); ?>
-                </div>
-            <?php endif; ?>
-            <div class="user-info">Welcome, <?php echo $_SESSION['user']['name']; ?></div>
-        </div>
-    </div>
+<?php $page_title = "Dashboard"; include 'topbar_sa.php'; ?>
+
+<div class="app-content">
 
     <!-- ===== DASHBOARD ===== -->
     <div id="dashboard" class="section active">
@@ -193,12 +150,12 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
         <div class="hero-card">
             <div class="hero-left">
                 <div class="hero-eyebrow">Organization Insights · <?php echo date('l, d M Y'); ?></div>
-                <div class="hero-name">Hi <?php echo htmlspecialchars($_SESSION['user']['name']); ?> 👋</div>
+                <div class="hero-name">Hi <?php echo htmlspecialchars($_SESSION['user']['name']); ?></div>
                 <div class="hero-sub">Full visibility across <?php echo $sa_total_emp; ?> employees, org-wide</div>
                 <div class="hero-actions">
-                    <a href="#" onclick="showSection('employees',document.querySelector('[onclick*=employees]'));return false;" class="hero-btn solid">👥 Manage Employees</a>
-                    <a href="departments.php" class="hero-btn">🏢 Departments</a>
-                    <a href="announcements.php" class="hero-btn">📣 Announcements</a>
+                    <a href="#" onclick="showSection('employees',document.querySelector('[onclick*=employees]'));return false;" class="hero-btn solid"><?php echo ems_icon('users',15); ?> Manage Employees</a>
+                    <a href="departments.php" class="hero-btn"><?php echo ems_icon('building',15); ?> Departments</a>
+                    <a href="announcements.php" class="hero-btn"><?php echo ems_icon('megaphone',15); ?> Announcements</a>
                 </div>
             </div>
             <div class="day-ring-wrap">
@@ -221,24 +178,24 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
         <div class="stat-tiles" style="grid-template-columns:repeat(6,1fr);">
             <div class="stat-tile"><div class="ico">👥</div><div class="label">Total Employees</div><div class="val"><?php echo $sa_total_emp; ?></div></div>
             <div class="stat-tile"><div class="ico">✅</div><div class="label">Present Today</div><div class="val"><?php echo $sa_present_tdy; ?></div></div>
-            <div class="stat-tile"><div class="ico">⏳</div><div class="label">Pending Leaves</div><div class="val"><?php echo $sa_pend_leaves; ?></div></div>
-            <div class="stat-tile"><div class="ico">🌿</div><div class="label">Approved Leaves</div><div class="val"><?php echo $sa_appr_leaves; ?></div></div>
-            <div class="stat-tile"><div class="ico">📋</div><div class="label">Pending Tasks</div><div class="val"><?php echo $sa_pend_tasks; ?></div></div>
-            <div class="stat-tile"><div class="ico">🏁</div><div class="label">Completed Tasks</div><div class="val"><?php echo $sa_comp_tasks; ?></div></div>
+            <div class="stat-tile"><div class="ico"><?php echo ems_icon('clock',20); ?></div><div class="label">Pending Leaves</div><div class="val"><?php echo $sa_pend_leaves; ?></div></div>
+            <div class="stat-tile"><div class="ico"><?php echo ems_icon('leaf',20); ?></div><div class="label">Approved Leaves</div><div class="val"><?php echo $sa_appr_leaves; ?></div></div>
+            <div class="stat-tile"><div class="ico"><?php echo ems_icon('check-square',20); ?></div><div class="label">Pending Tasks</div><div class="val"><?php echo $sa_pend_tasks; ?></div></div>
+            <div class="stat-tile"><div class="ico"><?php echo ems_icon('check-circle',20); ?></div><div class="label">Completed Tasks</div><div class="val"><?php echo $sa_comp_tasks; ?></div></div>
         </div>
 
         <!-- Quick actions -->
         <div class="qa-grid">
-            <a href="#" onclick="showSection('employees',document.querySelector('[onclick*=employees]'));return false;" class="qa-btn"><span class="qa-ico">👥</span>All Employees</a>
-            <a href="departments.php" class="qa-btn"><span class="qa-ico">🏢</span>Departments</a>
-            <a href="admin_rules.php" class="qa-btn"><span class="qa-ico">📜</span>Rules & Regulations</a>
-            <a href="assign_department.php" class="qa-btn"><span class="qa-ico">🔀</span>Assign Department</a>
+            <a href="#" onclick="showSection('employees',document.querySelector('[onclick*=employees]'));return false;" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('users',18); ?></span>All Employees</a>
+            <a href="departments.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('building',18); ?></span>Departments</a>
+            <a href="admin_rules.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('shield',18); ?></span>Rules & Regulations</a>
+            <a href="assign_department.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('sitemap',18); ?></span>Assign Department</a>
         </div>
 
         <!-- Real-Time Attendance Status Widget -->
         <div class="timeline-card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                <h3 style="margin:0;">🟢 Live Attendance Status — Today</h3>
+                <h3 style="margin:0;display:flex;align-items:center;gap:8px;"><span style="color:var(--success);"><?php echo ems_icon('check-circle',17); ?></span> Live Attendance Status — Today</h3>
                 <span id="attLastUpdated" style="font-size:11px;color:#9ca3af;"></span>
             </div>
 
@@ -256,11 +213,11 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
             <div class="timeline-card" style="margin-top:0;min-width:0;">
-                <h3 style="color:var(--role-accent);">📊 Company Monthly Attendance</h3>
+                <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Company Monthly Attendance</h3>
                 <canvas id="attendanceChart"></canvas>
             </div>
             <div class="timeline-card" style="margin-top:0;min-width:0;">
-                <h3 style="color:var(--role-accent);">📊 Company Monthly Leaves</h3>
+                <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Company Monthly Leaves</h3>
                 <canvas id="leaveChart"></canvas>
             </div>
         </div>
@@ -270,7 +227,7 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
         $uphrows=[];while($u=mysqli_fetch_assoc($uph))$uphrows[]=$u;
         if(!empty($uphrows)):?>
         <div class="timeline-card">
-            <h3>🏖 Upcoming Holidays</h3>
+            <h3 style="display:flex;align-items:center;gap:8px;"><?php echo ems_icon('flag',17); ?> Upcoming Holidays</h3>
             <div class="hscroll">
             <?php foreach($uphrows as $uh):
                 $ht=$uh['holiday_type']??'National';
@@ -577,6 +534,7 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
         </div>
     </div>
 
+</div>
 </div></div>
 
 <?php

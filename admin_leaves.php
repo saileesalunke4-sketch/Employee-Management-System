@@ -100,8 +100,10 @@ $page_title = "Leaves";
                         <td>{$row['reason']}</td>
                         <td><span class='pill {$pc}'>".ucfirst($row['status'])."</span></td>
                         <td>
-                            <a href='leave_action.php?id={$row['leave_id']}&action=approved&redirect=admin_leaves.php&csrf={$csrf_tok}' class='approve-btn'>Approve</a>
-                            <a href='leave_action.php?id={$row['leave_id']}&action=rejected&redirect=admin_leaves.php&csrf={$csrf_tok}' class='reject-btn'>Reject</a>
+                            <div class='row-actions'>
+                                <a href='leave_action.php?id={$row['leave_id']}&action=approved&redirect=admin_leaves.php&csrf={$csrf_tok}' class='approve-btn'>Approve</a>
+                                <a href='leave_action.php?id={$row['leave_id']}&action=rejected&redirect=admin_leaves.php&csrf={$csrf_tok}' class='reject-btn'>Reject</a>
+                            </div>
                         </td>
                     </tr>";
                 }

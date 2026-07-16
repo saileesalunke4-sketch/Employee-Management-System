@@ -39,20 +39,18 @@ $page_title = "Dashboard";
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Admin Dashboard - EMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 <?php include 'common_styles.php'; ?>
-<style>
-body { overflow: hidden; }
-* { scrollbar-width: none; }
-*::-webkit-scrollbar { display: none; }
-</style>
 </head>
 <body>
 <div class="dashboard admin-theme">
 <?php include 'sidebar_admin.php'; ?>
 <div class="main-content">
 <?php include 'topbar_admin.php'; ?>
+<div class="app-content">
 
 <div class="section active">
 
@@ -70,12 +68,12 @@ body { overflow: hidden; }
     <div class="hero-card">
         <div class="hero-left">
             <div class="hero-eyebrow">Team Control Center · <?php echo date('l, d M Y'); ?></div>
-            <div class="hero-name">Hi <?php echo htmlspecialchars($_SESSION['user']['name']); ?> 👋</div>
+            <div class="hero-name">Hi <?php echo htmlspecialchars($_SESSION['user']['name']); ?></div>
             <div class="hero-sub"><?php echo $present_tdy; ?> of <?php echo $total_emp; ?> team members checked in today</div>
             <div class="hero-actions">
-                <a href="admin_leaves.php" class="hero-btn solid">🌿 Pending Leaves (<?php echo $pend_leaves; ?>)</a>
-                <a href="add_employee.php" class="hero-btn">➕ Add Employee</a>
-                <a href="announcements.php" class="hero-btn">📣 Post Announcement</a>
+                <a href="admin_leaves.php" class="hero-btn solid"><?php echo ems_icon('leaf',15); ?> Pending Leaves (<?php echo $pend_leaves; ?>)</a>
+                <a href="add_employee.php" class="hero-btn"><?php echo ems_icon('user-plus',15); ?> Add Employee</a>
+                <a href="announcements.php" class="hero-btn"><?php echo ems_icon('megaphone',15); ?> Post Announcement</a>
             </div>
         </div>
         <div class="day-ring-wrap">
@@ -96,25 +94,25 @@ body { overflow: hidden; }
 
     <!-- Stats -->
     <div class="stat-tiles">
-        <div class="stat-tile"><div class="ico">👥</div><div class="label">Total Employees</div><div class="val"><?php echo $total_emp; ?></div></div>
-        <div class="stat-tile"><div class="ico">✅</div><div class="label">Present Today</div><div class="val"><?php echo $present_tdy; ?></div></div>
-        <div class="stat-tile"><div class="ico">🌿</div><div class="label">On Leave</div><div class="val"><?php echo $on_leave; ?></div></div>
-        <div class="stat-tile"><div class="ico">⏳</div><div class="label">Pending Tasks</div><div class="val"><?php echo $pend_tasks; ?></div></div>
-        <div class="stat-tile"><div class="ico">🏁</div><div class="label">Completed Tasks</div><div class="val"><?php echo $comp_tasks; ?></div></div>
+        <div class="stat-tile"><div class="ico"><?php echo ems_icon('users',20); ?></div><div class="label">Total Employees</div><div class="val"><?php echo $total_emp; ?></div></div>
+        <div class="stat-tile"><div class="ico"><?php echo ems_icon('check-circle',20); ?></div><div class="label">Present Today</div><div class="val"><?php echo $present_tdy; ?></div></div>
+        <div class="stat-tile"><div class="ico"><?php echo ems_icon('leaf',20); ?></div><div class="label">On Leave</div><div class="val"><?php echo $on_leave; ?></div></div>
+        <div class="stat-tile"><div class="ico"><?php echo ems_icon('clock',20); ?></div><div class="label">Pending Tasks</div><div class="val"><?php echo $pend_tasks; ?></div></div>
+        <div class="stat-tile"><div class="ico"><?php echo ems_icon('check-square',20); ?></div><div class="label">Completed Tasks</div><div class="val"><?php echo $comp_tasks; ?></div></div>
     </div>
 
     <!-- Quick actions -->
     <div class="qa-grid">
-        <a href="admin_leaves.php" class="qa-btn"><span class="qa-ico">🌿</span>Review Leaves</a>
-        <a href="all_employees.php" class="qa-btn"><span class="qa-ico">👥</span>All Employees</a>
-        <a href="admin_hr_requests.php" class="qa-btn"><span class="qa-ico">📋</span>HR Requests</a>
-        <a href="admin_rules.php" class="qa-btn"><span class="qa-ico">📜</span>Rules & Regulations</a>
+        <a href="admin_leaves.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('leaf',18); ?></span>Review Leaves</a>
+        <a href="all_employees.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('users',18); ?></span>All Employees</a>
+        <a href="admin_hr_requests.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('inbox',18); ?></span>HR Requests</a>
+        <a href="admin_rules.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('shield',18); ?></span>Rules & Regulations</a>
     </div>
 
     <!-- Real-Time Attendance Status Widget -->
     <div class="timeline-card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-            <h3 style="margin:0;">🟢 Live Attendance Status — Today</h3>
+            <h3 style="margin:0;display:flex;align-items:center;gap:8px;"><span style="color:var(--success);"><?php echo ems_icon('check-circle',17); ?></span> Live Attendance Status — Today</h3>
             <span id="attLastUpdated" style="font-size:11px;color:#9ca3af;"></span>
         </div>
 
@@ -133,11 +131,11 @@ body { overflow: hidden; }
     <!-- Charts -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
         <div class="timeline-card" style="margin-top:0;">
-            <h3 style="color:var(--role-accent);">📊 Monthly Attendance</h3>
+            <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Monthly Attendance</h3>
             <canvas id="adminAttChart"></canvas>
         </div>
         <div class="timeline-card" style="margin-top:0;">
-            <h3 style="color:var(--role-accent);">📊 Monthly Leave Requests</h3>
+            <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Monthly Leave Requests</h3>
             <canvas id="adminLeaveChart"></canvas>
         </div>
     </div>
@@ -149,7 +147,7 @@ body { overflow: hidden; }
     if(!empty($uphrows)):
     ?>
     <div class="timeline-card">
-        <h3>🏖 Upcoming Holidays</h3>
+        <h3 style="display:flex;align-items:center;gap:8px;"><?php echo ems_icon('flag',17); ?> Upcoming Holidays</h3>
         <div class="hscroll">
         <?php foreach($uphrows as $uh):
             $ht=$uh['holiday_type']??'National';
@@ -168,11 +166,14 @@ body { overflow: hidden; }
 </div>
 </div>
 </div>
+</div>
 
 <script>
 const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-new Chart(document.getElementById('adminAttChart'),{type:'bar',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
-new Chart(document.getElementById('adminLeaveChart'),{type:'bar',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+document.addEventListener('DOMContentLoaded', function(){
+    new Chart(document.getElementById('adminAttChart'),{type:'bar',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    new Chart(document.getElementById('adminLeaveChart'),{type:'bar',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+});
 
 // ===== LIVE ATTENDANCE STATUS WIDGET =====
 const attStatusColors = {
