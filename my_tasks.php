@@ -38,11 +38,27 @@ $page_title = "My Tasks";
 
     <div class="form-card">
         <h3 class="section-title">My Tasks</h3>
+        <form method="GET" style="max-width:340px;margin-bottom:14px;">
+            <div class="topbar-search" style="margin-left:0;width:100%;max-width:100%;">
+                <?php echo ems_icon('search',16); ?>
+                <input type="text" name="q" value="<?php echo htmlspecialchars($_GET['q'] ?? ''); ?>" placeholder="Search my tasks…">
+            </div>
+        </form>
         <table class="emp-table">
             <thead><tr><th>Task Name</th><th>Description</th><th>Target Date</th><th>Status</th><th>Hours</th><th>Update</th></tr></thead>
             <tbody>
             <?php
-                $result=mysqli_query($conn,"SELECT * FROM tasks WHERE emp_id='$emp_id' ORDER BY target_date DESC");
+                $task_q = trim($_GET['q'] ?? '');
+                $sql = "SELECT * FROM tasks WHERE emp_id='$emp_id'";
+                if($task_q !== ''){
+                    $esc = mysqli_real_escape_string($conn, $task_q);
+                    $sql .= " AND (task_name LIKE '%{$esc}%' OR description LIKE '%{$esc}%')";
+                }
+                $sql .= " ORDER BY target_date DESC";
+                $result=mysqli_query($conn,$sql);
+                if($task_q !== '' && mysqli_num_rows($result) === 0){
+                    echo "<tr><td colspan='6' style='text-align:center;padding:28px;color:var(--text-3);'>No tasks found matching \"".htmlspecialchars($task_q)."\"</td></tr>";
+                }
                 while($row=mysqli_fetch_assoc($result)){
                     $pill=['completed'=>'completed','in_progress'=>'in_progress','pending'=>'pending'][$row['status']]??'pending';
                     echo "<tr><td><b>{$row['task_name']}</b></td><td>{$row['description']}</td><td>{$row['target_date']}</td>

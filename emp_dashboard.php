@@ -82,7 +82,6 @@ $page_title = "Dashboard";
                     <span class="hero-btn"><?php echo ems_icon('check-circle',15); ?> Day Completed</span>
                 <?php endif; ?>
                 <a href="my_leaves.php" class="hero-btn"><?php echo ems_icon('leaf',15); ?> Apply Leave</a>
-                <a href="hr_requests.php" class="hero-btn"><?php echo ems_icon('inbox',15); ?> Raise HR Query</a>
             </div>
         </div>
         <div class="day-ring-wrap">
@@ -125,9 +124,8 @@ $page_title = "Dashboard";
     </div>
 
     <!-- Quick actions -->
-    <div class="qa-grid">
+    <div class="qa-grid" style="grid-template-columns:repeat(3,1fr);">
         <a href="my_leaves.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('leaf',18); ?></span>Apply Leave</a>
-        <a href="hr_requests.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('inbox',18); ?></span>Raise HR Query</a>
         <a href="my_salary.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('wallet',18); ?></span>View Payslip</a>
         <a href="my_tasks.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('check-square',18); ?></span>My Tasks</a>
     </div>

@@ -54,53 +54,53 @@ if(isset($_SESSION['user'])){
         /* ---- Left brand panel ---- */
         .login-left {
             flex: 1;
-            background: linear-gradient(160deg, #EEF0FF 0%, #F6F5FF 55%, #FFFFFF 100%);
+            background: linear-gradient(160deg, #293678 0%, #2d3986 55%, #303a8a 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             padding: 52px 44px;
             position: relative;
             overflow: hidden;
-            border-right: 1px solid #EEF0F3;
+            border-right: 1px solid rgba(255,255,255,0.06);
         }
         .login-left::before {
             content: ''; position: absolute; width: 260px; height: 260px;
-            background: rgba(79,70,229,0.10); border-radius: 50%;
+            background: rgba(124,134,255,0.18); border-radius: 50%;
             top: -70px; right: -70px; animation: ambientDrift 14s ease-in-out infinite;
         }
         .login-left::after {
             content: ''; position: absolute; width: 190px; height: 190px;
-            background: rgba(13,148,136,0.10); border-radius: 50%;
+            background: rgba(20,184,166,0.14); border-radius: 50%;
             bottom: -50px; left: -50px; animation: ambientDrift 14s ease-in-out infinite 3s;
         }
         .logo-wrap { position: relative; z-index: 1; margin-bottom: 34px; animation: fadeInUp 0.5s ease 0.1s both; }
         .logo-wrap .mark { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
-        .logo-wrap .mark img{ width:44px; height:44px; border-radius:12px; object-fit:cover; box-shadow:0 6px 18px rgba(79,70,229,.28); }
-        .logo-wrap .mark b{ font-size:19px; font-weight:800; color:#14161A; letter-spacing:-.3px; display:block; }
-        .logo-wrap .mark span{ font-size:11px; color:#9AA1AC; font-weight:600; letter-spacing:.6px; text-transform:uppercase; }
-        .logo-wrap h1{ font-size: 27px; font-weight: 800; color: #14161A; letter-spacing: -0.5px; line-height:1.3; }
-        .logo-wrap p{ font-size: 13.5px; color: #666D7A; margin-top: 8px; line-height:1.6; max-width:340px; }
+        .logo-wrap .mark img{ width:44px; height:44px; border-radius:12px; object-fit:cover; box-shadow:0 6px 18px rgba(0,0,0,.35); }
+        .logo-wrap .mark b{ font-size:19px; font-weight:800; color:#FFFFFF; letter-spacing:-.3px; display:block; }
+        .logo-wrap .mark span{ font-size:11px; color:#9AA5E0; font-weight:600; letter-spacing:.6px; text-transform:uppercase; }
+        .logo-wrap h1{ font-size: 27px; font-weight: 800; color:#FFFFFF; letter-spacing: -0.5px; line-height:1.3; }
+        .logo-wrap p{ font-size: 13.5px; color:#B7BEE6; margin-top: 8px; line-height:1.6; max-width:340px; }
 
         .features { position: relative; z-index: 1; display:flex; flex-direction:column; gap:10px; }
         .feat {
             display: flex; align-items: center; gap: 12px;
             padding: 12px 14px;
-            background: rgba(255,255,255,0.7);
-            border: 1px solid #E5E7EB;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
             border-radius: 14px;
-            color: #40464F;
+            color: #D7DBF5;
             font-size: 13px; font-weight: 600;
             transition: all 0.25s ease;
             animation: fadeInUp 0.45s ease both;
         }
         .feat:nth-child(1){ animation-delay:.2s; } .feat:nth-child(2){ animation-delay:.28s; }
         .feat:nth-child(3){ animation-delay:.36s; } .feat:nth-child(4){ animation-delay:.44s; }
-        .feat:hover { border-color:#C7C9F2; transform: translateX(3px); box-shadow: var(--shadow-sm); }
-        .feat-icon { width:30px; height:30px; border-radius:9px; background:#EEF0FF; color:#4F46E5; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .feat:hover { border-color:rgba(255,255,255,0.28); background:rgba(255,255,255,0.1); transform: translateX(3px); }
+        .feat-icon { width:30px; height:30px; border-radius:9px; background:rgba(124,134,255,0.22); color:#AEB6FF; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 
         /* ---- Right form panel ---- */
         .login-right {
-            flex: 1; background: #ffffff;
+            flex: 1; background: #ece7e7;
             display: flex; flex-direction: column; justify-content: center;
             padding: 52px 48px;
         }

@@ -22,7 +22,6 @@ $nav_groups = [
         ['announcements.php','announcements.php','megaphone','Announcements'],
     ],
     'Company' => [
-        ['hr_requests.php','hr_requests.php','inbox','HR Process Requests'],
         ['emp_holidays.php','emp_holidays.php','flag','Holiday Calendar'],
         ['emp_rules.php','emp_rules.php','shield','Rules & Regulations'],
     ],

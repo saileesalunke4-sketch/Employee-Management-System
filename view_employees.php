@@ -24,15 +24,34 @@ $page_title = "View Employees";
 <div class="section active">
     <div class="form-card">
         <h3 class="section-title">All Employees</h3>
-        <div style="text-align:right;margin-bottom:12px;">
-            <a href="export_employees.php" style="display:inline-block;background:#16a34a;color:white;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">📥 Download Excel</a>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+            <form method="GET" style="flex:1;min-width:220px;max-width:360px;" action="view_employees.php">
+                <div class="topbar-search" style="margin-left:0;width:100%;max-width:100%;">
+                    <?php echo ems_icon('search',16); ?>
+                    <input type="text" name="q" value="<?php echo htmlspecialchars($_GET['q'] ?? ''); ?>" placeholder="Search by name, email, ID, designation…">
+                </div>
+            </form>
+            <?php if(!empty($_GET['q'])): ?>
+                <a href="view_employees.php" style="font-size:12.5px;color:var(--text-3);text-decoration:none;font-weight:600;">Clear search &times;</a>
+            <?php endif; ?>
+            <a href="export_employees.php" style="margin-left:auto;display:inline-block;background:#16a34a;color:white;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;">📥 Download Excel</a>
         </div>
         <div style="overflow-x:auto;">
         <table class="emp-table">
             <thead><tr><th>Employee ID</th><th>Name</th><th>Email</th><th>Designation</th><th>Contact</th><th>Role</th><th>Department</th></tr></thead>
             <tbody>
             <?php
-                $res = mysqli_query($conn,"SELECT u.id,u.name,u.email,u.role,e.designation,e.contact,e.emp_id,e.dept_id,e.employee_code FROM users u LEFT JOIN employees e ON u.id=e.user_id WHERE u.role='employee'");
+                $search_q = trim($_GET['q'] ?? '');
+                $sql = "SELECT u.id,u.name,u.email,u.role,e.designation,e.contact,e.emp_id,e.dept_id,e.employee_code FROM users u LEFT JOIN employees e ON u.id=e.user_id WHERE u.role='employee'";
+                if($search_q !== ''){
+                    $esc = mysqli_real_escape_string($conn, $search_q);
+                    $sql .= " AND (u.name LIKE '%{$esc}%' OR u.email LIKE '%{$esc}%' OR e.designation LIKE '%{$esc}%' OR e.employee_code LIKE '%{$esc}%')";
+                }
+                $res = mysqli_query($conn, $sql);
+                $row_count = mysqli_num_rows($res);
+                if($search_q !== '' && $row_count === 0){
+                    echo "<tr><td colspan='7' style='text-align:center;padding:32px;color:var(--text-3);'>No employees found matching \"".htmlspecialchars($search_q)."\"</td></tr>";
+                }
                 while($row=mysqli_fetch_assoc($res)){
                     $depts_opt='';
                     $d_res=mysqli_query($conn,"SELECT * FROM departments ORDER BY dept_name");
