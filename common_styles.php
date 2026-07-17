@@ -20,10 +20,8 @@
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
 .notif-dropdown{display:none;position:fixed;width:340px;max-width:calc(100vw - 32px);background:#fff;border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,.22);z-index:9999;overflow:hidden;border:1px solid #e5e7eb;}
 .notif-dropdown.open{display:block;animation:slideDown .2s ease;}
-.notif-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.15);z-index:9998;}
-.notif-overlay.open{display:block;animation:fadeIn .2s ease;}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.notif-overlay{display:none;}
 .notif-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #f0f0f0;font-size:14px;font-weight:600;background:#f8fafc;}
 .notif-list{max-height:340px;overflow-y:auto;}
 .notif-item{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-bottom:1px solid #f5f5f5;transition:background .2s;}

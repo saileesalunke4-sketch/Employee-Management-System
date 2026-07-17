@@ -17,7 +17,7 @@ $sa_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM use
 
     <label class="topbar-search">
         <?php echo ems_icon('search',16); ?>
-        <input type="text" placeholder="Search employees, requests…" onkeydown="if(event.key==='Enter'){ window.location.href='all_employees.php?q='+encodeURIComponent(this.value); }">
+        <input type="text" placeholder="Search employees, requests…" onkeydown="if(event.key==='Enter'){ window.location.href='global_search.php?q='+encodeURIComponent(this.value); }">
         <kbd>/</kbd>
     </label>
 

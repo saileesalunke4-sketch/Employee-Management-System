@@ -103,6 +103,18 @@ function getLeaveDaysWithSandwich($from_date, $to_date){
     }
     return $cal_days + $sandwich_days;
 }
+// ===== ONE-TIME SCHEMA SETUP (runs once, not on every page load) =====
+// Everything below used to run its CREATE TABLE / SHOW COLUMNS / ALTER /
+// backfill queries on EVERY single page request — 10+ extra DB round trips
+// before the page's own queries even start. That's the main reason
+// navigation felt like "blank white page, then the real page pops in":
+// the server was busy re-checking/re-creating schema that already existed.
+// A marker file now makes this run once; delete the marker (or the file)
+// to force it to re-check the schema again (e.g. after a fresh DB import).
+$schema_marker = __DIR__ . '/logs/.schema_ready';
+if(!is_dir(__DIR__.'/logs')) @mkdir(__DIR__.'/logs', 0755, true);
+if(!file_exists($schema_marker)){
+
 // ===== REGULARIZATION REQUESTS TABLE =====
 // Lets an employee request a correction to a past attendance day
 // (e.g. forgot to check in/out), for admin/super_admin to approve or reject.
@@ -185,24 +197,6 @@ if($missing_codes){
         mysqli_query($conn, "UPDATE employees SET employee_code='$code' WHERE emp_id=".(int)$mc['emp_id']);
     }
 }
-// ===== CSRF PROTECTION HELPERS =====
-// Used on approve/reject action links (leave, regularization, HR requests)
-// so a malicious link/page on another site can't trick a logged-in admin's
-// browser into silently approving/rejecting something.
-if(session_status() === PHP_SESSION_NONE){
-    // db.php can be included both before and after session_start() across
-    // different pages, so guard against calling it twice.
-    @session_start();
-}
-function csrf_token(){
-    if(empty($_SESSION['csrf_token'])){
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-    }
-    return $_SESSION['csrf_token'];
-}
-function csrf_verify($token){
-    return !empty($_SESSION['csrf_token']) && !empty($token) && hash_equals($_SESSION['csrf_token'], $token);
-}
 
 // ===== LOGIN BRUTE-FORCE PROTECTION =====
 // Tracks failed login attempts per user and temporarily locks the account
@@ -230,4 +224,28 @@ mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `password_resets` (
   PRIMARY KEY (`reset_id`),
   KEY `token` (`token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // Mark schema as verified so none of the above runs again until this
+    // marker is removed.
+    file_put_contents($schema_marker, date('c'));
+}
+
+// ===== CSRF PROTECTION HELPERS =====
+// Used on approve/reject action links (leave, regularization, HR requests)
+// so a malicious link/page on another site can't trick a logged-in admin's
+// browser into silently approving/rejecting something.
+if(session_status() === PHP_SESSION_NONE){
+    // db.php can be included both before and after session_start() across
+    // different pages, so guard against calling it twice.
+    @session_start();
+}
+function csrf_token(){
+    if(empty($_SESSION['csrf_token'])){
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+function csrf_verify($token){
+    return !empty($_SESSION['csrf_token']) && !empty($token) && hash_equals($_SESSION['csrf_token'], $token);
+}
 ?>

@@ -27,7 +27,7 @@ $profile_photo = $photo_row['profile_photo'] ?? '';
 
     <label class="topbar-search">
         <?php echo ems_icon('search',16); ?>
-        <input type="text" placeholder="Search employees, tasks, requests…" onkeydown="if(event.key==='Enter'){ window.location.href='view_employees.php?q='+encodeURIComponent(this.value); }">
+        <input type="text" placeholder="Search employees, tasks, requests…" onkeydown="if(event.key==='Enter'){ window.location.href='global_search.php?q='+encodeURIComponent(this.value); }">
         <kbd>/</kbd>
     </label>
 

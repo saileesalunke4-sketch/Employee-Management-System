@@ -14,18 +14,6 @@ function toggleNotif(){
         dropdown.style.top  = (rect.bottom + 10) + 'px';
         dropdown.style.left = left + 'px';
         dropdown.style.right = 'auto';
-
-        let overlay = document.getElementById('notifOverlay');
-        if(!overlay){
-            overlay = document.createElement('div');
-            overlay.id = 'notifOverlay';
-            overlay.className = 'notif-overlay';
-            document.body.appendChild(overlay);
-        }
-        overlay.classList.add('open');
-    } else {
-        const overlay = document.getElementById('notifOverlay');
-        if(overlay) overlay.classList.remove('open');
     }
 
     dropdown.classList.toggle('open');
@@ -34,8 +22,6 @@ document.addEventListener('click',function(e){
     const w = document.getElementById('notifWrapper');
     if(w && !w.contains(e.target)){
         document.getElementById('notifDropdown').classList.remove('open');
-        const overlay = document.getElementById('notifOverlay');
-        if(overlay) overlay.classList.remove('open');
     }
 });
 // Auto logout 30 min

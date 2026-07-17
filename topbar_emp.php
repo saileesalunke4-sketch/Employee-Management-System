@@ -17,7 +17,7 @@ $emp_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM us
 
     <label class="topbar-search">
         <?php echo ems_icon('search',16); ?>
-        <input type="text" placeholder="Search tasks, leaves, payslips…" onkeydown="if(event.key==='Enter'){ window.location.href='my_tasks.php?q='+encodeURIComponent(this.value); }">
+        <input type="text" placeholder="Search tasks, leaves, payslips…" onkeydown="if(event.key==='Enter'){ window.location.href='global_search.php?q='+encodeURIComponent(this.value); }">
         <kbd>/</kbd>
     </label>
 
@@ -85,7 +85,13 @@ $emp_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM us
 
         list.innerHTML = data.items.map(function(n){
             var isNew = n.is_read == 0;
-            var icon  = n.is_task ? '<?php echo str_replace("'","\\'",ems_icon("check-square",15)); ?>' : '<?php echo str_replace("'","\\'",ems_icon("leaf",15)); ?>';
+            var icons = {
+                task: '<?php echo str_replace("'","\\'",ems_icon("check-square",15)); ?>',
+                leave: '<?php echo str_replace("'","\\'",ems_icon("leaf",15)); ?>',
+                hr: '<?php echo str_replace("'","\\'",ems_icon("tag",15)); ?>',
+                regularization: '<?php echo str_replace("'","\\'",ems_icon("clock",15)); ?>'
+            };
+            var icon = icons[n.type_key] || icons.leave;
             return '' +
                 '<div class="notif-item ' + (isNew ? 'notif-new' : '') + '">' +
                     '<div class="notif-icon">' + icon + '</div>' +

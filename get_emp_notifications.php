@@ -21,8 +21,37 @@ $notif_res = mysqli_query($conn, "SELECT type, leave_type, message, reason, crea
 
 $items = [];
 while($n = mysqli_fetch_assoc($notif_res)){
+    switch($n['type']){
+        case 'task':
+            $label = 'Task Assigned';
+            $key   = 'task';
+            break;
+        case 'task_completion':
+            $label = 'Task Completed';
+            $key   = 'task';
+            break;
+        case 'hr_request_status':
+            // leave_type column holds the actual request type here
+            // (Designation Change / Department Change / Location Change)
+            $label = $n['leave_type'];
+            $key   = 'hr';
+            break;
+        case 'regularization_status':
+            $label = 'Attendance Regularization';
+            $key   = 'regularization';
+            break;
+        case 'leave_status':
+            $label = 'Leave '.$n['leave_type'];
+            $key   = 'leave';
+            break;
+        default:
+            // Fallback for any older rows saved before 'type' was tracked
+            $label = $n['leave_type'] ?: 'Notification';
+            $key   = 'leave';
+    }
     $items[] = [
-        'type_label' => ($n['type'] == 'task') ? 'Task Assigned' : ('Leave '.$n['leave_type']),
+        'type_label' => $label,
+        'type_key'   => $key,
         'message'    => $n['message'] ?: $n['reason'],
         'date'       => date('d M Y', strtotime($n['created_at'])),
         'is_read'    => (int) $n['is_read'],
