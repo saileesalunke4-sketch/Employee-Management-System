@@ -38,11 +38,11 @@ $page_title = "View Employees";
         </div>
         <div style="overflow-x:auto;">
         <table class="emp-table">
-            <thead><tr><th>Employee ID</th><th>Name</th><th>Email</th><th>Designation</th><th>Contact</th><th>Role</th><th>Department</th></tr></thead>
+            <thead><tr><th>Employee ID</th><th>Name</th><th>Email</th><th>Designation</th><th>Contact</th><th>Role</th><th>Department</th><th>Shift</th></tr></thead>
             <tbody>
             <?php
                 $search_q = trim($_GET['q'] ?? '');
-                $sql = "SELECT u.id,u.name,u.email,u.role,e.designation,e.contact,e.emp_id,e.dept_id,e.employee_code FROM users u LEFT JOIN employees e ON u.id=e.user_id WHERE u.role='employee'";
+                $sql = "SELECT u.id,u.name,u.email,u.role,e.designation,e.contact,e.emp_id,e.dept_id,e.shift_id,e.employee_code FROM users u LEFT JOIN employees e ON u.id=e.user_id WHERE u.role='employee'";
                 if($search_q !== ''){
                     $esc = mysqli_real_escape_string($conn, $search_q);
                     $sql .= " AND (u.name LIKE '%{$esc}%' OR u.email LIKE '%{$esc}%' OR e.designation LIKE '%{$esc}%' OR e.employee_code LIKE '%{$esc}%')";
@@ -50,7 +50,7 @@ $page_title = "View Employees";
                 $res = mysqli_query($conn, $sql);
                 $row_count = mysqli_num_rows($res);
                 if($search_q !== '' && $row_count === 0){
-                    echo "<tr><td colspan='7' style='text-align:center;padding:32px;color:var(--text-3);'>No employees found matching \"".htmlspecialchars($search_q)."\"</td></tr>";
+                    echo "<tr><td colspan='8' style='text-align:center;padding:32px;color:var(--text-3);'>No employees found matching \"".htmlspecialchars($search_q)."\"</td></tr>";
                 }
                 while($row=mysqli_fetch_assoc($res)){
                     $depts_opt='';
@@ -58,6 +58,13 @@ $page_title = "View Employees";
                     while($d=mysqli_fetch_assoc($d_res)){
                         $sel=($row['dept_id']==$d['dept_id'])?'selected':'';
                         $depts_opt.="<option value='{$d['dept_id']}' {$sel}>{$d['dept_name']}</option>";
+                    }
+                    $shifts_opt='';
+                    $s_res=mysqli_query($conn,"SELECT * FROM shifts ORDER BY start_time");
+                    while($s=mysqli_fetch_assoc($s_res)){
+                        $sel=($row['shift_id']==$s['shift_id'])?'selected':'';
+                        $s_label = $s['shift_name'].' ('.date('h:i A',strtotime($s['start_time'])).'-'.date('h:i A',strtotime($s['end_time'])).')';
+                        $shifts_opt.="<option value='{$s['shift_id']}' {$sel}>{$s_label}</option>";
                     }
                     echo "<tr>
                         <td><span class='pill blue' style='font-weight:700;'>".htmlspecialchars($row['employee_code'] ?: '-')."</span></td>
@@ -71,6 +78,15 @@ $page_title = "View Employees";
                                 <input type='hidden' name='emp_id' value='{$row['emp_id']}'>
                                 <select name='dept_id' style='padding:5px 8px;border-radius:6px;border:1px solid #e0e0e0;font-size:12px;'>
                                     <option value=''>-- Select --</option>{$depts_opt}
+                                </select>
+                                <button type='submit' style='padding:5px 10px;background:#1a3a6e;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer;'>Assign</button>
+                            </form>
+                        </td>
+                        <td>
+                            <form action='assign_shift.php' method='POST' style='display:flex;gap:6px;align-items:center;'>
+                                <input type='hidden' name='emp_id' value='{$row['emp_id']}'>
+                                <select name='shift_id' style='padding:5px 8px;border-radius:6px;border:1px solid #e0e0e0;font-size:12px;'>
+                                    <option value=''>-- Select --</option>{$shifts_opt}
                                 </select>
                                 <button type='submit' style='padding:5px 10px;background:#1a3a6e;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer;'>Assign</button>
                             </form>

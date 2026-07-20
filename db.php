@@ -230,6 +230,76 @@ mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `password_resets` (
     file_put_contents($schema_marker, date('c'));
 }
 
+// ===== ACTIVITY LOG TABLE =====
+// Records who approved/rejected/changed what, and when — for admin
+// accountability (leave approvals, HR requests, regularizations, role
+// updates). See log_activity() below for how rows get written.
+// NOTE: this sits OUTSIDE the schema-ready guard above on purpose — if it
+// were inside, anyone who already had logs/.schema_ready from before this
+// table existed would never get it created. A single CREATE TABLE IF NOT
+// EXISTS costs almost nothing once the table's there, so it's fine to just
+// always run this one.
+mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `activity_log` (
+  `log_id` INT NOT NULL AUTO_INCREMENT,
+  `actor_id` INT DEFAULT NULL,
+  `actor_name` VARCHAR(150) DEFAULT NULL,
+  `action` VARCHAR(50) DEFAULT NULL,
+  `target_type` VARCHAR(50) DEFAULT NULL,
+  `target_name` VARCHAR(150) DEFAULT NULL,
+  `details` VARCHAR(255) DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`log_id`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+// Small helper so every approval/action file can log in one line instead of
+// repeating the INSERT everywhere.
+function log_activity($conn, $action, $target_type, $target_name, $details = ''){
+    $actor_id   = (int) ($_SESSION['user']['id'] ?? 0);
+    $actor_name = mysqli_real_escape_string($conn, $_SESSION['user']['name'] ?? 'Unknown');
+    $action     = mysqli_real_escape_string($conn, $action);
+    $target_type= mysqli_real_escape_string($conn, $target_type);
+    $target_name= mysqli_real_escape_string($conn, $target_name);
+    $details    = mysqli_real_escape_string($conn, $details);
+    mysqli_query($conn, "INSERT INTO activity_log (actor_id, actor_name, action, target_type, target_name, details)
+                          VALUES ('$actor_id','$actor_name','$action','$target_type','$target_name','$details')");
+}
+
+// ===== SHIFT SCHEDULING =====
+// Lets admin define multiple shifts (Morning/Evening/Night etc.) instead of
+// everyone being on one hardcoded 9-to-6 schedule, and assign each employee
+// to one. save_attendance.php reads the employee's assigned shift to decide
+// present/late/half-day instead of using fixed hardcoded times.
+// NOTE: outside the schema-ready guard, same reason as activity_log above —
+// anyone who already has logs/.schema_ready would never get this otherwise.
+mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `shifts` (
+  `shift_id` INT NOT NULL AUTO_INCREMENT,
+  `shift_name` VARCHAR(100) NOT NULL,
+  `start_time` TIME NOT NULL,
+  `end_time` TIME NOT NULL,
+  `grace_minutes` INT NOT NULL DEFAULT 15,
+  `half_day_after_minutes` INT NOT NULL DEFAULT 180,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`shift_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+$shift_col_check = mysqli_query($conn, "SHOW COLUMNS FROM employees LIKE 'shift_id'");
+if($shift_col_check && mysqli_num_rows($shift_col_check) == 0){
+    mysqli_query($conn, "ALTER TABLE employees ADD COLUMN shift_id INT DEFAULT NULL");
+}
+
+// Seed a default shift matching the exact hours that were hardcoded before
+// (09:00 start, 15-min grace, half-day after 3 hours = 180 min, 18:00 end)
+// so existing employees keep behaving exactly the same until an admin
+// deliberately creates/assigns something different.
+$shift_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM shifts"))['c'];
+if($shift_count == 0){
+    mysqli_query($conn, "INSERT INTO shifts (shift_name, start_time, end_time, grace_minutes, half_day_after_minutes)
+                          VALUES ('General Shift', '09:00:00', '18:00:00', 15, 180)");
+}
+$default_shift_id = mysqli_fetch_assoc(mysqli_query($conn, "SELECT shift_id FROM shifts ORDER BY shift_id ASC LIMIT 1"))['shift_id'];
+mysqli_query($conn, "UPDATE employees SET shift_id=$default_shift_id WHERE shift_id IS NULL");
+
 // ===== CSRF PROTECTION HELPERS =====
 // Used on approve/reject action links (leave, regularization, HR requests)
 // so a malicious link/page on another site can't trick a logged-in admin's

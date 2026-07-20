@@ -13,9 +13,17 @@ $emp_result = mysqli_query($conn, "SELECT emp_id FROM employees WHERE user_id='$
 $emp    = mysqli_fetch_assoc($emp_result);
 $emp_id = $emp['emp_id'];
 
-$leave_type = $_POST['leave_type'];
-$from_date  = $_POST['from_date'];
-$to_date    = $_POST['to_date'];
+// SECURITY: leave_type/from_date/to_date previously went straight into the
+// INSERT query below with zero escaping or validation — fixed here.
+$leave_type = mysqli_real_escape_string($conn, $_POST['leave_type'] ?? '');
+$from_date  = $_POST['from_date'] ?? '';
+$to_date    = $_POST['to_date'] ?? '';
+if(!preg_match('/^\d{4}-\d{2}-\d{2}$/', $from_date) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $to_date)){
+    echo "<script>alert('Invalid date format.'); window.history.back();</script>";
+    exit();
+}
+$from_date  = mysqli_real_escape_string($conn, $from_date);
+$to_date    = mysqli_real_escape_string($conn, $to_date);
 $reason     = mysqli_real_escape_string($conn, $_POST['reason']);
 
 // ===== SANDWICH LEAVE POLICY =====

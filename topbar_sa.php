@@ -25,6 +25,9 @@ $sa_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM use
         <a href="all_employees.php" class="icon-btn" title="All Employees"><?php echo ems_icon('users'); ?></a>
         <a href="leave_calendar.php" class="icon-btn" title="Leave Calendar"><?php echo ems_icon('calendar'); ?></a>
 
+        <button type="button" class="icon-btn" id="pushEnableBtn" onclick="requestPushPermission()" title="Enable desktop notifications" style="display:none;">
+            <?php echo ems_icon('bell', 16); ?>
+        </button>
         <div class="notif-wrapper" id="notifWrapper">
             <div class="notif-bell icon-btn" onclick="toggleNotif()" title="Notifications">
                 <?php echo ems_icon('bell'); ?>
@@ -95,10 +98,40 @@ $sa_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM use
         }).join('');
     }
 
+    window.requestPushPermission = function(){
+        if(!('Notification' in window)) return;
+        Notification.requestPermission().then(function(perm){
+            document.getElementById('pushEnableBtn').style.display = (perm === 'default') ? 'inline-flex' : 'none';
+        });
+    };
+    if('Notification' in window && Notification.permission === 'default'){
+        document.getElementById('pushEnableBtn').style.display = 'inline-flex';
+    }
+
+    var lastUnreadCount = null;
+    function maybePushNotify(data){
+        if(!('Notification' in window) || Notification.permission !== 'granted') return;
+        if(lastUnreadCount === null){ lastUnreadCount = data.unread_count || 0; return; }
+        var newCount = (data.unread_count || 0) - lastUnreadCount;
+        if(newCount > 0 && data.items && data.items.length){
+            data.items.slice(0, newCount).forEach(function(n){
+                if(n.is_read == 0){
+                    var notif = new Notification('New Leave Request', {
+                        body: (n.emp_name || '') + ' — ' + (n.leave_type || '') + ' (' + (n.from_date||'') + ' to ' + (n.to_date||'') + ')',
+                        icon: 'https://cdn-icons-png.flaticon.com/512/3439/3439997.png',
+                        tag: 'ems-sa-' + (n.emp_name||'') + '-' + (n.from_date||'')
+                    });
+                    notif.onclick = function(){ window.focus(); notif.close(); };
+                }
+            });
+        }
+        lastUnreadCount = data.unread_count || 0;
+    }
+
     function loadNotifications(){
         fetch('get_sa_notifications.php')
             .then(function(r){ return r.json(); })
-            .then(function(data){ if(!data.error) renderNotifications(data); })
+            .then(function(data){ if(!data.error){ renderNotifications(data); maybePushNotify(data); } })
             .catch(function(err){ console.error('Notification load failed', err); });
     }
 
@@ -107,5 +140,7 @@ $sa_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM use
     } else {
         loadNotifications();
     }
+    setInterval(loadNotifications, 25000);
 })();
 </script>
+<?php include 'chat_widget.php'; ?>

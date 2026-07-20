@@ -41,7 +41,21 @@ $page_title = "My Attendance";
         $today = date('Y-m-d');
         $today_res = mysqli_query($conn, "SELECT * FROM attendance WHERE emp_id='$emp_id' AND date='$today'");
         $today_att = mysqli_fetch_assoc($today_res);
+
+        $my_shift = mysqli_fetch_assoc(mysqli_query($conn, "SELECT s.* FROM shifts s
+                                                              JOIN employees e ON e.shift_id = s.shift_id
+                                                              WHERE e.emp_id='$emp_id'"));
     ?>
+    <?php if($my_shift): ?>
+    <div class="form-card" style="margin-bottom:16px;background:var(--surface-soft,#f3f4f7);">
+        <span style="font-size:12px;color:var(--text-3,#9aa1ac);">Your Shift</span><br>
+        <b><?php echo htmlspecialchars($my_shift['shift_name']); ?></b>
+        &nbsp;&middot;&nbsp;
+        <?php echo date('h:i A', strtotime($my_shift['start_time'])); ?> – <?php echo date('h:i A', strtotime($my_shift['end_time'])); ?>
+        &nbsp;&middot;&nbsp;
+        <span style="font-size:12px;color:var(--text-3,#9aa1ac);">Grace period: <?php echo (int)$my_shift['grace_minutes']; ?> min</span>
+    </div>
+    <?php endif; ?>
     <div class="form-card">
         <h3 class="section-title">Today's Attendance — <?php echo date('d M Y'); ?></h3>
 

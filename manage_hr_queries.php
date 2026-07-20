@@ -11,7 +11,7 @@ $topbar_file  = ($current_role == 'super_admin') ? 'topbar_sa.php'  : 'topbar_ad
 
 // Handle reply submission
 if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['query_id'])){
-    $query_id    = $_POST['query_id'];
+    $query_id    = (int) $_POST['query_id'];
     $admin_reply = mysqli_real_escape_string($conn, $_POST['admin_reply']);
     $replied_by  = mysqli_real_escape_string($conn, $_SESSION['user']['name']);
     mysqli_query($conn, "UPDATE hr_queries SET admin_reply='$admin_reply', status='resolved', replied_by='$replied_by', resolved_at=NOW() WHERE query_id='$query_id'");

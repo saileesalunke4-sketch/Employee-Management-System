@@ -71,6 +71,8 @@ try {
     mysqli_query($conn, "INSERT INTO notifications (emp_id, emp_name, leave_type, from_date, to_date, reason, message, type, for_role, is_read)
                           VALUES ('$emp_id_notif', '$emp_name_esc', '$rtype_esc', '$today', '$today', '$msg', '$msg', 'hr_request_status', 'employee', 0)");
 
+    log_activity($conn, $action, 'HR Process Request', "$emp_full_name — {$req['request_type']}", "Requested: {$req['requested_value']}");
+
     $banner_params = http_build_query([
         'hr_msg'  => $action,
         'hr_emp'  => $emp_full_name,

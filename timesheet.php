@@ -40,16 +40,19 @@ $page_title = "Timesheet";
         <h3 class="section-title">&#9200; My Timesheet</h3>
         <form method="GET" style="display:flex;gap:12px;align-items:flex-end;margin-bottom:20px;">
             <div class="field" style="margin:0;"><label>Filter Month</label>
-                <input type="month" name="ts_month" value="<?php echo isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m');?>" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;">
+                <input type="month" name="ts_month" value="<?php echo htmlspecialchars(isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m'));?>" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;">
             </div>
             <button type="submit" class="submit-btn" style="margin:0;padding:8px 20px;">Filter</button>
-            <a id="excel_link" href="export_timesheet.php?ts_month=<?php echo isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m'); ?>" 
+            <a id="excel_link" href="export_timesheet.php?ts_month=<?php echo htmlspecialchars(isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m')); ?>" 
                style="display:inline-block;background:#16a34a;color:white;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
                📥 Download Excel
             </a>
         </form>
         <?php
+        // SECURITY: ts_month must match YYYY-MM before it's used in SQL —
+        // it was going straight into the query unvalidated.
         $ts_month=isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m');
+        if(!preg_match('/^\d{4}-\d{2}$/', $ts_month)) $ts_month = date('Y-m');
         $ts_year=substr($ts_month,0,4); $ts_mon=substr($ts_month,5,2);
         $ts_res=mysqli_query($conn,"SELECT * FROM attendance WHERE emp_id='$emp_id' AND YEAR(date)='$ts_year' AND MONTH(date)='$ts_mon' ORDER BY date ASC");
         $total_hrs=0; $rows_ts=[];

@@ -80,6 +80,8 @@ try {
     mysqli_query($conn, "INSERT INTO notifications (emp_id, emp_name, leave_type, from_date, to_date, reason, message, type, for_role, is_read)
                           VALUES ('$emp_id_notif', '$emp_name_notif', 'Regularization', '$att_date_notif', '$att_date_notif', '$msg', '$msg', 'regularization_status', 'employee', 0)");
 
+    log_activity($conn, $action, 'Attendance Regularization', "$emp_full_name — {$req['att_date']}");
+
     // Redirect back with details in the query string so the list page can
     // show a confirmation banner (instead of just silently landing back).
     $banner_params = http_build_query([

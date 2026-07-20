@@ -6,8 +6,11 @@ if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'],['admin','su
 require 'db.php';
 
 // Month/Year filter
-$sel_month = isset($_GET['month']) ? $_GET['month'] : date('F');
-$sel_year  = isset($_GET['year'])  ? $_GET['year']  : date('Y');
+// SECURITY: month must be a real month name, year must be an integer —
+// both previously went straight into SQL unvalidated.
+$valid_months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+$sel_month = in_array($_GET['month'] ?? '', $valid_months, true) ? $_GET['month'] : date('F');
+$sel_year  = (int) ($_GET['year'] ?? date('Y'));
 
 // Fetch salary records
 $res = mysqli_query($conn, "SELECT s.*, e.first_name, e.last_name, e.emp_id, e.designation

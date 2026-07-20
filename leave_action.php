@@ -45,6 +45,8 @@ if(mysqli_query($conn,"UPDATE leaves SET status='$action' WHERE leave_id=$leave_
         (emp_id, emp_name, leave_type, from_date, to_date, reason, message, type, for_role, is_read)
         VALUES ('$emp_id','$emp_name','$ltype','$from','$to','$msg','$msg','leave_status','employee',0)");
 
+    log_activity($conn, $action, 'Leave Request', "$emp_name — $ltype", "$from to $to");
+
         // Send email to employee
 $emp_email = mysqli_fetch_assoc(mysqli_query($conn,"SELECT u.email FROM users u JOIN employees e ON u.id=e.user_id WHERE e.emp_id='$emp_id'"))['email'];
 

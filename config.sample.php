@@ -20,4 +20,8 @@ define('SMTP_USERNAME', 'your_email@gmail.com');
 define('SMTP_PASSWORD', 'your_gmail_app_password_here'); // NOT your normal Gmail password — generate an "App Password"
 define('SMTP_PORT', 587);
 define('SMTP_FROM_NAME', 'EMS - Your Company Name');
+
+// --- AI HR Assistant (Gemini) ---
+// Get a free key at https://aistudio.google.com/apikey
+define('GEMINI_API_KEY', 'your_gemini_api_key_here');
 ?>

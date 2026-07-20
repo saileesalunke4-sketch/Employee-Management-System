@@ -12,7 +12,10 @@ $emp_id     = $emp['emp_id'];
 $emp_name   = $emp['first_name'].' '.$emp['last_name'];
 
 // Get selected month (default = current month)
+// SECURITY: ts_month must match YYYY-MM before it's used in SQL — it was
+// going straight into the query unvalidated.
 $ts_month = isset($_GET['ts_month']) ? $_GET['ts_month'] : date('Y-m');
+if(!preg_match('/^\d{4}-\d{2}$/', $ts_month)) $ts_month = date('Y-m');
 $ts_year  = substr($ts_month, 0, 4);
 $ts_mon   = substr($ts_month, 5, 2);
 $month_label = date('F Y', strtotime($ts_month.'-01'));

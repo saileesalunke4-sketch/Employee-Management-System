@@ -50,20 +50,32 @@ if(mysqli_num_rows($check_dup) > 0){
 }
 
 // ===== ATTENDANCE WINDOW / STATUS RULES =====
-// Shift starts at 09:00, 15-min grace period.
-// 09:00–09:15  -> Present
-// 09:15–12:00  -> Late
-// 12:00–CUTOFF -> Half Day (missed more than half the working day)
-// After CUTOFF -> self check-in blocked entirely; must go through admin regularization.
-// This stops an employee from logging in at, say, 11 PM and marking "attendance" for a day
-// they were never present for.
+// These used to be hardcoded (09:00 start, 15-min grace, 12:00 half-day,
+// 18:00 cutoff) for every employee. Now they come from whichever shift
+// this employee is assigned to (see shifts.php / Shift Management), so
+// different teams can be on different schedules.
+// Present:  check-in within [shift start, shift start + grace]
+// Late:     within (grace end, shift start + half_day_after_minutes]
+// Half Day: within (half-day cutoff, shift end]
+// After shift end -> self check-in blocked; must go through admin regularization.
+$shift = mysqli_fetch_assoc(mysqli_query($conn, "SELECT s.* FROM shifts s
+                                                  JOIN employees e ON e.shift_id = s.shift_id
+                                                  WHERE e.emp_id=$emp_id"));
+// Fallback to the old hardcoded defaults if this employee somehow has no
+// shift assigned yet, so nothing breaks.
+$shift_start   = $shift['start_time'] ?? '09:00:00';
+$shift_end     = $shift['end_time']   ?? '18:00:00';
+$grace_minutes = $shift ? (int)$shift['grace_minutes'] : 15;
+$half_day_min  = $shift ? (int)$shift['half_day_after_minutes'] : 180;
+
 $now_ts       = strtotime("$today $now_time");
-$grace_until  = strtotime("$today 09:15:00");
-$noon_cutoff  = strtotime("$today 12:00:00");
-$day_cutoff   = strtotime("$today 18:00:00"); // no self check-in allowed after 6:00 PM
+$shift_start_ts = strtotime("$today $shift_start");
+$grace_until  = $shift_start_ts + ($grace_minutes * 60);
+$noon_cutoff  = $shift_start_ts + ($half_day_min * 60);
+$day_cutoff   = strtotime("$today $shift_end"); // no self check-in allowed after shift ends
 
 if(!$is_wfh && $now_ts > $day_cutoff){
-    echo "<script>alert('It is past 6:00 PM — self check-in is closed for today. Please contact your Admin/HR to regularize this day\\'s attendance.'); window.history.back();</script>";
+    echo "<script>alert('It is past ".date('h:i A', $day_cutoff)." — self check-in is closed for today. Please contact your Admin/HR to regularize this day\\'s attendance.'); window.history.back();</script>";
     exit();
 }
 
@@ -80,9 +92,9 @@ if($is_wfh){
 // Friendly heads-up messages shown along with the success alert
 $status_note = '';
 if($status === 'late'){
-    $status_note = ' Note: You checked in after 9:15 AM, so this is marked as LATE.';
+    $status_note = ' Note: You checked in after '.date('h:i A', $grace_until).', so this is marked as LATE.';
 } elseif($status === 'half_day'){
-    $status_note = ' Note: You checked in after 12:00 PM, so this is marked as HALF DAY.';
+    $status_note = ' Note: You checked in after '.date('h:i A', $noon_cutoff).', so this is marked as HALF DAY.';
 }
 
 $is_sunday = (date('N', strtotime($today)) == 7) ? 1 : 0;

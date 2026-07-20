@@ -72,10 +72,10 @@ $page_title = "Attendance";
         <!-- Month Filter + Download -->
         <form method="GET" style="display:flex;gap:12px;align-items:flex-end;margin-bottom:20px;">
             <div class="field" style="margin:0;"><label>Filter Month</label>
-                <input type="month" name="ts_month" value="<?php echo isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m'); ?>" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;">
+                <input type="month" name="ts_month" value="<?php echo htmlspecialchars(isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m')); ?>" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;">
             </div>
             <button type="submit" class="submit-btn" style="margin:0;padding:8px 20px;">Filter</button>
-            <a href="export_attendance.php?ts_month=<?php echo isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m'); ?>"
+            <a href="export_attendance.php?ts_month=<?php echo htmlspecialchars(isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m')); ?>"
                style="display:inline-block;background:#16a34a;color:white;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">
                📥 Download Excel
             </a>
@@ -86,7 +86,11 @@ $page_title = "Attendance";
             <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Type</th></tr></thead>
             <tbody>
             <?php
+                // SECURITY: ts_month must match YYYY-MM before it's used in
+                // SQL — it was going straight into the query unvalidated,
+                // so a crafted ts_month value could break out of the quotes.
                 $ts_month = isset($_GET['ts_month']) ? $_GET['ts_month'] : date('Y-m');
+                if(!preg_match('/^\d{4}-\d{2}$/', $ts_month)) $ts_month = date('Y-m');
                 $ts_year  = substr($ts_month,0,4);
                 $ts_mon   = substr($ts_month,5,2);
                 $res=mysqli_query($conn,"SELECT e.first_name,e.last_name,a.date,a.check_in,a.check_out,a.status FROM attendance a JOIN employees e ON a.emp_id=e.emp_id WHERE YEAR(a.date)='$ts_year' AND MONTH(a.date)='$ts_mon' ORDER BY a.date DESC");

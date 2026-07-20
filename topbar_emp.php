@@ -25,6 +25,9 @@ $emp_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM us
         <a href="my_leaves.php" class="icon-btn" title="Apply Leave"><?php echo ems_icon('leaf'); ?></a>
         <a href="leave_calendar.php" class="icon-btn" title="Leave Calendar"><?php echo ems_icon('calendar'); ?></a>
 
+        <button type="button" class="icon-btn" id="pushEnableBtn" onclick="requestPushPermission()" title="Enable desktop notifications" style="display:none;">
+            <?php echo ems_icon('bell', 16); ?>
+        </button>
         <div class="notif-wrapper" id="notifWrapper">
             <div class="notif-bell icon-btn" onclick="toggleNotif()" title="Notifications">
                 <?php echo ems_icon('bell'); ?>
@@ -103,10 +106,43 @@ $emp_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM us
         }).join('');
     }
 
+    window.requestPushPermission = function(){
+        if(!('Notification' in window)) return;
+        Notification.requestPermission().then(function(perm){
+            document.getElementById('pushEnableBtn').style.display = (perm === 'default') ? 'inline-flex' : 'none';
+        });
+    };
+
+    // Show the "enable notifications" bell only if the user hasn't already
+    // answered the browser permission prompt (granted or denied).
+    if('Notification' in window && Notification.permission === 'default'){
+        document.getElementById('pushEnableBtn').style.display = 'inline-flex';
+    }
+
+    var lastUnreadCount = null;
+    function maybePushNotify(data){
+        if(!('Notification' in window) || Notification.permission !== 'granted') return;
+        if(lastUnreadCount === null){ lastUnreadCount = data.unread_count || 0; return; } // first load — don't push old items
+        var newCount = (data.unread_count || 0) - lastUnreadCount;
+        if(newCount > 0 && data.items && data.items.length){
+            data.items.slice(0, newCount).forEach(function(n){
+                if(n.is_read == 0){
+                    var notif = new Notification(n.type_label || 'EMS Notification', {
+                        body: n.message || '',
+                        icon: 'https://cdn-icons-png.flaticon.com/512/3439/3439997.png',
+                        tag: 'ems-emp-' + n.date + '-' + (n.message || '').slice(0,20)
+                    });
+                    notif.onclick = function(){ window.focus(); notif.close(); };
+                }
+            });
+        }
+        lastUnreadCount = data.unread_count || 0;
+    }
+
     function loadNotifications(){
         fetch('get_emp_notifications.php')
             .then(function(r){ return r.json(); })
-            .then(function(data){ if(!data.error) renderNotifications(data); })
+            .then(function(data){ if(!data.error){ renderNotifications(data); maybePushNotify(data); } })
             .catch(function(err){ console.error('Notification load failed', err); });
     }
 
@@ -115,5 +151,9 @@ $emp_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM us
     } else {
         loadNotifications();
     }
+    // Poll every 25 seconds so new notifications trigger a desktop push
+    // even if the dropdown is never opened.
+    setInterval(loadNotifications, 25000);
 })();
 </script>
+<?php include 'chat_widget.php'; ?>
