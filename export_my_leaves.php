@@ -24,13 +24,20 @@ while($r = mysqli_fetch_assoc($res)){
     $days = (strtotime($r['to_date']) - strtotime($r['from_date'])) / 86400 + 1;
 
     // Sandwich calculation
+    // BUGFIX: only applies to a multi-day range — a single day off that
+    // happens to fall on a Monday isn't "sandwiching" a weekend.
     $from_day = date('N', strtotime($r['from_date']));
     $to_day   = date('N', strtotime($r['to_date']));
     $sandwich = 0;
-    if($from_day == 5 && $to_day == 1)      $sandwich = 0;
+    if($days <= 1){
+        // single day — no sandwich possible
+    } elseif($from_day == 5 && $to_day == 1)      $sandwich = 0;
     elseif($from_day == 5)                   $sandwich = 2;
     elseif($to_day == 1)                     $sandwich = 1;
 
+    if(!empty($r['is_half_day'])){
+        $days = 0.5; $sandwich = 0;
+    }
     $r['total_days'] = $days + $sandwich;
     $r['sandwich']   = $sandwich;
     $total_days     += $r['total_days'];

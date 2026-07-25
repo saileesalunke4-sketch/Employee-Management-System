@@ -214,11 +214,15 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
             <div class="timeline-card" style="margin-top:0;min-width:0;">
                 <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Company Monthly Attendance</h3>
-                <canvas id="attendanceChart"></canvas>
+                <div style="position:relative;height:280px;width:100%;">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
             </div>
             <div class="timeline-card" style="margin-top:0;min-width:0;">
                 <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Company Monthly Leaves</h3>
-                <canvas id="leaveChart"></canvas>
+                <div style="position:relative;height:280px;width:100%;">
+                    <canvas id="leaveChart"></canvas>
+                </div>
             </div>
         </div>
         <!-- Upcoming holidays -->
@@ -544,6 +548,10 @@ while($row=mysqli_fetch_assoc($r))$att_data[$row['mon']-1]=$row['cnt'];
 $leave_data=array_fill(0,12,0);
 $r=mysqli_query($conn,"SELECT MONTH(from_date) as mon,COUNT(*) as cnt FROM leaves WHERE YEAR(from_date)=YEAR(CURDATE()) GROUP BY MONTH(from_date)");
 while($row=mysqli_fetch_assoc($r))$leave_data[$row['mon']-1]=$row['cnt'];
+
+// Same reasoning as admin_dashboard.php — one shared max keeps both charts'
+// gridlines aligned instead of each auto-scaling to its own data.
+$charts_shared_max = max(1, max($att_data), max($leave_data)) + 1;
 ?>
 <script>
 const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -554,8 +562,8 @@ const todayStr="<?php echo date('Y-m-d'); ?>";
 let calYear=<?php echo date('Y'); ?>;
 let calMonth=<?php echo date('n')-1; ?>;
 
-new Chart(document.getElementById('attendanceChart'),{type:'bar',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
-new Chart(document.getElementById('leaveChart'),{type:'bar',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+new Chart(document.getElementById('attendanceChart'),{type:'line',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.15)',borderColor:'#3b82f6',borderWidth:2,pointBackgroundColor:'#3b82f6',pointRadius:4,tension:0.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:<?php echo $charts_shared_max; ?>,ticks:{stepSize:1}}}}});
+new Chart(document.getElementById('leaveChart'),{type:'line',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.15)',borderColor:'#ef4444',borderWidth:2,pointBackgroundColor:'#ef4444',pointRadius:4,tension:0.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:<?php echo $charts_shared_max; ?>,ticks:{stepSize:1}}}}});
 
 // ===== LIVE ATTENDANCE STATUS WIDGET =====
 const attStatusColors = {

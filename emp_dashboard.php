@@ -138,15 +138,24 @@ $page_title = "Dashboard";
     $leave_data=array_fill(0,12,0);
     $leave_res=mysqli_query($conn,"SELECT MONTH(from_date) as mon,COUNT(*) as cnt FROM leaves WHERE emp_id='$emp_id' AND YEAR(from_date)=YEAR(CURDATE()) GROUP BY MONTH(from_date)");
     while($r=mysqli_fetch_assoc($leave_res)) $leave_data[$r['mon']-1]=$r['cnt'];
+
+    // Same fix as admin_dashboard.php / super_admin_dashboard.php — one
+    // shared Y-axis max keeps both charts' gridlines aligned instead of
+    // each auto-scaling to its own data and looking inconsistent as a pair.
+    $charts_shared_max = max(1, max($att_data), max($leave_data)) + 1;
     ?>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
-        <div class="timeline-card" style="margin-top:0;">
+        <div class="timeline-card" style="margin-top:0;min-width:0;">
             <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Monthly Attendance</h3>
-            <canvas id="attendanceChart"></canvas>
+            <div style="position:relative;height:280px;width:100%;">
+                <canvas id="attendanceChart"></canvas>
+            </div>
         </div>
-        <div class="timeline-card" style="margin-top:0;">
+        <div class="timeline-card" style="margin-top:0;min-width:0;">
             <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Monthly Leaves</h3>
-            <canvas id="leaveChart"></canvas>
+            <div style="position:relative;height:280px;width:100%;">
+                <canvas id="leaveChart"></canvas>
+            </div>
         </div>
     </div>
 
@@ -181,8 +190,8 @@ $page_title = "Dashboard";
 <script>
 const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 document.addEventListener('DOMContentLoaded', function(){
-    new Chart(document.getElementById('attendanceChart'),{type:'bar',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
-    new Chart(document.getElementById('leaveChart'),{type:'bar',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+    new Chart(document.getElementById('attendanceChart'),{type:'line',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.15)',borderColor:'#3b82f6',borderWidth:2,pointBackgroundColor:'#3b82f6',pointRadius:4,tension:0.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:<?php echo $charts_shared_max; ?>,ticks:{stepSize:1}}}}});
+    new Chart(document.getElementById('leaveChart'),{type:'line',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.15)',borderColor:'#ef4444',borderWidth:2,pointBackgroundColor:'#ef4444',pointRadius:4,tension:0.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:<?php echo $charts_shared_max; ?>,ticks:{stepSize:1}}}}});
 });
 </script>
 <?php include 'common_js.php'; ?>

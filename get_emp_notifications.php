@@ -44,6 +44,18 @@ while($n = mysqli_fetch_assoc($notif_res)){
             $label = 'Leave '.$n['leave_type'];
             $key   = 'leave';
             break;
+        case 'wfh_status':
+            $label = 'Work From Home';
+            $key   = 'hr';
+            break;
+        case 'reimbursement_status':
+            $label = 'Reimbursement';
+            $key   = 'hr';
+            break;
+        case 'asset_status':
+            $label = 'Asset Assigned';
+            $key   = 'hr';
+            break;
         default:
             // Fallback for any older rows saved before 'type' was tracked
             $label = $n['leave_type'] ?: 'Notification';

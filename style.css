@@ -731,7 +731,7 @@ html, body{ background: var(--canvas); }
 /* ---- Global light refresh for shared components (used across every
    role dashboard, whether or not that page has been re-shelled yet) ---- */
 .dashboard{ background: var(--canvas); }
-.main-content{ background: transparent; }
+.main-content{ background: transparent; min-width:0; overflow-x:hidden; }
 
 .card{
     background: var(--surface);
@@ -1052,4 +1052,5 @@ html, body{ background: var(--canvas); }
     .topbar-search{ display:none; }
     .sidebar-toggle-mobile{ display:flex; }
     .app-topbar{ padding:0 14px; }
+    div[style*="grid-template-columns:1fr 1fr"]{ grid-template-columns:1fr !important; }
 }

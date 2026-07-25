@@ -29,6 +29,14 @@ if(!$leave){
     header("Location: $redirect"); exit();
 }
 
+// SECURITY/CORRECTNESS: don't act on a request that's no longer pending —
+// e.g. the employee may have cancelled it after this page was loaded but
+// before this link was clicked (stale UI / race condition).
+if($leave['status'] !== 'pending'){
+    echo "<script>alert('This leave request is no longer pending (current status: {$leave['status']}) — no action taken.'); window.location.href='$redirect';</script>";
+    exit();
+}
+
 if(mysqli_query($conn,"UPDATE leaves SET status='$action' WHERE leave_id=$leave_id")){
 
     // Notify employee about leave status

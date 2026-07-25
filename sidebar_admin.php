@@ -19,6 +19,9 @@ $nav_groups = [
         ['admin_attendance.php','admin_attendance.php','clock','Attendance'],
         ['shifts.php','shifts.php','clock','Shift Management'],
         ['admin_leaves.php','admin_leaves.php','leaf','Leaves'],
+        ['wfh_requests.php','wfh_requests.php','building','WFH Requests'],
+        ['reimbursements.php','reimbursements.php','wallet','Reimbursements'],
+        ['assets.php','assets.php','folder','Asset Management'],
         ['leave_calendar.php','leave_calendar.php','calendar','Leave Calendar'],
         ['leave_types.php','leave_types.php','tag','Leave Types'],
         ['admin_holidays.php','admin_holidays.php','flag','Holiday Calendar'],
@@ -125,6 +128,17 @@ foreach($nav_groups as $g => $items){
     toggle.addEventListener('click', function(){
         sidebar.classList.toggle('is-collapsed');
         localStorage.setItem('ems_sidebar_collapsed', sidebar.classList.contains('is-collapsed') ? '1' : '0');
+    });
+
+    // The sidebar's collapse/expand is a CSS width transition, not a browser
+    // window resize — so any Chart.js graphs on the page don't know the
+    // available space changed and keep their old (now wrong) size, causing
+    // the chart to overflow or look squashed. Resizing every chart once the
+    // transition finishes fixes that.
+    sidebar.addEventListener('transitionend', function(e){
+        if(e.propertyName === 'width' && typeof Chart !== 'undefined' && Chart.instances){
+            Object.values(Chart.instances).forEach(function(c){ c.resize(); });
+        }
     });
 
     window.emsToggleMobileSidebar = function(){

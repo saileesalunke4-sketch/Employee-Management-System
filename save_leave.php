@@ -26,12 +26,24 @@ $from_date  = mysqli_real_escape_string($conn, $from_date);
 $to_date    = mysqli_real_escape_string($conn, $to_date);
 $reason     = mysqli_real_escape_string($conn, $_POST['reason']);
 
+// ===== HALF-DAY LEAVE =====
+// Only valid for a single-day request — a half-day across a multi-day
+// range doesn't mean anything, so silently ignore the checkbox if the
+// dates don't match rather than erroring (defensive, in case the JS
+// checkbox state and dates somehow get out of sync before submit).
+$is_half_day = (isset($_POST['is_half_day']) && $_POST['is_half_day'] == '1' && $from_date === $to_date) ? 1 : 0;
+
 // ===== SANDWICH LEAVE POLICY =====
+// BUGFIX: only applies to a multi-day range — a single day off (whether
+// half-day or full) that happens to fall on a Monday isn't "sandwiching"
+// a weekend, so skip sandwich entirely when from_date === to_date.
 $from_day = date('N', strtotime($from_date)); // 1=Mon ... 5=Fri, 7=Sun
 $to_day   = date('N', strtotime($to_date));
 
 $sandwich_days = 0;
-if ($from_day == 5 && $to_day == 1) {
+if ($from_date === $to_date) {
+    $sandwich_days = 0;
+} elseif ($from_day == 5 && $to_day == 1) {
     $sandwich_days = 0; // Fri to Mon — weekend already in range
 } elseif ($from_day == 5) {
     $sandwich_days = 2; // Fri leave → +Sat+Sun
@@ -70,7 +82,7 @@ if ($leave_type === 'Sabbatical') {
 // above; Unpaid Leave has 0 allotted days by design and is meant to be
 // unlimited, subject to salary/LOP deduction elsewhere in the system).
 if($leave_type !== 'Sabbatical' && $leave_type !== 'Unpaid Leave'){
-    $requested_days = getLeaveDaysWithSandwich($from_date, $to_date);
+    $requested_days = getLeaveDaysForRecord($from_date, $to_date, $is_half_day);
 
     $lt_row = mysqli_fetch_assoc(mysqli_query($conn,
         "SELECT total_days FROM leave_types WHERE leave_type_name='".mysqli_real_escape_string($conn,$leave_type)."'"));
@@ -78,9 +90,9 @@ if($leave_type !== 'Sabbatical' && $leave_type !== 'Unpaid Leave'){
 
     $used_days = 0;
     $used_res = mysqli_query($conn,
-        "SELECT from_date, to_date FROM leaves WHERE emp_id='$emp_id' AND leave_type='".mysqli_real_escape_string($conn,$leave_type)."' AND status='approved'");
+        "SELECT from_date, to_date, is_half_day FROM leaves WHERE emp_id='$emp_id' AND leave_type='".mysqli_real_escape_string($conn,$leave_type)."' AND status='approved'");
     while($u = mysqli_fetch_assoc($used_res)){
-        $used_days += getLeaveDaysWithSandwich($u['from_date'], $u['to_date']);
+        $used_days += getLeaveDaysForRecord($u['from_date'], $u['to_date'], $u['is_half_day']);
     }
 
     $remaining = $allotted - $used_days;
@@ -92,8 +104,8 @@ if($leave_type !== 'Sabbatical' && $leave_type !== 'Unpaid Leave'){
 }
 
 // Save the leave request
-$query = "INSERT INTO leaves (emp_id, leave_type, from_date, to_date, reason, status)
-          VALUES ('$emp_id', '$leave_type', '$from_date', '$to_date', '$reason', 'pending')";
+$query = "INSERT INTO leaves (emp_id, leave_type, from_date, to_date, reason, status, is_half_day)
+          VALUES ('$emp_id', '$leave_type', '$from_date', '$to_date', '$reason', 'pending', $is_half_day)";
 
 if(mysqli_query($conn, $query)){
 
@@ -108,7 +120,8 @@ if(mysqli_query($conn, $query)){
     if ($sandwich_days > 0) {
         $sandwich_note = " [Sandwich Policy: +{$sandwich_days} weekend day(s) included]";
     }
-    $notif_reason_full = mysqli_real_escape_string($conn, $reason . $sandwich_note);
+    $half_day_note = $is_half_day ? " [Half Day]" : "";
+    $notif_reason_full = mysqli_real_escape_string($conn, $reason . $sandwich_note . $half_day_note);
 
     $notif_query = "INSERT INTO notifications (emp_id, emp_name, leave_type, from_date, to_date, reason, is_read)
                     VALUES ('$emp_id', '$notif_name', '$notif_type', '$notif_from', '$notif_to', '$notif_reason_full', 0)";

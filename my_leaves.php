@@ -23,6 +23,7 @@ $page_title = "My Leaves";
 .status-pill.approved{background:#dcfce7;color:#16a34a;}
 .status-pill.rejected{background:#fee2e2;color:#dc2626;}
 .status-pill.pending{background:#fef3c7;color:#d97706;}
+.status-pill.cancelled{background:#f3f4f6;color:#6b7280;}
 .status-pill.completed{background:#dcfce7;color:#16a34a;}
 .status-pill.in_progress{background:#fef3c7;color:#d97706;}
 .skill-tag{display:inline-block;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;margin:4px;}
@@ -59,9 +60,9 @@ while($lt = mysqli_fetch_assoc($lt_all)){
     if($allotted <= 0) continue; // skip Unpaid Leave etc — no fixed balance to track
 
     $used_days = 0;
-    $ures = mysqli_query($conn, "SELECT from_date, to_date FROM leaves WHERE emp_id='$emp_id' AND leave_type='".mysqli_real_escape_string($conn,$lt['leave_type_name'])."' AND status='approved'");
+    $ures = mysqli_query($conn, "SELECT from_date, to_date, is_half_day FROM leaves WHERE emp_id='$emp_id' AND leave_type='".mysqli_real_escape_string($conn,$lt['leave_type_name'])."' AND status='approved'");
     while($u = mysqli_fetch_assoc($ures)){
-        $used_days += getLeaveDaysWithSandwich($u['from_date'], $u['to_date']);
+        $used_days += getLeaveDaysForRecord($u['from_date'], $u['to_date'], $u['is_half_day']);
     }
     $remaining = max(0, $allotted - $used_days);
     $balance_cards[] = ['name'=>$lt['leave_type_name'], 'allotted'=>$allotted, 'used'=>$used_days, 'remaining'=>$remaining];
@@ -107,6 +108,12 @@ while($lt = mysqli_fetch_assoc($lt_all)){
                 </div>
                 <div class="field"><label>From Date</label><input type="date" name="from_date" id="from_date" required onchange="calculateDays()"></div>
                 <div class="field"><label>To Date</label><input type="date" name="to_date" id="to_date" required onchange="calculateDays()"></div>
+                <div class="field" id="half_day_field" style="display:none;align-self:end;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500;">
+                        <input type="checkbox" name="is_half_day" id="is_half_day" value="1" onchange="calculateDays()">
+                        Apply as Half Day
+                    </label>
+                </div>
                 <div class="field" style="grid-column:1/-1"><label>Reason</label><textarea name="reason" rows="3" placeholder="Enter reason..." required></textarea></div>
             </div>
 
@@ -132,19 +139,24 @@ while($lt = mysqli_fetch_assoc($lt_all)){
             <a href="export_my_leaves.php" style="display:inline-block;background:#16a34a;color:white;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">📥 Download Excel</a>
         </div>
         <table class="emp-table">
-            <thead><tr><th>Leave Type</th><th>From</th><th>To</th><th>Days Deducted</th><th>Reason</th><th>Status</th></tr></thead>
+            <thead><tr><th>Leave Type</th><th>From</th><th>To</th><th>Days Deducted</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
             <tbody>
             <?php
                 $res=mysqli_query($conn,"SELECT * FROM leaves WHERE emp_id='$emp_id' ORDER BY leave_id DESC");
                 while($row=mysqli_fetch_assoc($res)){
-                    $days = getLeaveDaysWithSandwich($row['from_date'], $row['to_date']);
+                    $days = getLeaveDaysForRecord($row['from_date'], $row['to_date'], $row['is_half_day']);
+                    $type_display = htmlspecialchars($row['leave_type']) . (!empty($row['is_half_day']) ? " <span style='background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:4px;'>HALF DAY</span>" : "");
+                    $can_cancel = ($row['status'] === 'pending');
                     echo "<tr>
-                        <td>{$row['leave_type']}</td>
+                        <td>{$type_display}</td>
                         <td>{$row['from_date']}</td>
                         <td>{$row['to_date']}</td>
                         <td><strong>{$days}</strong></td>
-                        <td>{$row['reason']}</td>
+                        <td>".htmlspecialchars($row['reason'])."</td>
                         <td><span class='status-pill {$row['status']}'>".ucfirst($row['status'])."</span></td>
+                        <td>" . ($can_cancel
+                            ? "<a href='cancel_leave.php?id={$row['leave_id']}&csrf=".urlencode(csrf_token())."' onclick=\"return confirm('Cancel this leave request?');\" style='color:#dc2626;font-size:12px;font-weight:600;text-decoration:none;'>Cancel</a>"
+                            : "<span style='color:#9ca3af;font-size:12px;'>-</span>") . "</td>
                     </tr>";
                 }
             ?>
@@ -162,14 +174,23 @@ function calculateDays() {
     const toVal     = document.getElementById('to_date').value;
     const leaveType = document.getElementById('leave_type_sel').value;
     const infoBox   = document.getElementById('day_info');
-    if (!fromVal || !toVal) { infoBox.style.display='none'; return; }
+    const halfDayField = document.getElementById('half_day_field');
+    const halfDayBox    = document.getElementById('is_half_day');
+    if (!fromVal || !toVal) { infoBox.style.display='none'; halfDayField.style.display='none'; return; }
 
     const from    = new Date(fromVal);
     const to      = new Date(toVal);
     if (to < from) {
         infoBox.style.cssText='display:block;background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;margin:14px 0;padding:14px 18px;border-radius:10px;font-size:13px;';
-        infoBox.innerHTML = '❌ To Date cannot be before From Date.'; return;
+        infoBox.innerHTML = '❌ To Date cannot be before From Date.';
+        halfDayField.style.display='none'; halfDayBox.checked=false;
+        return;
     }
+
+    // Half day only makes sense for a single specific day
+    const isSingleDay = (fromVal === toVal);
+    halfDayField.style.display = isSingleDay ? 'block' : 'none';
+    if (!isSingleDay) halfDayBox.checked = false;
 
     const fromDay  = from.getDay(); // 0=Sun,1=Mon,5=Fri,6=Sat
     const toDay    = to.getDay();
@@ -177,7 +198,11 @@ function calculateDays() {
     let sandwichDays = 0;
     let sandwichMsg  = '';
 
-    if (fromDay === 5 && toDay === 1) {
+    if (isSingleDay) {
+        // Sandwich policy only makes sense for a multi-day range — a
+        // single day off that happens to fall on a Monday isn't
+        // "sandwiching" a weekend.
+    } else if (fromDay === 5 && toDay === 1) {
         // Friday to Monday — entire weekend in between
         sandwichDays = 0; // already included in calDays
         sandwichMsg = '⚠️ Leave covers <strong>Friday to Monday</strong> — weekend days are included in deduction (Sandwich Policy)<br>';
@@ -189,8 +214,16 @@ function calculateDays() {
         sandwichMsg = '⚠️ Leave ends on <strong>Monday</strong> — Sunday also counted (Sandwich Policy)<br>';
     }
 
-    const totalDays = calDays + sandwichDays;
+    let totalDays = calDays + sandwichDays;
+    if (isSingleDay && halfDayBox.checked) totalDays = 0.5;
     let html = `📅 <strong>Selected:</strong> ${calDays} day(s)`;
+
+    if (isSingleDay && halfDayBox.checked) {
+        html = `📅 <strong>Half Day selected</strong> — 🔴 <strong>Total days that will be deducted: 0.5 day</strong>`;
+        infoBox.style.cssText='display:block;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;margin:14px 0;padding:14px 18px;border-radius:10px;font-size:13px;line-height:1.9;';
+        infoBox.innerHTML = html;
+        return;
+    }
 
     if (sandwichDays > 0 || (fromDay===5 && toDay===1)) {
         html += `<br>${sandwichMsg}🔴 <strong>Total days that will be deducted: ${totalDays} day(s)</strong>`;
@@ -231,8 +264,10 @@ function confirmLeave() {
     const toDay   = to.getDay();
     const calDays = Math.round((to - from) / 86400000) + 1;
     let sandwichDays = 0;
-    if (fromDay===5 && toDay!==1) sandwichDays=2;
-    else if (toDay===1 && fromDay!==5) sandwichDays=1;
+    if (fromVal !== toVal) {
+        if (fromDay===5 && toDay!==1) sandwichDays=2;
+        else if (toDay===1 && fromDay!==5) sandwichDays=1;
+    }
     const totalDays = calDays + sandwichDays;
 
     if (leaveType === 'Sabbatical') {

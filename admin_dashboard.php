@@ -1,7 +1,9 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
+// NOTE: error display is controlled centrally in db.php based on APP_ENV
+// (config.php) — don't override it per-page. This page used to force
+// display_errors on unconditionally, which meant even in production mode
+// any PHP warning/notice here would print raw file paths and query details
+// straight to the browser.
 session_start();
 if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'],['admin','super_admin'])){
     header("Location: index.php"); exit();
@@ -30,6 +32,13 @@ while($r=mysqli_fetch_assoc($att_res)) $att_data[$r['mon']-1]=$r['cnt'];
 $leave_data = array_fill(0,12,0);
 $leave_res = mysqli_query($conn,"SELECT MONTH(from_date) as mon,COUNT(*) as cnt FROM leaves WHERE YEAR(from_date)=YEAR(CURDATE()) GROUP BY MONTH(from_date)");
 while($r=mysqli_fetch_assoc($leave_res)) $leave_data[$r['mon']-1]=$r['cnt'];
+
+// Both charts sit side by side at the same height, but Chart.js scales each
+// Y-axis independently to its own data's max — so if one dataset tops out
+// at 9 and the other at 6, they end up with different gridline spacing and
+// look visually inconsistent as a pair even though nothing's wrong with the
+// data. Using one shared max keeps both charts' gridlines aligned.
+$charts_shared_max = max(1, max($att_data), max($leave_data)) + 1;
 
 $page_title = "Dashboard";
 ?>
@@ -130,13 +139,17 @@ $page_title = "Dashboard";
 
     <!-- Charts -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
-        <div class="timeline-card" style="margin-top:0;">
+        <div class="timeline-card" style="margin-top:0;min-width:0;">
             <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Monthly Attendance</h3>
-            <canvas id="adminAttChart"></canvas>
+            <div style="position:relative;height:280px;width:100%;">
+                <canvas id="adminAttChart"></canvas>
+            </div>
         </div>
-        <div class="timeline-card" style="margin-top:0;">
+        <div class="timeline-card" style="margin-top:0;min-width:0;">
             <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Monthly Leave Requests</h3>
-            <canvas id="adminLeaveChart"></canvas>
+            <div style="position:relative;height:280px;width:100%;">
+                <canvas id="adminLeaveChart"></canvas>
+            </div>
         </div>
     </div>
 
@@ -171,8 +184,8 @@ $page_title = "Dashboard";
 <script>
 const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 document.addEventListener('DOMContentLoaded', function(){
-    new Chart(document.getElementById('adminAttChart'),{type:'bar',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
-    new Chart(document.getElementById('adminLeaveChart'),{type:'bar',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    new Chart(document.getElementById('adminAttChart'),{type:'line',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.15)',borderColor:'#3b82f6',borderWidth:2,pointBackgroundColor:'#3b82f6',pointRadius:4,tension:0.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:<?php echo $charts_shared_max; ?>,ticks:{stepSize:1}}}}});
+    new Chart(document.getElementById('adminLeaveChart'),{type:'line',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.15)',borderColor:'#ef4444',borderWidth:2,pointBackgroundColor:'#ef4444',pointRadius:4,tension:0.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:<?php echo $charts_shared_max; ?>,ticks:{stepSize:1}}}}});
 });
 
 // ===== LIVE ATTENDANCE STATUS WIDGET =====

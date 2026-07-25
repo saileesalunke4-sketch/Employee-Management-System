@@ -57,11 +57,16 @@ $page_title = "Leaves";
                     $cal_days = (strtotime($row['to_date']) - strtotime($row['from_date'])) / 86400 + 1;
 
                     // Sandwich calculation
+                    // BUGFIX: only applies to a multi-day range — skip
+                    // entirely for a single-day request regardless of what
+                    // day of the week it falls on.
                     $from_day = date('N', strtotime($row['from_date'])); // 5=Fri, 1=Mon
                     $to_day   = date('N', strtotime($row['to_date']));
                     $sandwich_days = 0;
                     $sandwich_label = '';
-                    if ($from_day == 5 && $to_day == 1) {
+                    if ($cal_days <= 1) {
+                        // single day — no sandwich possible
+                    } elseif ($from_day == 5 && $to_day == 1) {
                         $sandwich_days = 0; // weekend already inside range
                         $sandwich_label = 'Fri–Mon (Weekend Included)';
                     } elseif ($from_day == 5) {
@@ -72,14 +77,18 @@ $page_title = "Leaves";
                         $sandwich_label = '+1 (Sun)';
                     }
                     $total_days = $cal_days + $sandwich_days;
+                    if(!empty($row['is_half_day'])) $total_days = 0.5;
 
-                    $pc = ['approved'=>'green','rejected'=>'red','pending'=>'yellow'][$row['status']] ?? 'yellow';
+                    $pc = ['approved'=>'green','rejected'=>'red','pending'=>'yellow','cancelled'=>'gray'][$row['status']] ?? 'yellow';
                     $csrf_tok = csrf_token();
 
                     // Sabbatical badge
                     $type_display = $row['leave_type'];
                     if ($row['leave_type'] === 'Sabbatical') {
                         $type_display = "<span class='badge-sabbatical'>🧘 Sabbatical</span><br><small style='color:#6b7280;font-size:11px;'>Unpaid · Once in career</small>";
+                    }
+                    if (!empty($row['is_half_day'])) {
+                        $type_display .= " <span style='background:#eff6ff;color:#1d4ed8;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;'>HALF DAY</span>";
                     }
 
                     // Days cell
@@ -100,10 +109,14 @@ $page_title = "Leaves";
                         <td>{$row['reason']}</td>
                         <td><span class='pill {$pc}'>".ucfirst($row['status'])."</span></td>
                         <td>
-                            <div class='row-actions'>
-                                <a href='leave_action.php?id={$row['leave_id']}&action=approved&redirect=admin_leaves.php&csrf={$csrf_tok}' class='approve-btn'>Approve</a>
-                                <a href='leave_action.php?id={$row['leave_id']}&action=rejected&redirect=admin_leaves.php&csrf={$csrf_tok}' class='reject-btn'>Reject</a>
-                            </div>
+                            <div class='row-actions'>";
+                    if($row['status'] === 'pending'){
+                        echo "<a href='leave_action.php?id={$row['leave_id']}&action=approved&redirect=admin_leaves.php&csrf={$csrf_tok}' class='approve-btn'>Approve</a>
+                                <a href='leave_action.php?id={$row['leave_id']}&action=rejected&redirect=admin_leaves.php&csrf={$csrf_tok}' class='reject-btn'>Reject</a>";
+                    } else {
+                        echo "<span style='color:#9ca3af;font-size:12px;'>-</span>";
+                    }
+                    echo "</div>
                         </td>
                     </tr>";
                 }

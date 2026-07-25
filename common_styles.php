@@ -37,6 +37,7 @@
 .pill.green{background:#dcfce7;color:#16a34a;}
 .pill.red{background:#fee2e2;color:#dc2626;}
 .pill.yellow{background:#fef3c7;color:#d97706;}
+.pill.gray{background:#f3f4f6;color:#6b7280;}
 .pill.blue{background:#dbeafe;color:#1d4ed8;}
 .hl-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;}
 .hl-badge.National{background:#dbeafe;color:#1d4ed8;}

@@ -90,6 +90,16 @@ function getDistanceMeters($lat1, $lon1, $lat2, $lon2){
 // so the "days deducted" figure always matches across the whole app.
 function getLeaveDaysWithSandwich($from_date, $to_date){
     $cal_days = (strtotime($to_date) - strtotime($from_date)) / 86400 + 1;
+
+    // BUGFIX: sandwich policy only makes sense for a multi-day range — a
+    // single day off that happens to fall on a Monday isn't "sandwiching"
+    // a weekend (there's no weekend inside a 1-day range to begin with).
+    // This used to add +1 day to any single-day Monday leave, deducting
+    // 2 days from balance for what should only ever be 1.
+    if($cal_days <= 1){
+        return $cal_days;
+    }
+
     $from_day = date('N', strtotime($from_date)); // 1=Mon ... 5=Fri, 7=Sun
     $to_day   = date('N', strtotime($to_date));
 
@@ -102,6 +112,18 @@ function getLeaveDaysWithSandwich($from_date, $to_date){
         $sandwich_days = 1; // ends Monday -> Sun added
     }
     return $cal_days + $sandwich_days;
+}
+
+// Half-day aware wrapper — used wherever a leave *record* (with its
+// is_half_day flag) needs to count toward balance/display. Half-day only
+// ever applies to a single-day request (from_date == to_date); the
+// sandwich policy is irrelevant for a single day, so this is a simple 0.5
+// instead of calling the sandwich function.
+function getLeaveDaysForRecord($from_date, $to_date, $is_half_day){
+    if($is_half_day && $from_date === $to_date){
+        return 0.5;
+    }
+    return getLeaveDaysWithSandwich($from_date, $to_date);
 }
 // ===== ONE-TIME SCHEMA SETUP (runs once, not on every page load) =====
 // Everything below used to run its CREATE TABLE / SHOW COLUMNS / ALTER /
@@ -299,6 +321,88 @@ if($shift_count == 0){
 }
 $default_shift_id = mysqli_fetch_assoc(mysqli_query($conn, "SELECT shift_id FROM shifts ORDER BY shift_id ASC LIMIT 1"))['shift_id'];
 mysqli_query($conn, "UPDATE employees SET shift_id=$default_shift_id WHERE shift_id IS NULL");
+
+// ===== HALF-DAY LEAVE + LEAVE CANCELLATION =====
+// `leaves` is a pre-existing table (not created by this app), so we only
+// ALTER it here rather than assuming its full original definition.
+// NOTE: outside the schema-ready guard, same reasoning as shifts/activity_log
+// above — anyone who already has logs/.schema_ready would never get this
+// otherwise.
+$half_day_col_check = mysqli_query($conn, "SHOW COLUMNS FROM leaves LIKE 'is_half_day'");
+if($half_day_col_check && mysqli_num_rows($half_day_col_check) == 0){
+    mysqli_query($conn, "ALTER TABLE leaves ADD COLUMN is_half_day TINYINT(1) NOT NULL DEFAULT 0");
+}
+// Widen the status column to allow 'cancelled' alongside the existing
+// pending/approved/rejected values, so an employee can cancel their own
+// pending request instead of only admin being able to approve/reject.
+mysqli_query($conn, "ALTER TABLE leaves MODIFY status ENUM('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending'");
+
+// ===== WFH REQUEST =====
+// This is separate from the existing same-day "mark WFH at check-in"
+// checkbox in save_attendance.php (that stays as-is, for spontaneous
+// same-day WFH with no approval needed). This table is for *planning
+// ahead* — an employee requests a future WFH day, admin/super_admin
+// approves or rejects it, and on approval the employee's attendance for
+// that date gets pre-marked as work_from_home automatically.
+mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `wfh_requests` (
+  `request_id` INT NOT NULL AUTO_INCREMENT,
+  `emp_id` INT NOT NULL,
+  `wfh_date` DATE NOT NULL,
+  `reason` TEXT,
+  `status` ENUM('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `reviewed_by` INT DEFAULT NULL,
+  PRIMARY KEY (`request_id`),
+  KEY `emp_id` (`emp_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+// ===== REIMBURSEMENT REQUEST =====
+// Employee submits an expense claim (category, amount, optional receipt
+// file), admin/super_admin approves or rejects it. Same request-and-approve
+// shape as leaves/WFH/HR requests above.
+mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `reimbursement_requests` (
+  `request_id` INT NOT NULL AUTO_INCREMENT,
+  `emp_id` INT NOT NULL,
+  `category` VARCHAR(50) NOT NULL,
+  `amount` DECIMAL(10,2) NOT NULL,
+  `description` TEXT,
+  `receipt_filename` VARCHAR(255) DEFAULT NULL,
+  `status` ENUM('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `reviewed_by` INT DEFAULT NULL,
+  PRIMARY KEY (`request_id`),
+  KEY `emp_id` (`emp_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+// ===== ASSET MANAGEMENT =====
+// Unlike the request-and-approve modules above, this is inventory tracking:
+// admin maintains a list of company assets (laptops, monitors, phones...)
+// and assigns/returns them to/from employees, with a full history of who
+// had what and when.
+mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `assets` (
+  `asset_id` INT NOT NULL AUTO_INCREMENT,
+  `asset_name` VARCHAR(150) NOT NULL,
+  `asset_type` VARCHAR(50) NOT NULL,
+  `serial_number` VARCHAR(100) DEFAULT NULL,
+  `purchase_date` DATE DEFAULT NULL,
+  `status` ENUM('available','assigned','under_repair','retired') NOT NULL DEFAULT 'available',
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`asset_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `asset_assignments` (
+  `assignment_id` INT NOT NULL AUTO_INCREMENT,
+  `asset_id` INT NOT NULL,
+  `emp_id` INT NOT NULL,
+  `assigned_date` DATE NOT NULL,
+  `returned_date` DATE DEFAULT NULL,
+  `condition_notes` VARCHAR(255) DEFAULT NULL,
+  `assigned_by` INT DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`assignment_id`),
+  KEY `asset_id` (`asset_id`),
+  KEY `emp_id` (`emp_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
 // ===== CSRF PROTECTION HELPERS =====
 // Used on approve/reject action links (leave, regularization, HR requests)
