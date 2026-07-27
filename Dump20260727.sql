@@ -1,4 +1,4 @@
-CREATE DATABASE  IF NOT EXISTS `emp1_db` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE  IF NOT EXISTS `emp1_db` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `emp1_db`;
 -- MySQL dump 10.13  Distrib 8.0.45, for Win64 (x86_64)
 --
@@ -23,7 +23,7 @@ SET @@SESSION.SQL_LOG_BIN= 0;
 -- GTID state at the beginning of the backup 
 --
 
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '0d1ac67a-0965-11f1-9547-a8934aace692:1-8915';
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '0d1ac67a-0965-11f1-9547-a8934aace692:1-15586';
 
 --
 -- Table structure for table `activity_log`
@@ -43,7 +43,7 @@ CREATE TABLE `activity_log` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`log_id`),
   KEY `created_at` (`created_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -52,6 +52,7 @@ CREATE TABLE `activity_log` (
 
 LOCK TABLES `activity_log` WRITE;
 /*!40000 ALTER TABLE `activity_log` DISABLE KEYS */;
+INSERT INTO `activity_log` VALUES (1,11,'Sailee Salunke','cancelled','Leave Request','Sailee Salunke — Sick Leave','2026-05-31 to 2026-06-02','2026-07-22 08:53:02'),(2,1,'Admin User','created','Asset','Dell Latitude 5440 Laptop','Laptop','2026-07-23 07:51:41'),(3,1,'Admin User','assigned','Asset','Dell Latitude 5440 Laptop','To Sailee Salunke','2026-07-23 07:52:15'),(4,1,'Admin User','created','Asset','Dell Latitude 7450','Laptop','2026-07-23 07:57:05'),(5,1,'Admin User','assigned','Asset','Dell Latitude 7450','To Sneha  Singh','2026-07-23 07:57:42'),(6,1,'Admin User','created','Asset','Microsoft Surface Laptop 7','Laptop','2026-07-23 07:58:44'),(7,1,'Admin User','assigned','Asset','Microsoft Surface Laptop 7','To Shlok Thakur','2026-07-23 07:58:55'),(8,1,'Admin User','created','Asset','Apple MacBook Air 13-inch (M4)','Laptop','2026-07-23 07:59:40'),(9,1,'Admin User','assigned','Asset','Apple MacBook Air 13-inch (M4)','To Shanaya Khan','2026-07-23 08:00:00'),(10,1,'Admin User','created','Asset','HP EliteBook 840 G10','Laptop','2026-07-23 08:00:37'),(11,1,'Admin User','assigned','Asset','HP EliteBook 840 G10','To Ravi Mehta','2026-07-23 08:00:49'),(12,1,'Admin User','created','Asset','iPhone 15  Apple','Phone','2026-07-23 08:02:04'),(13,1,'Admin User','assigned','Asset','iPhone 15  Apple','To Rahul sharma','2026-07-23 08:02:16'),(14,1,'Admin User','created','Asset','HP 24\" Monitor  HP','Monitor','2026-07-23 08:03:44'),(15,1,'Admin User','assigned','Asset','HP 24\" Monitor  HP','To Priya Patel','2026-07-23 08:03:57'),(16,1,'Admin User','created','Shift','Morning','08:00:00-12:00:00','2026-07-23 08:08:18'),(17,1,'Admin User','assigned','Shift','Rahul sharma','Assigned to Morning','2026-07-23 08:08:53'),(18,1,'Admin User','assigned','Shift','Rahul sharma','Assigned to General Shift','2026-07-23 08:31:21'),(19,1,'Admin User','deleted','Shift','Morning','','2026-07-23 08:31:34'),(20,1,'Admin User','created','Shift','Morning Shift','08:00:00-11:00:00','2026-07-23 08:32:18'),(21,1,'Admin User','deleted','Shift','Morning Shift','','2026-07-23 08:40:40'),(22,1,'Admin User','created','Shift','Morning Shift','20:00:00-16:00:00','2026-07-23 08:41:12'),(23,1,'Admin User','created','Shift','Afternoon Shift','14:00:00-22:00:00','2026-07-23 08:43:09'),(24,1,'Admin User','created','Shift','Night Shift','22:00:00-06:00:00','2026-07-23 08:46:10'),(25,1,'Admin User','assigned','Shift','Shanaya Khan','Assigned to Afternoon Shift','2026-07-23 08:47:10'),(26,1,'Admin User','created','Asset','Wireless Mouse','Mouse','2026-07-23 09:11:27'),(27,1,'Admin User','assigned','Asset','Wireless Mouse','To Nita Seth','2026-07-23 09:11:52'),(28,1,'Admin User','approved','WFH Request','Sneha  Singh','2026-07-28','2026-07-23 09:14:37');
 /*!40000 ALTER TABLE `activity_log` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -69,7 +70,7 @@ CREATE TABLE `announcements` (
   `posted_by` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`announcement_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -80,6 +81,67 @@ LOCK TABLES `announcements` WRITE;
 /*!40000 ALTER TABLE `announcements` DISABLE KEYS */;
 INSERT INTO `announcements` VALUES (1,'Open Enrollment for 2026 Benefits is now live','Hi Team,Our annual Open Enrollment period for company health and dental benefits is now open.The deadline to submit or change your selections is 15-07-2026','Admin User','2026-07-10 06:21:31');
 /*!40000 ALTER TABLE `announcements` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `asset_assignments`
+--
+
+DROP TABLE IF EXISTS `asset_assignments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `asset_assignments` (
+  `assignment_id` int NOT NULL AUTO_INCREMENT,
+  `asset_id` int NOT NULL,
+  `emp_id` int NOT NULL,
+  `assigned_date` date NOT NULL,
+  `returned_date` date DEFAULT NULL,
+  `condition_notes` varchar(255) DEFAULT NULL,
+  `assigned_by` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`assignment_id`),
+  KEY `asset_id` (`asset_id`),
+  KEY `emp_id` (`emp_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `asset_assignments`
+--
+
+LOCK TABLES `asset_assignments` WRITE;
+/*!40000 ALTER TABLE `asset_assignments` DISABLE KEYS */;
+INSERT INTO `asset_assignments` VALUES (1,1,8,'2026-07-23',NULL,NULL,1,'2026-07-23 07:52:15'),(2,2,6,'2026-07-23',NULL,NULL,1,'2026-07-23 07:57:42'),(3,3,10,'2026-07-23',NULL,NULL,1,'2026-07-23 07:58:55'),(4,4,14,'2026-07-23',NULL,NULL,1,'2026-07-23 08:00:00'),(5,5,7,'2026-07-23',NULL,NULL,1,'2026-07-23 08:00:49'),(6,6,3,'2026-07-23',NULL,NULL,1,'2026-07-23 08:02:16'),(7,7,4,'2026-07-23',NULL,NULL,1,'2026-07-23 08:03:57'),(8,8,9,'2026-07-23',NULL,NULL,1,'2026-07-23 09:11:52');
+/*!40000 ALTER TABLE `asset_assignments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `assets`
+--
+
+DROP TABLE IF EXISTS `assets`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `assets` (
+  `asset_id` int NOT NULL AUTO_INCREMENT,
+  `asset_name` varchar(150) NOT NULL,
+  `asset_type` varchar(50) NOT NULL,
+  `serial_number` varchar(100) DEFAULT NULL,
+  `purchase_date` date DEFAULT NULL,
+  `status` enum('available','assigned','under_repair','retired') NOT NULL DEFAULT 'available',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`asset_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `assets`
+--
+
+LOCK TABLES `assets` WRITE;
+/*!40000 ALTER TABLE `assets` DISABLE KEYS */;
+INSERT INTO `assets` VALUES (1,'Dell Latitude 5440 Laptop','Laptop','AST001','2026-02-02','assigned','2026-07-23 07:51:41'),(2,'Dell Latitude 7450','Laptop','AST002','2026-02-23','assigned','2026-07-23 07:57:05'),(3,'Microsoft Surface Laptop 7','Laptop','AST003','2026-02-23','assigned','2026-07-23 07:58:44'),(4,'Apple MacBook Air 13-inch (M4)','Laptop','AST004','2026-02-23','assigned','2026-07-23 07:59:40'),(5,'HP EliteBook 840 G10','Laptop','AST005','2026-02-23','assigned','2026-07-23 08:00:37'),(6,'iPhone 15  Apple','Phone','AST006','2026-02-23','assigned','2026-07-23 08:02:04'),(7,'HP 24\" Monitor  HP','Monitor','AST007','2026-02-23','assigned','2026-07-23 08:03:44'),(8,'Wireless Mouse','Mouse','AST007','2026-02-15','assigned','2026-07-23 09:11:27');
+/*!40000 ALTER TABLE `assets` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -101,7 +163,7 @@ CREATE TABLE `attendance` (
   PRIMARY KEY (`attendance_id`),
   KEY `emp_id` (`emp_id`),
   CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`emp_id`) REFERENCES `employees` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -110,7 +172,7 @@ CREATE TABLE `attendance` (
 
 LOCK TABLES `attendance` WRITE;
 /*!40000 ALTER TABLE `attendance` DISABLE KEYS */;
-INSERT INTO `attendance` VALUES (2,3,'09:00:00','05:03:00','2026-03-20','present',0.00,0),(3,4,'09:00:00','17:49:00','2026-03-23','present',0.00,0),(4,5,'09:00:00','02:00:00','2026-03-20','half_day',0.00,0),(5,6,'09:00:00','17:00:00','2026-03-20','work_from_home',0.00,0),(6,7,'09:00:00','17:00:00','2026-03-23','present',0.00,0),(7,3,'09:00:00','18:00:00','2026-04-08','present',0.00,0),(8,8,'09:00:00','18:00:00','2026-04-10','present',0.00,0),(9,8,'09:00:00','00:00:00','2026-04-10','half_day',0.00,0),(10,8,'09:00:00','17:40:00','2026-04-12','present',0.00,0),(11,8,'09:00:00','17:00:00','2026-04-11','present',0.00,0),(12,8,'09:00:00','18:00:00','2026-04-13','work_from_home',0.00,0),(13,7,'09:00:00','17:00:00','2026-04-12','work_from_home',0.00,0),(14,5,'21:00:00','17:00:00','2026-04-12','work_from_home',0.00,0),(15,6,'21:00:00','18:00:00','2026-04-12','present',0.00,0),(16,5,'21:00:00','21:00:00','2026-04-12','present',0.00,0),(17,4,'09:00:00','17:00:00','2026-04-20','present',0.00,0),(18,9,'09:00:00','18:00:00','2026-04-24','present',0.00,0),(19,8,'09:00:00','06:00:00','2026-04-24','present',0.00,0),(20,6,'09:09:00','17:02:00','2026-04-30','present',0.00,0),(21,5,'09:00:00','19:19:00','2026-05-01','present',1.32,0),(22,4,'21:21:00','19:00:00','2026-05-01','present',1.00,0),(23,8,'21:00:00','18:00:00','2026-05-25','present',0.00,0),(24,13,'09:00:00','17:45:00','2026-06-11','present',0.00,0),(25,8,'08:51:54','12:28:22','2026-06-21','present',0.00,0),(26,9,'12:29:26',NULL,'2026-06-21','late',0.00,0),(27,3,'12:33:36',NULL,'2026-06-21','late',0.00,0),(28,8,'14:35:58',NULL,'2026-06-24','work_from_home',0.00,0),(29,13,'12:01:23',NULL,'2026-06-28','work_from_home',0.00,0),(30,8,'14:42:20','16:32:04','2026-07-06','work_from_home',0.00,0),(31,8,'06:41:35',NULL,'2026-07-09','work_from_home',0.00,0),(32,13,'10:17:46',NULL,'2026-07-09','work_from_home',0.00,0),(33,8,'14:31:44',NULL,'2026-07-10','work_from_home',0.00,0),(34,8,'12:17:46',NULL,'2026-07-11','work_from_home',0.00,0),(35,8,'11:43:01',NULL,'2026-07-15','work_from_home',0.00,0),(36,8,'15:40:04','20:44:05','2026-07-16','work_from_home',0.00,0),(37,8,'09:40:50','20:24:32','2026-07-17','work_from_home',2.73,0);
+INSERT INTO `attendance` VALUES (2,3,'09:00:00','05:03:00','2026-03-20','present',0.00,0),(3,4,'09:00:00','17:49:00','2026-03-23','present',0.00,0),(4,5,'09:00:00','02:00:00','2026-03-20','half_day',0.00,0),(5,6,'09:00:00','17:00:00','2026-03-20','work_from_home',0.00,0),(6,7,'09:00:00','17:00:00','2026-03-23','present',0.00,0),(7,3,'09:00:00','18:00:00','2026-04-08','present',0.00,0),(8,8,'09:00:00','18:00:00','2026-04-10','present',0.00,0),(9,8,'09:00:00','00:00:00','2026-04-10','half_day',0.00,0),(10,8,'09:00:00','17:40:00','2026-04-12','present',0.00,0),(11,8,'09:00:00','17:00:00','2026-04-11','present',0.00,0),(12,8,'09:00:00','18:00:00','2026-04-13','work_from_home',0.00,0),(13,7,'09:00:00','17:00:00','2026-04-12','work_from_home',0.00,0),(14,5,'21:00:00','17:00:00','2026-04-12','work_from_home',0.00,0),(15,6,'21:00:00','18:00:00','2026-04-12','present',0.00,0),(16,5,'21:00:00','21:00:00','2026-04-12','present',0.00,0),(17,4,'09:00:00','17:00:00','2026-04-20','present',0.00,0),(18,9,'09:00:00','18:00:00','2026-04-24','present',0.00,0),(19,8,'09:00:00','06:00:00','2026-04-24','present',0.00,0),(20,6,'09:09:00','17:02:00','2026-04-30','present',0.00,0),(21,5,'09:00:00','19:19:00','2026-05-01','present',1.32,0),(22,4,'21:21:00','19:00:00','2026-05-01','present',1.00,0),(23,8,'21:00:00','18:00:00','2026-05-25','present',0.00,0),(24,13,'09:00:00','17:45:00','2026-06-11','present',0.00,0),(25,8,'08:51:54','12:28:22','2026-06-21','present',0.00,0),(26,9,'12:29:26',NULL,'2026-06-21','late',0.00,0),(27,3,'12:33:36',NULL,'2026-06-21','late',0.00,0),(28,8,'14:35:58',NULL,'2026-06-24','work_from_home',0.00,0),(29,13,'12:01:23',NULL,'2026-06-28','work_from_home',0.00,0),(30,8,'14:42:20','16:32:04','2026-07-06','work_from_home',0.00,0),(31,8,'06:41:35',NULL,'2026-07-09','work_from_home',0.00,0),(32,13,'10:17:46',NULL,'2026-07-09','work_from_home',0.00,0),(33,8,'14:31:44',NULL,'2026-07-10','work_from_home',0.00,0),(34,8,'12:17:46',NULL,'2026-07-11','work_from_home',0.00,0),(35,8,'11:43:01',NULL,'2026-07-15','work_from_home',0.00,0),(36,8,'15:40:04','20:44:05','2026-07-16','work_from_home',0.00,0),(37,8,'09:40:50','20:24:32','2026-07-17','work_from_home',2.73,0),(38,8,'09:14:26',NULL,'2026-07-22','work_from_home',0.00,0),(39,3,'09:16:01',NULL,'2026-07-22','work_from_home',0.00,0),(40,4,'09:18:29',NULL,'2026-07-22','work_from_home',0.00,0),(41,5,'09:19:10',NULL,'2026-07-22','work_from_home',0.00,0),(42,6,'09:20:48',NULL,'2026-07-22','work_from_home',0.00,0),(43,7,'09:21:26',NULL,'2026-07-22','work_from_home',0.00,0),(44,9,'09:22:31',NULL,'2026-07-22','work_from_home',0.00,0),(45,10,'09:23:14',NULL,'2026-07-22','work_from_home',0.00,0),(46,13,'09:23:58',NULL,'2026-07-22','work_from_home',0.00,0),(47,14,'09:25:23',NULL,'2026-07-22','work_from_home',0.00,0),(48,6,NULL,NULL,'2026-07-28','work_from_home',0.00,0);
 /*!40000 ALTER TABLE `attendance` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -132,7 +194,7 @@ CREATE TABLE `daily_logs` (
   PRIMARY KEY (`log_id`),
   KEY `emp_id` (`emp_id`),
   CONSTRAINT `daily_logs_ibfk_1` FOREIGN KEY (`emp_id`) REFERENCES `employees` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -160,7 +222,7 @@ CREATE TABLE `department_wall_posts` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`post_id`),
   KEY `dept_id` (`dept_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -185,7 +247,7 @@ CREATE TABLE `departments` (
   `dept_head` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`dept_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -217,7 +279,7 @@ CREATE TABLE `emp_performance` (
   PRIMARY KEY (`id`),
   KEY `emp_id` (`emp_id`),
   CONSTRAINT `emp_performance_ibfk_1` FOREIGN KEY (`emp_id`) REFERENCES `employees` (`emp_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -244,7 +306,7 @@ CREATE TABLE `employee_documents` (
   `marks_card` varchar(255) DEFAULT NULL,
   `uploaded_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`doc_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -292,7 +354,7 @@ CREATE TABLE `employees` (
   KEY `dept_id` (`dept_id`),
   CONSTRAINT `employees_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `employees_ibfk_2` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`dept_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -301,7 +363,7 @@ CREATE TABLE `employees` (
 
 LOCK TABLES `employees` WRITE;
 /*!40000 ALTER TABLE `employees` DISABLE KEYS */;
-INSERT INTO `employees` VALUES (3,6,'Rahul','sharma','1234567890','Software Developer','A+','2000-12-12','Hindu','Mumbai',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,NULL,'EMP0003',1),(4,7,'Priya','Patel','1234567895','Web Designer','A+','1999-03-31','Hindu','Mumbai',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EMP0004',1),(5,8,'Amit','Kumarr','5678234569','Backend Devloper','O+','2000-03-04','Hindu','Nashik',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,NULL,'EMP0005',1),(6,9,'Sneha ','Singh','2184734592','Tester','B+','1998-12-19','Hindu','Pune',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EMP0006',1),(7,10,'Ravi','Mehta','2356128945','Project Manager','A+','2002-06-23','Hindu','Nepal','Jaipur',NULL,'General','xyz','Pune',NULL,NULL,NULL,NULL,NULL,'EMP0007',1),(8,11,'Sailee','Salunke','2356128945','senior devloper','AB+','2002-07-28','','Nagar','',NULL,'','','','8_pan_card_1780726779.png','8_aadhar_card_1780726779.png','8_marks_card_1780726779.png',5,NULL,'EMP0008',1),(9,12,'Nita','Seth','3278487358','QA','B-','2002-09-23','Hindu','Delhi',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EMP0009',1),(10,13,'Shlok','Thakur','3287487502','Devop Engineer','A+','2000-11-16','Hindu','Nashik',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EMP0010',1),(13,16,'Asha','Seth','9083774927','Product Manager','A+','1998-05-18','Hindu','Banglore',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EMP0013',1),(14,17,'Shanaya','Khan','2893894803','consultant manager','A+','2000-09-23','Hindu','Nagpur',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'EMP0014',1);
+INSERT INTO `employees` VALUES (3,6,'Rahul','sharma','1234567890','Software Developer','A+','2000-12-12','Hindu','Mumbai',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,NULL,'EMP0003',1),(4,7,'Priya','Patel','1234567895','Web Designer','A+','1999-03-31','Hindu','Mumbai',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,27,NULL,'EMP0004',1),(5,8,'Amit','Kumarr','5678234569','Backend Devloper','O+','2000-03-04','Hindu','Nashik',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,19,NULL,'EMP0005',1),(6,9,'Sneha ','Singh','2184734592','Tester','B+','1998-12-19','Hindu','Pune',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,5,NULL,'EMP0006',1),(7,10,'Ravi','Mehta','2356128945','Project Manager','A+','2002-06-23','Hindu','Nepal','Jaipur',NULL,'General','xyz','Pune',NULL,NULL,NULL,15,NULL,'EMP0007',1),(8,11,'Sailee','Salunke','2356128945','senior devloper','AB+','2002-07-28','','Nagar','',NULL,'','','','8_pan_card_1780726779.png','8_aadhar_card_1780726779.png','8_marks_card_1780726779.png',21,NULL,'EMP0008',1),(9,12,'Nita','Seth','3278487358','QA','B-','2002-09-23','Hindu','Delhi',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,5,NULL,'EMP0009',1),(10,13,'Shlok','Thakur','3287487502','Devop Engineer','A+','2000-11-16','Hindu','Nashik',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,20,NULL,'EMP0010',1),(13,16,'Asha','Seth','9083774927','Product Manager','A+','1998-05-18','Hindu','Banglore',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,19,NULL,'EMP0013',1),(14,17,'Shanaya','Khan','2893894803','consultant manager','A+','2000-09-23','Hindu','Nagpur',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,18,NULL,'EMP0014',5);
 /*!40000 ALTER TABLE `employees` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -319,7 +381,7 @@ CREATE TABLE `holidays` (
   `description` varchar(255) DEFAULT NULL,
   `holiday_type` varchar(50) DEFAULT 'National',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -351,7 +413,7 @@ CREATE TABLE `hr_process_requests` (
   `reviewed_by` int DEFAULT NULL,
   PRIMARY KEY (`request_id`),
   KEY `emp_id` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -382,7 +444,7 @@ CREATE TABLE `hr_queries` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `resolved_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`query_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -408,7 +470,7 @@ CREATE TABLE `leave_types` (
   `total_days` int DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -435,11 +497,12 @@ CREATE TABLE `leaves` (
   `from_date` date DEFAULT NULL,
   `to_date` date DEFAULT NULL,
   `reason` text,
-  `status` enum('pending','approved','rejected') DEFAULT NULL,
+  `status` enum('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
+  `is_half_day` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`leave_id`),
   KEY `emp_id` (`emp_id`),
   CONSTRAINT `leaves_ibfk_1` FOREIGN KEY (`emp_id`) REFERENCES `employees` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -448,7 +511,7 @@ CREATE TABLE `leaves` (
 
 LOCK TABLES `leaves` WRITE;
 /*!40000 ALTER TABLE `leaves` DISABLE KEYS */;
-INSERT INTO `leaves` VALUES (2,3,'sick','2026-03-10','2026-03-20','Fever','pending'),(3,5,'casual','2026-03-12','2026-03-19','Personal work','pending'),(4,7,'casual','2026-04-02','2026-04-04','Personal work','pending'),(5,4,'Sick Leave','2026-04-01','2026-04-05','Fever','approved'),(6,3,'Casual Leave','2026-04-08','2026-04-12','Out of Town','pending'),(7,3,'Sick Leave','2026-04-11','2026-04-15','fever','approved'),(8,8,'Unpaid Leave','2026-04-13','2026-04-14','xyz','pending'),(9,6,'Casual Leave','2026-04-13','2026-04-14','Personal work','pending'),(10,3,'Privilege Leave','2026-05-04','2026-05-05','Family function','approved'),(11,8,'Casual Leave','2026-05-04','2026-05-05','Family Gathering','approved'),(12,6,'Casual Leave','2026-05-22','2026-05-25','Family function','approved'),(13,8,'Sick Leave','2026-05-31','2026-06-02','Fever ','pending'),(14,8,'Sick Leave','2026-06-08','2026-06-09','fever','approved'),(15,8,'Privilege Leave','2026-06-09','2026-06-10','Out of town','rejected'),(16,9,'Special Casual Leave','2026-06-11','2026-06-12','out of town','pending');
+INSERT INTO `leaves` VALUES (2,3,'sick','2026-03-10','2026-03-20','Fever','pending',0),(3,5,'casual','2026-03-12','2026-03-19','Personal work','pending',0),(4,7,'casual','2026-04-02','2026-04-04','Personal work','pending',0),(5,4,'Sick Leave','2026-04-01','2026-04-05','Fever','approved',0),(6,3,'Casual Leave','2026-04-08','2026-04-12','Out of Town','pending',0),(7,3,'Sick Leave','2026-04-11','2026-04-15','fever','approved',0),(8,8,'Unpaid Leave','2026-04-13','2026-04-14','xyz','pending',0),(9,6,'Casual Leave','2026-04-13','2026-04-14','Personal work','pending',0),(10,3,'Privilege Leave','2026-05-04','2026-05-05','Family function','approved',0),(11,8,'Casual Leave','2026-05-04','2026-05-05','Family Gathering','approved',0),(12,6,'Casual Leave','2026-05-22','2026-05-25','Family function','approved',0),(13,8,'Sick Leave','2026-05-31','2026-06-02','Fever ','cancelled',0),(14,8,'Sick Leave','2026-06-08','2026-06-09','fever','approved',0),(15,8,'Privilege Leave','2026-06-09','2026-06-10','Out of town','rejected',0),(16,9,'Special Casual Leave','2026-06-11','2026-06-12','out of town','pending',0);
 /*!40000 ALTER TABLE `leaves` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -475,7 +538,7 @@ CREATE TABLE `notifications` (
   PRIMARY KEY (`id`),
   KEY `idx_created_at` (`created_at`),
   KEY `idx_is_read` (`is_read`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -484,7 +547,7 @@ CREATE TABLE `notifications` (
 
 LOCK TABLES `notifications` WRITE;
 /*!40000 ALTER TABLE `notifications` DISABLE KEYS */;
-INSERT INTO `notifications` VALUES (1,'7','Ravi Mehta','casual','2026-04-02','2026-04-04','Personal work',NULL,'leave','admin',1,'2026-04-01 12:14:50'),(2,'4','Priya Patel','Sick Leave','2026-04-01','2026-04-05','Fever',NULL,'leave','admin',1,'2026-04-04 06:24:45'),(3,'3','Rahul Sharma','Casual Leave','2026-04-08','2026-04-12','Out of Town',NULL,'leave','admin',1,'2026-04-08 06:38:48'),(4,'3','Rahul Sharma','Sick Leave','2026-04-11','2026-04-15','fever',NULL,'leave','admin',1,'2026-04-08 06:43:44'),(5,'8','Sailee Salunke','task_completion','2026-04-10','2026-04-10','Task completed by Sailee Salunke: creating Dashboard',NULL,'leave','admin',1,'2026-04-10 11:24:38'),(6,'6','Sneha  Singh','task_completion','2026-04-10','2026-04-10','Task completed by Sneha  Singh: Testing',NULL,'leave','admin',1,'2026-04-10 11:27:59'),(7,'8','Sailee Salunke','Unpaid Leave','2026-04-13','2026-04-14','xyz',NULL,'leave','admin',1,'2026-04-11 17:47:53'),(8,'6','Sneha Singh','Casual Leave','2026-04-13','2026-04-14','Personal work',NULL,'leave','admin',1,'2026-04-12 11:05:44'),(9,'3','Rahul Sharma','Privilege Leave','2026-05-04','2026-05-05','Family function',NULL,'leave','admin',1,'2026-04-30 04:03:41'),(10,'8','Sailee Salunke','Casual Leave','2026-05-04','2026-05-05','Family Gathering',NULL,'leave','admin',1,'2026-05-01 07:16:33'),(11,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'in_progress\' by Sailee Salunke',NULL,'leave','admin',1,'2026-05-01 07:40:10'),(12,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Fixing bugs and improving performance\' marked as \'completed\' by Sailee Salunke',NULL,'leave','admin',1,'2026-05-01 07:40:36'),(13,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'completed\' by Sailee Salunke',NULL,'leave','admin',1,'2026-05-01 07:40:55'),(14,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'pending\' by Sailee Salunke',NULL,'leave','admin',1,'2026-05-01 07:41:02'),(15,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Developing new features for applications\' marked as \'completed\' by Sailee Salunke',NULL,'leave','admin',1,'2026-05-01 07:41:17'),(16,'6','Sneha Singh','Casual Leave','2026-05-22','2026-05-25','Family function',NULL,'leave','admin',1,'2026-05-22 08:38:02'),(17,'8','Sailee Salunke','Sick Leave','2026-05-31','2026-06-02','Fever ',NULL,'leave','admin',1,'2026-05-30 15:54:30'),(18,'8','Sailee Salunke','Sick Leave','2026-06-08','2026-06-09','fever',NULL,'leave','admin',1,'2026-06-06 07:46:40'),(19,'8','Sailee Salunke','Sick Leave','2026-06-08','2026-06-09','✅ Your Sick Leave request (2026-06-08 to 2026-06-09) has been Approved by Admin.','✅ Your Sick Leave request (2026-06-08 to 2026-06-09) has been Approved by Admin.','leave_status','employee',1,'2026-06-06 07:57:37'),(20,'8','Sailee Salunke','Privilege Leave','2026-06-09','2026-06-10','Out of town',NULL,'leave','admin',1,'2026-06-06 14:02:21'),(21,'8','Sailee Salunke','Privilege Leave','2026-06-09','2026-06-10','❌ Your Privilege Leave request (2026-06-09 to 2026-06-10) has been Rejected by Admin.','❌ Your Privilege Leave request (2026-06-09 to 2026-06-10) has been Rejected by Admin.','leave_status','employee',1,'2026-06-06 14:02:59'),(22,'9','Nita seth','Special Casual Leave','2026-06-11','2026-06-12','out of town',NULL,'leave','admin',1,'2026-06-09 08:51:11'),(23,'13','Asha Seth','Task Assigned','2026-06-11','2026-06-15','? New task assigned to you: Lifecycle Management. Target date: 2026-06-15.','? New task assigned to you: Lifecycle Management. Target date: 2026-06-15.','task','employee',1,'2026-06-11 08:10:17'),(24,'8','Sailee Salunke','Task Assigned','2026-06-24','2026-06-29','? New task assigned to you: Testing. Target date: 2026-06-29.','? New task assigned to you: Testing. Target date: 2026-06-29.','task','employee',1,'2026-06-24 11:50:39'),(25,'8','Sailee Salunke','Regularization','2026-04-24','2026-04-24','✅ Your attendance regularization request for 2026-04-24 has been Approved.','✅ Your attendance regularization request for 2026-04-24 has been Approved.','regularization_status','employee',0,'2026-07-10 05:17:09'),(26,'8','Sailee Salunke','Department Change','2026-07-10','2026-07-10','✅ Your Department Change request has been Approved.','✅ Your Department Change request has been Approved.','hr_request_status','employee',0,'2026-07-10 06:03:03'),(27,'8','Sailee Salunke','Designation Change','2026-07-10','2026-07-10','✅ Your Designation Change request has been Approved.','✅ Your Designation Change request has been Approved.','hr_request_status','employee',0,'2026-07-10 09:04:59');
+INSERT INTO `notifications` VALUES (1,'7','Ravi Mehta','casual','2026-04-02','2026-04-04','Personal work',NULL,'leave','admin',1,'2026-04-01 12:14:50'),(2,'4','Priya Patel','Sick Leave','2026-04-01','2026-04-05','Fever',NULL,'leave','admin',1,'2026-04-04 06:24:45'),(3,'3','Rahul Sharma','Casual Leave','2026-04-08','2026-04-12','Out of Town',NULL,'leave','admin',1,'2026-04-08 06:38:48'),(4,'3','Rahul Sharma','Sick Leave','2026-04-11','2026-04-15','fever',NULL,'leave','admin',1,'2026-04-08 06:43:44'),(5,'8','Sailee Salunke','task_completion','2026-04-10','2026-04-10','Task completed by Sailee Salunke: creating Dashboard',NULL,'leave','admin',1,'2026-04-10 11:24:38'),(6,'6','Sneha  Singh','task_completion','2026-04-10','2026-04-10','Task completed by Sneha  Singh: Testing',NULL,'leave','admin',1,'2026-04-10 11:27:59'),(7,'8','Sailee Salunke','Unpaid Leave','2026-04-13','2026-04-14','xyz',NULL,'leave','admin',1,'2026-04-11 17:47:53'),(8,'6','Sneha Singh','Casual Leave','2026-04-13','2026-04-14','Personal work',NULL,'leave','admin',1,'2026-04-12 11:05:44'),(9,'3','Rahul Sharma','Privilege Leave','2026-05-04','2026-05-05','Family function',NULL,'leave','admin',1,'2026-04-30 04:03:41'),(10,'8','Sailee Salunke','Casual Leave','2026-05-04','2026-05-05','Family Gathering',NULL,'leave','admin',1,'2026-05-01 07:16:33'),(11,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'in_progress\' by Sailee Salunke',NULL,'leave','admin',1,'2026-05-01 07:40:10'),(12,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Fixing bugs and improving performance\' marked as \'completed\' by Sailee Salunke',NULL,'leave','admin',1,'2026-05-01 07:40:36'),(13,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'completed\' by Sailee Salunke',NULL,'leave','admin',1,'2026-05-01 07:40:55'),(14,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Code review and documentation\' marked as \'pending\' by Sailee Salunke',NULL,'leave','admin',1,'2026-05-01 07:41:02'),(15,'8','Sailee Salunke','task_update','2026-05-01','2026-05-01','Task \'Developing new features for applications\' marked as \'completed\' by Sailee Salunke',NULL,'leave','admin',1,'2026-05-01 07:41:17'),(16,'6','Sneha Singh','Casual Leave','2026-05-22','2026-05-25','Family function',NULL,'leave','admin',1,'2026-05-22 08:38:02'),(17,'8','Sailee Salunke','Sick Leave','2026-05-31','2026-06-02','Fever ',NULL,'leave','admin',1,'2026-05-30 15:54:30'),(18,'8','Sailee Salunke','Sick Leave','2026-06-08','2026-06-09','fever',NULL,'leave','admin',1,'2026-06-06 07:46:40'),(19,'8','Sailee Salunke','Sick Leave','2026-06-08','2026-06-09','✅ Your Sick Leave request (2026-06-08 to 2026-06-09) has been Approved by Admin.','✅ Your Sick Leave request (2026-06-08 to 2026-06-09) has been Approved by Admin.','leave_status','employee',1,'2026-06-06 07:57:37'),(20,'8','Sailee Salunke','Privilege Leave','2026-06-09','2026-06-10','Out of town',NULL,'leave','admin',1,'2026-06-06 14:02:21'),(21,'8','Sailee Salunke','Privilege Leave','2026-06-09','2026-06-10','❌ Your Privilege Leave request (2026-06-09 to 2026-06-10) has been Rejected by Admin.','❌ Your Privilege Leave request (2026-06-09 to 2026-06-10) has been Rejected by Admin.','leave_status','employee',1,'2026-06-06 14:02:59'),(22,'9','Nita seth','Special Casual Leave','2026-06-11','2026-06-12','out of town',NULL,'leave','admin',1,'2026-06-09 08:51:11'),(23,'13','Asha Seth','Task Assigned','2026-06-11','2026-06-15','? New task assigned to you: Lifecycle Management. Target date: 2026-06-15.','? New task assigned to you: Lifecycle Management. Target date: 2026-06-15.','task','employee',1,'2026-06-11 08:10:17'),(24,'8','Sailee Salunke','Task Assigned','2026-06-24','2026-06-29','? New task assigned to you: Testing. Target date: 2026-06-29.','? New task assigned to you: Testing. Target date: 2026-06-29.','task','employee',1,'2026-06-24 11:50:39'),(25,'8','Sailee Salunke','Regularization','2026-04-24','2026-04-24','✅ Your attendance regularization request for 2026-04-24 has been Approved.','✅ Your attendance regularization request for 2026-04-24 has been Approved.','regularization_status','employee',0,'2026-07-10 05:17:09'),(26,'8','Sailee Salunke','Department Change','2026-07-10','2026-07-10','✅ Your Department Change request has been Approved.','✅ Your Department Change request has been Approved.','hr_request_status','employee',0,'2026-07-10 06:03:03'),(27,'8','Sailee Salunke','Designation Change','2026-07-10','2026-07-10','✅ Your Designation Change request has been Approved.','✅ Your Designation Change request has been Approved.','hr_request_status','employee',0,'2026-07-10 09:04:59'),(28,'8','Sailee Salunke','Asset Assigned','2026-07-23','2026-07-23','You\'ve been assigned: Dell Latitude 5440 Laptop (Laptop).','You\'ve been assigned: Dell Latitude 5440 Laptop (Laptop).','asset_status','employee',0,'2026-07-23 07:52:15'),(29,'6','Sneha  Singh','Asset Assigned','2026-07-23','2026-07-23','You\'ve been assigned: Dell Latitude 7450 (Laptop).','You\'ve been assigned: Dell Latitude 7450 (Laptop).','asset_status','employee',0,'2026-07-23 07:57:42'),(30,'10','Shlok Thakur','Asset Assigned','2026-07-23','2026-07-23','You\'ve been assigned: Microsoft Surface Laptop 7 (Laptop).','You\'ve been assigned: Microsoft Surface Laptop 7 (Laptop).','asset_status','employee',0,'2026-07-23 07:58:55'),(31,'14','Shanaya Khan','Asset Assigned','2026-07-23','2026-07-23','You\'ve been assigned: Apple MacBook Air 13-inch (M4) (Laptop).','You\'ve been assigned: Apple MacBook Air 13-inch (M4) (Laptop).','asset_status','employee',0,'2026-07-23 08:00:00'),(32,'7','Ravi Mehta','Asset Assigned','2026-07-23','2026-07-23','You\'ve been assigned: HP EliteBook 840 G10 (Laptop).','You\'ve been assigned: HP EliteBook 840 G10 (Laptop).','asset_status','employee',0,'2026-07-23 08:00:49'),(33,'3','Rahul sharma','Asset Assigned','2026-07-23','2026-07-23','You\'ve been assigned: iPhone 15  Apple (Phone).','You\'ve been assigned: iPhone 15  Apple (Phone).','asset_status','employee',0,'2026-07-23 08:02:16'),(34,'4','Priya Patel','Asset Assigned','2026-07-23','2026-07-23','You\'ve been assigned: HP 24\" Monitor  HP (Monitor).','You\'ve been assigned: HP 24\" Monitor  HP (Monitor).','asset_status','employee',0,'2026-07-23 08:03:57'),(35,'8','Sailee Salunke','WFH Request','2026-07-27','2026-07-27','Family Get Together','Sailee Salunke has requested Work From Home on 2026-07-27.','wfh_status','admin',0,'2026-07-23 08:53:16'),(36,'9','Nita Seth','Asset Assigned','2026-07-23','2026-07-23','You\'ve been assigned: Wireless Mouse (Mouse).','You\'ve been assigned: Wireless Mouse (Mouse).','asset_status','employee',0,'2026-07-23 09:11:52'),(37,'6','Sneha  Singh','WFH Request','2026-07-28','2026-07-28','Family Function','Sneha  Singh has requested Work From Home on 2026-07-28.','wfh_status','admin',0,'2026-07-23 09:13:49'),(38,'6','Sneha  Singh','WFH Request','2026-07-28','2026-07-28','✅ Your Work From Home request for 2026-07-28 has been Approved.','✅ Your Work From Home request for 2026-07-28 has been Approved.','wfh_status','employee',0,'2026-07-23 09:14:37');
 /*!40000 ALTER TABLE `notifications` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -504,7 +567,7 @@ CREATE TABLE `password_resets` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`reset_id`),
   KEY `token` (`token`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -531,7 +594,7 @@ CREATE TABLE `performance` (
   `date_added` date DEFAULT NULL,
   PRIMARY KEY (`perf_id`),
   KEY `emp_id` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -566,7 +629,7 @@ CREATE TABLE `projects` (
   KEY `assigned_emp_id` (`assigned_emp_id`),
   CONSTRAINT `projects_ibfk_1` FOREIGN KEY (`dept_id`) REFERENCES `departments` (`dept_id`),
   CONSTRAINT `projects_ibfk_2` FOREIGN KEY (`assigned_emp_id`) REFERENCES `employees` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -599,7 +662,7 @@ CREATE TABLE `regularization_requests` (
   `reviewed_by` int DEFAULT NULL,
   PRIMARY KEY (`request_id`),
   KEY `emp_id` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -610,6 +673,37 @@ LOCK TABLES `regularization_requests` WRITE;
 /*!40000 ALTER TABLE `regularization_requests` DISABLE KEYS */;
 INSERT INTO `regularization_requests` VALUES (1,8,'2026-04-24','09:00:00','06:00:00','present','system issue','approved','2026-07-10 05:15:58',1),(2,9,'2026-06-21','09:00:00','18:00:00','present','Electricity cut-out','pending','2026-07-10 05:24:21',NULL);
 /*!40000 ALTER TABLE `regularization_requests` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `reimbursement_requests`
+--
+
+DROP TABLE IF EXISTS `reimbursement_requests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `reimbursement_requests` (
+  `request_id` int NOT NULL AUTO_INCREMENT,
+  `emp_id` int NOT NULL,
+  `category` varchar(50) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `description` text,
+  `receipt_filename` varchar(255) DEFAULT NULL,
+  `status` enum('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `reviewed_by` int DEFAULT NULL,
+  PRIMARY KEY (`request_id`),
+  KEY `emp_id` (`emp_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `reimbursement_requests`
+--
+
+LOCK TABLES `reimbursement_requests` WRITE;
+/*!40000 ALTER TABLE `reimbursement_requests` DISABLE KEYS */;
+/*!40000 ALTER TABLE `reimbursement_requests` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -625,7 +719,7 @@ CREATE TABLE `revenue` (
   `year` int DEFAULT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`revenue_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -652,7 +746,7 @@ CREATE TABLE `rules` (
   `description` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`rule_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -686,7 +780,7 @@ CREATE TABLE `salary` (
   PRIMARY KEY (`salary_id`),
   KEY `emp_id` (`emp_id`),
   CONSTRAINT `salary_ibfk_1` FOREIGN KEY (`emp_id`) REFERENCES `employees` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -715,7 +809,7 @@ CREATE TABLE `shifts` (
   `half_day_after_minutes` int NOT NULL DEFAULT '180',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`shift_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -724,7 +818,7 @@ CREATE TABLE `shifts` (
 
 LOCK TABLES `shifts` WRITE;
 /*!40000 ALTER TABLE `shifts` DISABLE KEYS */;
-INSERT INTO `shifts` VALUES (1,'General Shift','09:00:00','18:00:00',15,180,'2026-07-20 02:39:41');
+INSERT INTO `shifts` VALUES (1,'General Shift','09:00:00','18:00:00',15,180,'2026-07-20 02:39:41'),(4,'Morning Shift','20:00:00','16:00:00',15,180,'2026-07-23 08:41:12'),(5,'Afternoon Shift','14:00:00','22:00:00',15,180,'2026-07-23 08:43:09'),(6,'Night Shift','22:00:00','06:00:00',15,180,'2026-07-23 08:46:10');
 /*!40000 ALTER TABLE `shifts` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -746,7 +840,7 @@ CREATE TABLE `tasks` (
   PRIMARY KEY (`task_id`),
   KEY `emp_id` (`emp_id`),
   CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`emp_id`) REFERENCES `employees` (`emp_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -776,7 +870,7 @@ CREATE TABLE `users` (
   `failed_login_attempts` int DEFAULT '0',
   `lockout_until` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -787,6 +881,36 @@ LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` VALUES (1,'Admin User','admin@ems.com','$2y$10$0zfTk1gl5cAbVDarV6nesuyoSzRC63On/P/2M.3g4SnAiUooJ5lJK','admin','profile_1_1775956446.jpg',0,NULL),(5,'Super Admin','superadmin@ems.com','$2y$10$B02yvdU1TDnlDERtjPSt.O1h4tvCqo6wb6npiXJUNAm.pLBva7vaK','super_admin','profile_5_1775956497.jpg',0,NULL),(6,'Rahul Sharma','rahul@ems.com','$2y$10$OIkr0Ye3muXcdHCdpRtUjuWWvWeYFyArIWm9eF.wVsNod2Tcciewe','employee','profile_6_1775955728.jpg',0,NULL),(7,'Priya Patel','priya@ems.com','$2y$10$kMP/mzyBQWjiUHiV8zBR/OSlSBK8CPyOPXO6hGKGrvYMnVqFPIUmm','employee','profile_7_1775955549.jpg',0,NULL),(8,'Amit Kumar','amit@ems.com','$2y$10$cqhNQ2LWXGGUbZ.2jRt3MeUrO8qGlDmVA70k23iTXyRife8eiVtX2','employee','profile_8_1775955762.jpg',0,NULL),(9,'Sneha Singh','sneha@ems.com','$2y$10$xlTcrXKS46Pz4Rij7DZmrOQG0R5J2s.ntkTPchFAJbyx8PK6gtz7a','employee','profile_9_1775955596.jpg',0,NULL),(10,'Ravi Mehta','ravi@ems.com','$2y$10$bADPjTRhBZuP.qIWbCsy2.b2m7VfJWcSh5eODGZBsMv0s/1nbByVu','employee','profile_10_1775955953.jpg',0,NULL),(11,'Sailee Salunke','saileesalunke4@gmail.com','$2y$10$Aky181.ra5efLgGr/juoueE7KuH6SmNk6B3uNTOrltLRVXmjihQEu','employee','profile_11_1775955652.jpg',0,NULL),(12,'Nita seth','nita@ems.com','$2y$10$Toir4P791bcM0u//SShTC.WLpCe6MZuuoi7.B9w380So9LizoCDf6','employee',NULL,0,NULL),(13,'Shlok Thakur','shlok@ems.com','$2y$10$BAVD3/8qQ8De60h5mKhd8uYZ538IG8tFwId/o6jextkbZsXoLcs..','employee',NULL,0,NULL),(16,'Asha Seth','asha@ems.com','$2y$10$RZKvR9iThJnpaIRMoXlxZ.KrHGBCoQOstEW7g36CnRQx01mTFYWbi','employee',NULL,0,NULL),(17,'shanaya','shanaya@ems.com','$2y$10$b9U7/2n0QB3hdJYKmLnffO1XpcKFxTkGsrGq/kSqifdTiyLJIwgiW','employee',NULL,0,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `wfh_requests`
+--
+
+DROP TABLE IF EXISTS `wfh_requests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `wfh_requests` (
+  `request_id` int NOT NULL AUTO_INCREMENT,
+  `emp_id` int NOT NULL,
+  `wfh_date` date NOT NULL,
+  `reason` text,
+  `status` enum('pending','approved','rejected','cancelled') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `reviewed_by` int DEFAULT NULL,
+  PRIMARY KEY (`request_id`),
+  KEY `emp_id` (`emp_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `wfh_requests`
+--
+
+LOCK TABLES `wfh_requests` WRITE;
+/*!40000 ALTER TABLE `wfh_requests` DISABLE KEYS */;
+INSERT INTO `wfh_requests` VALUES (1,8,'2026-07-27','Family Get Together','pending','2026-07-23 08:53:16',NULL),(2,6,'2026-07-28','Family Function','approved','2026-07-23 09:13:49',1);
+/*!40000 ALTER TABLE `wfh_requests` ENABLE KEYS */;
 UNLOCK TABLES;
 SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -799,4 +923,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-07-20 15:28:43
+-- Dump completed on 2026-07-27 14:00:57
