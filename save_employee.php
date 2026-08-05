@@ -85,7 +85,11 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
             sendEMSMail($email, $first_name.' '.$last_name, $subject, $body);
 
-            echo "<script>alert('Employee added successfully! Welcome email sent.'); window.location.href='admin_dashboard.php';</script>";
+            // BUGFIX: hardcoded to admin_dashboard.php regardless of who
+            // submitted the form; a super_admin would land in the Admin
+            // portal instead of their own employee list.
+            $redirect = ($_SESSION['user']['role'] === 'super_admin') ? 'all_employees.php' : 'admin_dashboard.php';
+            echo "<script>alert('Employee added successfully! Welcome email sent.'); window.location.href='{$redirect}';</script>";
         } else {
             echo "<script>alert('Employee details save failed!'); window.history.back();</script>";
         }

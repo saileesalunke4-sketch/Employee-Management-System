@@ -4,6 +4,7 @@ if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'],['admin','su
     header("Location: index.php"); exit();
 }
 require 'db.php';
+$role = $_SESSION['user']['role'];
 $page_title = "Departments";
 ?>
 <!DOCTYPE html>
@@ -17,9 +18,21 @@ $page_title = "Departments";
 </head>
 <body>
 <div class="dashboard">
-<?php include 'sidebar_admin.php'; ?>
+<?php
+    // BUGFIX: this page used to always load the Admin shell (sidebar_admin/
+    // topbar_admin), even for a super_admin. That made every menu click
+    // from the Super Admin dashboard that landed here look like it had
+    // dropped the super admin into the Admin portal. Now it picks the
+    // shell that matches whoever is actually logged in, same pattern used
+    // by announcements.php / leave_calendar.php / org_chart.php.
+    if($role === 'admin') include 'sidebar_admin.php';
+    else include 'sidebar_sa.php';
+?>
 <div class="main-content">
-<?php include 'topbar_admin.php'; ?>
+<?php
+    if($role === 'admin') include 'topbar_admin.php';
+    else include 'topbar_sa.php';
+?>
 
 <div class="section active">
     <div class="form-card">

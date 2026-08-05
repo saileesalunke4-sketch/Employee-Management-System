@@ -23,6 +23,7 @@ $nav_groups = [
         ['admin_tasks.php','admin_tasks.php','check-square','Tasks'],
         ['projects.php','projects.php','folder','Projects'],
         ['admin_salary.php','admin_salary.php','wallet','Salary'],
+        ['reimbursements.php','reimbursements.php','tag','Reimbursements'],
     ],
     'Company' => [
         ['admin_hr_requests.php','admin_hr_requests.php','inbox','HR Process Requests'],

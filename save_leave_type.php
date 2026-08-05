@@ -14,7 +14,7 @@ $query = "INSERT INTO leave_types (leave_type_name, total_days)
           VALUES ('$leave_type_name', $total_days)";
 
 if(mysqli_query($conn, $query)){
-    echo "<script>alert('Leave type added successfully!'); window.location.href='admin_dashboard.php';</script>";
+    echo "<script>alert('Leave type added successfully!'); window.location.href='leave_types.php';</script>";
 } else {
     echo "<script>alert('Failed to add leave type!'); window.history.back();</script>";
 }

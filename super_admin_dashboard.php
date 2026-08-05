@@ -11,8 +11,15 @@ $sa_photo=$sa_photo_row['profile_photo']??'';
 
 // ---- Holiday setup ----
 
+// BUGFIX: this used to declare the auto-increment column as `holiday_id`
+// but then set PRIMARY KEY on a column called `id`, which doesn't exist —
+// on a brand-new database (no existing `holidays` table) this CREATE TABLE
+// throws a SQL error ("Key column 'id' doesn't exist in table") and the
+// whole holiday feature silently breaks. Column name now matches the
+// actual production schema (`id`), consistent with every other file that
+// reads/writes this table.
 mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `holidays` (
-  `holiday_id` INT NOT NULL AUTO_INCREMENT,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `holiday_name` VARCHAR(200) DEFAULT NULL,
   `holiday_date` DATE DEFAULT NULL,
   `holiday_type` VARCHAR(50) DEFAULT 'National',
@@ -188,7 +195,7 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
         <div class="qa-grid">
             <a href="#" onclick="showSection('employees',document.querySelector('[onclick*=employees]'));return false;" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('users',18); ?></span>All Employees</a>
             <a href="departments.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('building',18); ?></span>Departments</a>
-            <a href="admin_rules.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('shield',18); ?></span>Rules & Regulations</a>
+            <a href="sa_rules.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('shield',18); ?></span>Rules & Regulations</a>
             <a href="view_employees.php" class="qa-btn"><span class="qa-ico"><?php echo ems_icon('sitemap',18); ?></span>Assign Department</a>
         </div>
 

@@ -17,9 +17,14 @@ if(mysqli_num_rows($check) > 0){
     exit();
 }
 
+// BUGFIX: always redirected to admin_dashboard.php, so a super_admin
+// adding a holiday from their own Holiday Calendar page got bounced into
+// the Admin portal instead of back to sa_holidays.php.
+$redirect = ($_SESSION['user']['role'] === 'super_admin') ? 'sa_holidays.php' : 'admin_holidays.php';
+
 $query = "INSERT INTO holidays (holiday_name, holiday_date, holiday_type) VALUES ('$holiday_name','$holiday_date','$holiday_type')";
 if(mysqli_query($conn, $query)){
-    echo "<script>alert('Holiday added successfully!'); window.location.href='admin_dashboard.php';</script>";
+    echo "<script>alert('Holiday added successfully!'); window.location.href='{$redirect}';</script>";
 } else {
     echo "<script>alert('Failed! " . mysqli_error($conn) . "'); window.history.back();</script>";
 }

@@ -47,7 +47,16 @@ if(isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] == 0){
 
     if(move_uploaded_file($_FILES['profile_photo']['tmp_name'], $dest)){
         mysqli_query($conn, "UPDATE users SET profile_photo='$filename' WHERE id='$user_id'");
-        $redirect = ($role == 'admin') ? 'admin_dashboard.php' : 'emp_dashboard.php';
+        // BUGFIX: only checked for 'admin' and fell back to 'emp_dashboard.php'
+        // for everyone else — so a super_admin updating their photo was sent
+        // to the Employee dashboard, not their own Super Admin dashboard.
+        if($role === 'admin'){
+            $redirect = 'admin_dashboard.php';
+        } elseif($role === 'super_admin'){
+            $redirect = 'super_admin_dashboard.php';
+        } else {
+            $redirect = 'emp_dashboard.php';
+        }
         echo "<script>alert('Profile photo updated!'); window.location.href='$redirect';</script>";
     }
 }

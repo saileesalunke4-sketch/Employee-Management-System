@@ -21,6 +21,7 @@ $nav_groups = [
         ['sa_salary.php','sa_salary.php','wallet','Salary'],
         ['revenue.php','revenue.php','bar-chart','Monthly Revenue'],
         ['performance.php','performance.php','target','Performance'],
+        ['reimbursements.php','reimbursements.php','tag','Reimbursements'],
     ],
     'Company' => [
         ['admin_hr_requests.php','admin_hr_requests.php','inbox','HR Process Requests'],

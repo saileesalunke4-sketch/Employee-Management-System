@@ -56,7 +56,11 @@ if(mysqli_query($conn, $query)){
 
     sendEMSMail($emp_email, $emp_name, $subject, $body);
 
-    echo "<script>alert('Salary added successfully!'); window.location.href='admin_dashboard.php';</script>";
+    // BUGFIX: hardcoded to admin_dashboard.php — a super_admin adding a
+    // salary record from sa_salary.php got sent to the Admin portal
+    // instead of staying on their own Salary page.
+    $redirect = ($_SESSION['user']['role'] === 'super_admin') ? 'sa_salary.php' : 'admin_salary.php';
+    echo "<script>alert('Salary added successfully!'); window.location.href='{$redirect}';</script>";
 } else {
     echo "<script>alert('Failed! ".mysqli_error($conn)."'); window.history.back();</script>";
 }

@@ -80,7 +80,7 @@ $holidays_json=json_encode($holiday_map);
                     <td>".date('d M Y',strtotime($h['holiday_date']))."</td>
                     <td>".date('l',strtotime($h['holiday_date']))."</td>
                     <td><span class='hl-badge {$ht}'>{$ht}</span></td>
-                    <td><a href='delete_holiday.php?id={$h['id']}&redirect=admin_holidays.php' class='reject-btn' onclick='return confirm(\"Delete this holiday?\")'>&#128465; Delete</a></td></tr>";
+                    <td><a href='delete_holiday.php?id={$h['id']}&redirect=sa_holidays.php' class='reject-btn' onclick='return confirm(\"Delete this holiday?\")'>&#128465; Delete</a></td></tr>";
                     $cnt++;
                 }
             ?>

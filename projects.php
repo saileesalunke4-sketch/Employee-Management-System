@@ -4,6 +4,7 @@ if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'],['admin','su
     header("Location: index.php"); exit();
 }
 require 'db.php';
+$role = $_SESSION['user']['role'];
 $page_title = "Projects";
 ?>
 <!DOCTYPE html>
@@ -17,9 +18,18 @@ $page_title = "Projects";
 </head>
 <body>
 <div class="dashboard">
-<?php include 'sidebar_admin.php'; ?>
+<?php
+    // BUGFIX: hardcoded to the Admin shell before — a super_admin landing
+    // here would see the Admin sidebar/topbar. Pick the shell that
+    // matches whoever is actually logged in.
+    if($role === 'admin') include 'sidebar_admin.php';
+    else include 'sidebar_sa.php';
+?>
 <div class="main-content">
-<?php include 'topbar_admin.php'; ?>
+<?php
+    if($role === 'admin') include 'topbar_admin.php';
+    else include 'topbar_sa.php';
+?>
 
 <div class="section active">
     <div class="form-card">

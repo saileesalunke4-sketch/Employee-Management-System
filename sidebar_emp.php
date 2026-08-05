@@ -13,6 +13,7 @@ $nav_groups = [
         ['my_performance.php','my_performance.php','target','My Performance'],
         ['daily_log.php','daily_log.php','file-text','Daily Work Log'],
         ['my_salary.php','my_salary.php','wallet','My Salary'],
+        ['my_reimbursements.php','my_reimbursements.php','tag','My Reimbursements'],
         ['emp_profile.php','emp_profile.php','user','My Profile'],
         ['change_password.php','change_password.php','shield','Change Password'],
     ],

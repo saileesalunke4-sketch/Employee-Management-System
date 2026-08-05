@@ -18,8 +18,13 @@ if(empty($dept_id)){
 
 $query = "UPDATE employees SET dept_id=$dept_id WHERE emp_id=$emp_id";
 
+// BUGFIX: 'admin_dashboard.php?section=view_employees' pointed at a dead
+// ?section param admin_dashboard.php never reads, so this always landed
+// on the plain Admin dashboard — including for a super_admin, which looked
+// like being redirected into the Admin portal. view_employees.php is the
+// real page this form lives on (now role-aware), so go back there instead.
 if(mysqli_query($conn, $query)){
-    echo "<script>alert('Department assigned successfully!'); window.location.href='admin_dashboard.php?section=view_employees';</script>";
+    echo "<script>alert('Department assigned successfully!'); window.location.href='view_employees.php';</script>";
 } else {
     echo "<script>alert('Failed! ".mysqli_error($conn)."'); window.history.back();</script>";
 }

@@ -56,7 +56,16 @@ if(mysqli_query($conn, $query)){
 
     sendEMSMail($emp_email, $emp_name, $subject, $body);
 
-    $redirect = isset($_POST['redirect']) ? $_POST['redirect'] : 'admin_dashboard.php';
+    // BUGFIX (defense-in-depth): fallback ignored role entirely — a
+    // super_admin posting here without an explicit redirect would land on
+    // admin_dashboard.php. All current UI usage (admin_tasks.php) doesn't
+    // pass a redirect, so the role-based fallback also restores the same
+    // behavior for admin while fixing it for super_admin.
+    if(isset($_POST['redirect'])){
+        $redirect = $_POST['redirect'];
+    } else {
+        $redirect = ($_SESSION['user']['role'] === 'super_admin') ? 'sa_tasks.php' : 'admin_dashboard.php';
+    }
     echo "<script>alert('Task added successfully!'); window.location.href='{$redirect}';</script>";
 } else {
     echo "<script>alert('Failed!'); window.history.back();</script>";

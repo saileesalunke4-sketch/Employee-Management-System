@@ -18,12 +18,16 @@ $status          = in_array($_POST['status'], ['ongoing','completed','on_hold'],
 $query = "INSERT INTO projects (project_name, description, dept_id, assigned_emp_id, start_date, target_date, status)
           VALUES ('$project_name', '$description', $dept_id, $assigned_emp_id, '$start_date', '$target_date', '$status')";
 
-         if(mysqli_query($conn, $query))
-            {
-          echo "<script>alert('Project added successfully!'); window.location.href='admin_dashboard.php?section=projects';</script>";
-          } 
-          else 
-            {
-          echo "<script>alert('Project added successfully!'); window.location.href='admin_dashboard.php?section=projects';</script>";
-          }
+// BUGFIX x2:
+// 1) both branches showed "Project added successfully!" and both redirected
+//    to the same place — a failed insert reported success as if it worked,
+//    hiding real errors (e.g. bad dept_id/assigned_emp_id) from the user.
+// 2) 'admin_dashboard.php?section=projects' pointed at a ?section param
+//    admin_dashboard.php never reads, so it just landed on the plain Admin
+//    dashboard regardless of role. projects.php is the real page.
+if(mysqli_query($conn, $query)){
+    echo "<script>alert('Project added successfully!'); window.location.href='projects.php';</script>";
+} else {
+    echo "<script>alert('Failed! ".mysqli_error($conn)."'); window.history.back();</script>";
+}
 ?>

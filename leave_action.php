@@ -10,13 +10,18 @@ if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['admin','s
 // SECURITY: CSRF check — this link must have originated from a page we
 // rendered ourselves (with a valid token), not a forged external link.
 if(!csrf_verify($_GET['csrf'] ?? '')){
-    echo "<script>alert('Security check failed (invalid or expired link). Please try again from the Leaves page.'); window.location.href='admin_leaves.php';</script>";
+    // BUGFIX: this failure path always sent a super_admin to admin_leaves.php
+    // (the Admin portal) even though the real page passes its own &redirect=
+    // value for the normal success path just below. Use the same
+    // role-based fallback here too.
+    $fallback_redirect = ($_SESSION['user']['role'] === 'super_admin') ? 'sa_leaves.php' : 'admin_leaves.php';
+    echo "<script>alert('Security check failed (invalid or expired link). Please try again from the Leaves page.'); window.location.href='{$fallback_redirect}';</script>";
     exit();
 }
 
 $leave_id = (int) ($_GET['id'] ?? 0);
 $action   = $_GET['action'] ?? '';
-$redirect = isset($_GET['redirect']) ? $_GET['redirect'] : 'admin_leaves.php';
+$redirect = isset($_GET['redirect']) ? $_GET['redirect'] : (($_SESSION['user']['role'] === 'super_admin') ? 'sa_leaves.php' : 'admin_leaves.php');
 
 if(!in_array($action, ['approved','rejected'], true) || $leave_id <= 0){
     header("Location: $redirect"); exit();
