@@ -41,21 +41,7 @@ $page_title = "My Attendance";
         $today = date('Y-m-d');
         $today_res = mysqli_query($conn, "SELECT * FROM attendance WHERE emp_id='$emp_id' AND date='$today'");
         $today_att = mysqli_fetch_assoc($today_res);
-
-        $my_shift = mysqli_fetch_assoc(mysqli_query($conn, "SELECT s.* FROM shifts s
-                                                              JOIN employees e ON e.shift_id = s.shift_id
-                                                              WHERE e.emp_id='$emp_id'"));
     ?>
-    <?php if($my_shift): ?>
-    <div class="form-card" style="margin-bottom:16px;background:var(--surface-soft,#f3f4f7);">
-        <span style="font-size:12px;color:var(--text-3,#9aa1ac);">Your Shift</span><br>
-        <b><?php echo htmlspecialchars($my_shift['shift_name']); ?></b>
-        &nbsp;&middot;&nbsp;
-        <?php echo date('h:i A', strtotime($my_shift['start_time'])); ?> – <?php echo date('h:i A', strtotime($my_shift['end_time'])); ?>
-        &nbsp;&middot;&nbsp;
-        <span style="font-size:12px;color:var(--text-3,#9aa1ac);">Grace period: <?php echo (int)$my_shift['grace_minutes']; ?> min</span>
-    </div>
-    <?php endif; ?>
     <div class="form-card">
         <h3 class="section-title">Today's Attendance — <?php echo date('d M Y'); ?></h3>
 
@@ -119,7 +105,11 @@ $page_title = "My Attendance";
         var statusEl = document.getElementById(statusId);
         var btnEl = document.getElementById(btnId);
         if(!navigator.geolocation){
-            if(statusEl){ statusEl.innerHTML = '❌ Geolocation not supported by your browser.'; statusEl.style.color = '#dc2626'; }
+            if(statusEl){ statusEl.innerHTML = '❌ Geolocation not supported by your browser. You can still try to check in/out — enable Work From Home if you\'re off-site.'; statusEl.style.color = '#dc2626'; }
+            // BUGFIX (EMS-EMP-015): don't leave the button stuck disabled
+            // forever just because geolocation isn't available — the server
+            // re-validates location on submit either way.
+            if(btnEl) btnEl.disabled = false;
             return;
         }
         navigator.geolocation.getCurrentPosition(function(pos){
@@ -140,7 +130,14 @@ $page_title = "My Attendance";
             }
             if(btnEl) btnEl.disabled = false; // server still re-checks distance on submit
         }, function(err){
-            if(statusEl){ statusEl.innerHTML = '❌ Location access denied. Please allow location permission and reload this page.'; statusEl.style.color = '#dc2626'; }
+            // BUGFIX (EMS-EMP-015): this used to only update the status
+            // text and leave the button disabled with no way forward at
+            // all — if someone denied/lost location permission, they could
+            // never check in or out again. The server already re-validates
+            // distance on submit (and Work From Home bypasses it entirely),
+            // so it's safe to let them try instead of hard-blocking here.
+            if(statusEl){ statusEl.innerHTML = '❌ Location access denied or unavailable. You can still submit — tick Work From Home if you\'re off-site, or contact Admin if this keeps happening.'; statusEl.style.color = '#dc2626'; }
+            if(btnEl) btnEl.disabled = false;
         }, { enableHighAccuracy: true, timeout: 10000 });
     }
 
@@ -172,7 +169,7 @@ $page_title = "My Attendance";
         <form action="save_regularization_request.php" method="POST">
             <div class="form-grid">
                 <div class="field"><label>Date</label>
-                    <input type="date" name="att_date" max="<?php echo date('Y-m-d', strtotime('-1 day')); ?>" required>
+                    <input type="date" name="att_date" max="<?php echo date('Y-m-d'); ?>" required>
                 </div>
                 <div class="field"><label>Requested Check In</label><input type="time" name="requested_check_in"></div>
                 <div class="field"><label>Requested Check Out</label><input type="time" name="requested_check_out"></div>

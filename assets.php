@@ -9,6 +9,13 @@ $page_title = "Asset Management";
 $csrf_tok = csrf_token();
 
 $asset_types = ['Laptop','Desktop','Monitor','Phone','Keyboard','Mouse','Headset','Other'];
+
+// BUGFIX (EMS-ADM-013): session flash instead of ?msg= URL param — the old
+// version kept showing "Asset marked as returned" / "Asset deleted" etc. on
+// every refresh or revisit of the URL, since the message was driven purely
+// by the query string rather than a one-time flag.
+$flash = $_SESSION['asset_flash'] ?? null;
+unset($_SESSION['asset_flash']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -28,19 +35,9 @@ $asset_types = ['Laptop','Desktop','Monitor','Phone','Keyboard','Mouse','Headset
 
 <div class="section active">
 
-    <?php if(isset($_GET['msg'])): ?>
-        <div class="form-card" style="background:<?php echo $_GET['msg']==='inuse' ? '#fef2f2' : '#f0fdf4'; ?>; border:1px solid <?php echo $_GET['msg']==='inuse' ? '#fca5a5' : '#86efac'; ?>; margin-bottom:16px;">
-            <?php if($_GET['msg']==='inuse'): ?>
-                Can't delete this asset — it's currently assigned to an employee. Return it first.
-            <?php elseif($_GET['msg']==='deleted'): ?>
-                Asset deleted.
-            <?php elseif($_GET['msg']==='assigned'): ?>
-                Asset assigned successfully.
-            <?php elseif($_GET['msg']==='returned'): ?>
-                Asset marked as returned.
-            <?php else: ?>
-                Saved.
-            <?php endif; ?>
+    <?php if($flash): ?>
+        <div class="form-card" style="background:<?php echo $flash['ok'] ? '#f0fdf4' : '#fef2f2'; ?>;border:1px solid <?php echo $flash['ok'] ? '#86efac' : '#fca5a5'; ?>;margin-bottom:16px;">
+            <?php echo htmlspecialchars($flash['msg']); ?>
         </div>
     <?php endif; ?>
 

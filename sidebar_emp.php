@@ -1,6 +1,5 @@
 <?php
-// sidebar_emp.php — premium left navigation sidebar (Employee role)
-// Design system v5: same shell as admin, mirrored nav for this role.
+
 $current_page = basename($_SERVER['PHP_SELF']);
 
 $nav_groups = [
@@ -8,9 +7,6 @@ $nav_groups = [
         ['emp_dashboard.php','emp_dashboard.php','grid','Dashboard'],
         ['my_attendance.php','my_attendance.php','clock','My Attendance'],
         ['my_leaves.php','my_leaves.php','leaf','My Leaves'],
-        ['my_wfh.php','my_wfh.php','building','WFH Requests'],
-        ['my_reimbursements.php','my_reimbursements.php','wallet','Reimbursements'],
-        ['my_assets.php','my_assets.php','folder','My Assets'],
         ['leave_calendar.php','leave_calendar.php','calendar','Leave Calendar'],
         ['my_tasks.php','my_tasks.php','check-square','My Tasks'],
         ['timesheet.php','timesheet.php','list','Timesheet'],
@@ -18,10 +14,10 @@ $nav_groups = [
         ['daily_log.php','daily_log.php','file-text','Daily Work Log'],
         ['my_salary.php','my_salary.php','wallet','My Salary'],
         ['emp_profile.php','emp_profile.php','user','My Profile'],
+        ['change_password.php','change_password.php','shield','Change Password'],
     ],
     'Team' => [
         ['org_chart.php','org_chart.php','sitemap','Organization Chart'],
-        ['directory.php','directory.php','users','Employee Directory'],
         ['department_wall.php','department_wall.php','message-circle','Department Wall'],
         ['announcements.php','announcements.php','megaphone','Announcements'],
     ],
@@ -47,9 +43,6 @@ if(!function_exists('ems_icon')){
             'calendar'     => '<rect x="3.2" y="4.5" width="17.6" height="16" rx="2"/><path d="M3.2 9.5h17.6M8 3v3M16 3v3"/>',
             'tag'          => '<path d="M12.5 3.5H5.8A2.3 2.3 0 0 0 3.5 5.8v6.7c0 .6.24 1.2.67 1.63l8.7 8.7a2.3 2.3 0 0 0 3.26 0l6.7-6.7a2.3 2.3 0 0 0 0-3.26l-8.7-8.7a2.3 2.3 0 0 0-1.63-.67Z"/><circle cx="8.6" cy="9.6" r="1.4"/>',
             'flag'         => '<path d="M5 21V4"/><path d="M5 4.5c1.8-1.3 3.7-1.3 5.5 0s3.7 1.3 5.5 0v9c-1.8 1.3-3.7 1.3-5.5 0s-3.7-1.3-5.5 0Z"/>',
-            'mail'         => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6.5 8.5-6.5"/>',
-            'phone'        => '<path d="M5.5 3.5h3l1.7 4.3-2 1.7a13 13 0 0 0 6.3 6.3l1.7-2 4.3 1.7v3a1.6 1.6 0 0 1-1.75 1.6A16.5 16.5 0 0 1 4 6.25 1.6 1.6 0 0 1 5.5 3.5Z"/>',
-            'map-pin'      => '<path d="M12 21s7-6.4 7-11.5A7 7 0 0 0 5 9.5C5 14.6 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.4"/>',
             'check-square' => '<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 12.2l2.6 2.6L16.3 9"/>',
             'check-circle' => '<circle cx="12" cy="12" r="9"/><path d="M7.8 12.4l2.7 2.7L16.3 9"/>',
             'folder'       => '<path d="M3.5 6.5A1.6 1.6 0 0 1 5.1 5h4l2 2.2h7.8a1.6 1.6 0 0 1 1.6 1.6v9.3a1.6 1.6 0 0 1-1.6 1.6H5.1a1.6 1.6 0 0 1-1.6-1.6Z"/>',
@@ -125,17 +118,6 @@ foreach($nav_groups as $g => $items){
     toggle.addEventListener('click', function(){
         sidebar.classList.toggle('is-collapsed');
         localStorage.setItem('ems_sidebar_collapsed', sidebar.classList.contains('is-collapsed') ? '1' : '0');
-    });
-
-    // The sidebar's collapse/expand is a CSS width transition, not a browser
-    // window resize — so any Chart.js graphs on the page don't know the
-    // available space changed and keep their old (now wrong) size, causing
-    // the chart to overflow or look squashed. Resizing every chart once the
-    // transition finishes fixes that.
-    sidebar.addEventListener('transitionend', function(e){
-        if(e.propertyName === 'width' && typeof Chart !== 'undefined' && Chart.instances){
-            Object.values(Chart.instances).forEach(function(c){ c.resize(); });
-        }
     });
 
     window.emsToggleMobileSidebar = function(){

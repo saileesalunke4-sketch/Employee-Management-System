@@ -21,6 +21,18 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($role, ['admin','super_admi
 
     if($title !== '' && $message !== ''){
         mysqli_query($conn, "INSERT INTO announcements (title, message, posted_by) VALUES ('$title','$message','$posted_by')");
+
+        // BUGFIX (EMS-SUPADM-020): posting an announcement never notified
+        // anyone — added a notification for every employee so it actually
+        // shows up in their notification bell.
+        $notif_msg = mysqli_real_escape_string($conn, "New announcement: $title");
+        $today = date('Y-m-d');
+        $all_emp = mysqli_query($conn, "SELECT emp_id FROM employees");
+        while($e = mysqli_fetch_assoc($all_emp)){
+            $eid = (int) $e['emp_id'];
+            mysqli_query($conn, "INSERT INTO notifications (emp_id, emp_name, leave_type, from_date, to_date, reason, message, type, for_role, is_read)
+                                  VALUES ($eid, '', 'Announcement', '$today', '$today', '$title', '$notif_msg', 'announcement_posted', 'employee', 0)");
+        }
     }
     header("Location: announcements.php");
     exit();

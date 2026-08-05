@@ -11,13 +11,57 @@ $success = "";
 $error = "";
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $first_name = trim($_POST['first_name'] ?? '');
+    $last_name = trim($_POST['last_name'] ?? '');
+    $contact = trim($_POST['contact'] ?? '');
+
+    // BUGFIX (EMS-ADM-001): these fields were only SQL-escaped before, with
+    // no actual format validation — so "abc" or "123" would be silently
+    // accepted as a contact number, and numbers/symbols would be accepted
+    // as a name. Validate format before anything gets saved.
+    $name_pattern = "/^[a-zA-Z\s.'-]{2,100}$/";
+    if($name === '' || !preg_match($name_pattern, $name)){
+        echo "<script>alert('Please enter a valid Name (letters only, no numbers or symbols).'); window.history.back();</script>";
+        exit();
+    }
+    if($first_name === '' || !preg_match($name_pattern, $first_name)){
+        echo "<script>alert('Please enter a valid First Name (letters only, no numbers or symbols).'); window.history.back();</script>";
+        exit();
+    }
+    if($last_name === '' || !preg_match($name_pattern, $last_name)){
+        echo "<script>alert('Please enter a valid Last Name (letters only, no numbers or symbols).'); window.history.back();</script>";
+        exit();
+    }
+    if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+        echo "<script>alert('Please enter a valid email address.'); window.history.back();</script>";
+        exit();
+    }
+    if(!preg_match('/^[0-9]{10,15}$/', $contact)){
+        echo "<script>alert('Please enter a valid contact number (digits only, 10-15 digits).'); window.history.back();</script>";
+        exit();
+    }
+
+    // BUGFIX (EMS-ADM-002): the old code relied on this INSERT failing due
+    // to a UNIQUE constraint on users.email — but no such constraint exists
+    // in the database, so a duplicate email was silently accepted every
+    // time (the "Email already exists!" branch was dead code, unreachable).
+    // Checking explicitly here is what actually catches it.
+    $email_check = mysqli_real_escape_string($conn, $email);
+    $existing = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id FROM users WHERE email='$email_check'"));
+    if($existing){
+        echo "<script>alert('Email already exists! Please use a different email address.'); window.history.back();</script>";
+        exit();
+    }
+
+    $name = mysqli_real_escape_string($conn, $name);
+    $email = mysqli_real_escape_string($conn, $email);
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     $role = in_array($_POST['role'], ['employee','admin','super_admin'], true) ? $_POST['role'] : 'employee';
-    $first_name = mysqli_real_escape_string($conn, $_POST['first_name']);
-    $last_name = mysqli_real_escape_string($conn, $_POST['last_name']);
-    $contact = mysqli_real_escape_string($conn, $_POST['contact']);
+    $first_name = mysqli_real_escape_string($conn, $first_name);
+    $last_name = mysqli_real_escape_string($conn, $last_name);
+    $contact = mysqli_real_escape_string($conn, $contact);
     $designation = mysqli_real_escape_string($conn, $_POST['designation']);
     $blood_group = mysqli_real_escape_string($conn, $_POST['blood_group']);
     $dob = mysqli_real_escape_string($conn, $_POST['dob']);

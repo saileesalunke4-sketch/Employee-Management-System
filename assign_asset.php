@@ -18,7 +18,8 @@ if($asset_id <= 0 || $emp_id <= 0){
 // available — stops a double-assignment race (e.g. two admin tabs open).
 $asset = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM assets WHERE asset_id=$asset_id AND status='available'"));
 if(!$asset){
-    echo "<script>alert('This asset is no longer available to assign.'); window.location.href='assets.php';</script>";
+    $_SESSION['asset_flash'] = ['ok' => false, 'msg' => 'This asset is no longer available to assign.'];
+    header("Location: assets.php");
     exit();
 }
 
@@ -29,7 +30,6 @@ mysqli_query($conn, "UPDATE assets SET status='assigned' WHERE asset_id=$asset_i
 $emp = mysqli_fetch_assoc(mysqli_query($conn, "SELECT first_name,last_name FROM employees WHERE emp_id=$emp_id"));
 $emp_full_name = $emp ? trim($emp['first_name'].' '.$emp['last_name']) : 'Employee';
 $emp_name_esc  = mysqli_real_escape_string($conn, $emp_full_name);
-$asset_name_esc = mysqli_real_escape_string($conn, $asset['asset_name']);
 
 // Notify the employee
 $msg = mysqli_real_escape_string($conn, "You've been assigned: {$asset['asset_name']} ({$asset['asset_type']}).");
@@ -38,6 +38,8 @@ mysqli_query($conn, "INSERT INTO notifications (emp_id, emp_name, leave_type, fr
 
 log_activity($conn, 'assigned', 'Asset', $asset['asset_name'], "To $emp_full_name");
 
-header("Location: assets.php?msg=assigned");
+// BUGFIX (EMS-ADM-013): session flash instead of ?msg=assigned
+$_SESSION['asset_flash'] = ['ok' => true, 'msg' => 'Asset assigned successfully.'];
+header("Location: assets.php");
 exit();
 ?>

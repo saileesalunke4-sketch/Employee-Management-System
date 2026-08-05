@@ -10,12 +10,20 @@ $page_title = "Leave Calendar";
 // Employee scope: only their own department's leaves (privacy — don't show
 // the whole company's leave data to every employee).
 // Admin/Super Admin scope: company-wide, with an optional department filter.
+// SECURITY FIX: if an employee has no department assigned (dept_id is NULL),
+// $scope_dept_id used to be falsy, which made the filter below silently
+// disappear — showing that employee the ENTIRE company's approved leaves
+// instead of restricting them. Now that case falls back to "own leaves only".
 $scope_dept_id = null;
+$no_department_fallback = false;
 if($role === 'employee'){
     $user_id = $_SESSION['user']['id'];
     $emp_row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT emp_id, dept_id FROM employees WHERE user_id='$user_id'"));
     $emp_id  = $emp_row['emp_id'];
     $scope_dept_id = $emp_row['dept_id'];
+    if(!$scope_dept_id){
+        $no_department_fallback = true;
+    }
 } elseif(isset($_GET['dept_id']) && $_GET['dept_id'] !== ''){
     $scope_dept_id = (int) $_GET['dept_id'];
 }
@@ -41,7 +49,13 @@ $leave_colors = [
 ];
 
 // Fetch all approved leaves overlapping this month (within scope)
-$dept_filter = $scope_dept_id ? " AND e.dept_id=".(int)$scope_dept_id : "";
+// SECURITY: when an employee has no department assigned, restrict to their
+// own leaves only — never fall through to an unfiltered company-wide query.
+if($no_department_fallback){
+    $dept_filter = " AND l.emp_id=".(int)$emp_id;
+} else {
+    $dept_filter = $scope_dept_id ? " AND e.dept_id=".(int)$scope_dept_id : "";
+}
 $lres = mysqli_query($conn, "SELECT l.from_date, l.to_date, l.leave_type, e.first_name, e.last_name
                               FROM leaves l JOIN employees e ON l.emp_id=e.emp_id
                               WHERE l.status='approved'
@@ -113,7 +127,11 @@ if($role === 'employee'){
         <h3 class="section-title">Leave Calendar</h3>
         <p style="font-size:12px;color:#888;margin-top:-6px;margin-bottom:6px;">
             <?php if($role === 'employee'): ?>
-                Showing approved leaves for your department: <b><?php echo htmlspecialchars($dept_name_display); ?></b>
+                <?php if($no_department_fallback): ?>
+                    You don't have a department assigned yet — showing only your own approved leaves.
+                <?php else: ?>
+                    Showing approved leaves for your department: <b><?php echo htmlspecialchars($dept_name_display); ?></b>
+                <?php endif; ?>
             <?php else: ?>
                 Showing approved leaves company-wide<?php if($scope_dept_id) echo " (filtered by department)"; ?>
             <?php endif; ?>

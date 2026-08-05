@@ -44,5 +44,9 @@ $emp_name_esc = mysqli_real_escape_string($conn, $emp_name);
 mysqli_query($conn, "INSERT INTO notifications (emp_id, emp_name, leave_type, from_date, to_date, reason, message, type, for_role, is_read)
                       VALUES ('$emp_id','$emp_name_esc','WFH Request','$wfh_date_esc','$wfh_date_esc','$reason_esc','$msg_esc','wfh_status','admin',0)");
 
-echo "<script>window.location.href='my_wfh.php?sent=1';</script>";
+// BUGFIX (EMS-EMP-005): session flash instead of ?sent=1 in the URL — see
+// my_wfh.php for why the URL-param version went stale.
+$_SESSION['wfh_flash'] = "WFH request submitted — waiting for admin approval.";
+header("Location: my_wfh.php");
+exit();
 ?>

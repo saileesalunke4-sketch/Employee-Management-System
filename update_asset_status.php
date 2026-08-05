@@ -33,6 +33,8 @@ if(!$asset){
 mysqli_query($conn, "UPDATE assets SET status='$new_status' WHERE asset_id=$asset_id");
 log_activity($conn, 'updated', 'Asset', $asset['asset_name'], "Status changed to ".str_replace('_',' ',$new_status));
 
-header("Location: assets.php?msg=saved");
+// BUGFIX (EMS-ADM-013): session flash instead of ?msg=saved
+$_SESSION['asset_flash'] = ['ok' => true, 'msg' => 'Asset status updated.'];
+header("Location: assets.php");
 exit();
 ?>

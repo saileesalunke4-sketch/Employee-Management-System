@@ -18,10 +18,13 @@ $requested_check_out = !empty($_POST['requested_check_out']) ? mysqli_real_escap
 $requested_status    = mysqli_real_escape_string($conn, $_POST['requested_status']);
 $reason               = mysqli_real_escape_string($conn, $_POST['reason']);
 
-// Date must be in the past (today's attendance is handled by the live check-in/out flow)
+// Date must not be in the future (today IS allowed — self check-in can
+// close for the day before it ends, and the employee is explicitly told to
+// regularize "this day's" attendance at that point, so today has to be a
+// valid choice here too).
 $today = date('Y-m-d');
-if(strtotime($att_date) >= strtotime($today)){
-    echo "<script>alert('You can only request regularization for a past date.'); window.history.back();</script>";
+if(strtotime($att_date) > strtotime($today)){
+    echo "<script>alert('You cannot request regularization for a future date.'); window.history.back();</script>";
     exit();
 }
 

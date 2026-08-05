@@ -26,6 +26,8 @@ mysqli_query($conn, "UPDATE assets SET status='available' WHERE asset_id=$asset_
 
 log_activity($conn, 'returned', 'Asset', $asset['asset_name']);
 
-header("Location: assets.php?msg=returned");
+// BUGFIX (EMS-ADM-013): session flash instead of ?msg=returned
+$_SESSION['asset_flash'] = ['ok' => true, 'msg' => 'Asset marked as returned.'];
+header("Location: assets.php");
 exit();
 ?>

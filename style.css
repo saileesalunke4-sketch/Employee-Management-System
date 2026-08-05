@@ -17,7 +17,20 @@
     --display: 'Space Grotesk', 'Inter', sans-serif;
 }
 
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+    /* BUGFIX: with no color-scheme declared, a browser running in OS dark
+       mode renders native form controls (select dropdowns, time/date
+       pickers) using dark-mode contrast — even though every custom color
+       in this stylesheet assumes a light background. That mismatch is what
+       caused several separately-reported bugs: the Employee dropdown in
+       Update Role/Department looking "disabled/faded", and check-in/
+       check-out time values being invisible on the Regularize page.
+       Forcing light here makes every native control match this app's
+       actual (light-only) design, regardless of the user's OS/browser
+       dark-mode setting. */
+    color-scheme: light;
+}
 
 /* ===== Login Page ===== */
 .login-wrapper {
@@ -731,7 +744,7 @@ html, body{ background: var(--canvas); }
 /* ---- Global light refresh for shared components (used across every
    role dashboard, whether or not that page has been re-shelled yet) ---- */
 .dashboard{ background: var(--canvas); }
-.main-content{ background: transparent; min-width:0; overflow-x:hidden; }
+.main-content{ background: transparent; }
 
 .card{
     background: var(--surface);
@@ -1052,5 +1065,4 @@ html, body{ background: var(--canvas); }
     .topbar-search{ display:none; }
     .sidebar-toggle-mobile{ display:flex; }
     .app-topbar{ padding:0 14px; }
-    div[style*="grid-template-columns:1fr 1fr"]{ grid-template-columns:1fr !important; }
 }

@@ -6,6 +6,13 @@ if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['admin','s
 require 'db.php';
 $role = $_SESSION['user']['role'];
 $page_title = "Shift Management";
+
+// BUGFIX (EMS-ADM-012): the success/error banner used to be driven by a
+// ?msg= URL parameter, so refreshing the page (or revisiting the URL) kept
+// showing "Shift deleted" long after it actually happened. A session flash
+// message shows exactly once, right after the action, then clears itself.
+$flash = $_SESSION['shift_flash'] ?? null;
+unset($_SESSION['shift_flash']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -25,17 +32,9 @@ $page_title = "Shift Management";
 
 <div class="section active">
 
-    <?php if(isset($_GET['msg'])):
-        $is_ok = $_GET['msg'] === 'deleted' ? true : ($_GET['msg'] === 'inuse' ? false : true);
-    ?>
-        <div class="form-card" style="background:<?php echo $_GET['msg']==='inuse' ? '#fef2f2' : '#f0fdf4'; ?>; border:1px solid <?php echo $_GET['msg']==='inuse' ? '#fca5a5' : '#86efac'; ?>; margin-bottom:16px;">
-            <?php if($_GET['msg']==='inuse'): ?>
-                Can't delete this shift — employees are still assigned to it. Reassign them to a different shift first.
-            <?php elseif($_GET['msg']==='deleted'): ?>
-                Shift deleted.
-            <?php else: ?>
-                Saved.
-            <?php endif; ?>
+    <?php if($flash): ?>
+        <div class="form-card" style="background:<?php echo $flash['ok'] ? '#f0fdf4' : '#fef2f2'; ?>;border:1px solid <?php echo $flash['ok'] ? '#86efac' : '#fca5a5'; ?>;margin-bottom:16px;">
+            <?php echo htmlspecialchars($flash['msg']); ?>
         </div>
     <?php endif; ?>
 

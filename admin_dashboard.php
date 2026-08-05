@@ -1,9 +1,7 @@
 <?php
-// NOTE: error display is controlled centrally in db.php based on APP_ENV
-// (config.php) — don't override it per-page. This page used to force
-// display_errors on unconditionally, which meant even in production mode
-// any PHP warning/notice here would print raw file paths and query details
-// straight to the browser.
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'],['admin','super_admin'])){
     header("Location: index.php"); exit();
@@ -33,13 +31,6 @@ $leave_data = array_fill(0,12,0);
 $leave_res = mysqli_query($conn,"SELECT MONTH(from_date) as mon,COUNT(*) as cnt FROM leaves WHERE YEAR(from_date)=YEAR(CURDATE()) GROUP BY MONTH(from_date)");
 while($r=mysqli_fetch_assoc($leave_res)) $leave_data[$r['mon']-1]=$r['cnt'];
 
-// Both charts sit side by side at the same height, but Chart.js scales each
-// Y-axis independently to its own data's max — so if one dataset tops out
-// at 9 and the other at 6, they end up with different gridline spacing and
-// look visually inconsistent as a pair even though nothing's wrong with the
-// data. Using one shared max keeps both charts' gridlines aligned.
-$charts_shared_max = max(1, max($att_data), max($leave_data)) + 1;
-
 $page_title = "Dashboard";
 ?>
 <!DOCTYPE html>
@@ -65,8 +56,16 @@ $page_title = "Dashboard";
 
     <?php
     $total_emp   = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM users WHERE role='employee'"))['t'];
-    $present_tdy = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM attendance WHERE date=CURDATE() AND status='present'"))['t'];
-    $on_leave    = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE status='approved'"))['t'];
+    // BUGFIX (EMS-DASH-016): this used to only count status='present', so
+    // anyone who checked in Late, Half-Day, or was on approved WFH wasn't
+    // counted as "present today" at all, even though they clearly showed up
+    // in some form. Now counts every attendance status except Absent.
+    $present_tdy = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM attendance WHERE date=CURDATE() AND status IN ('present','late','half_day','work_from_home')"))['t'];
+    // BUGFIX: this used to count every approved leave ever recorded (no date
+    // filter at all), so the "On Leave" card only ever grew and never
+    // reflected who's actually on leave today. Now scoped to leaves that
+    // cover today's date.
+    $on_leave    = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE status='approved' AND from_date<=CURDATE() AND to_date>=CURDATE()"))['t'];
     $pend_tasks  = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM tasks WHERE status='pending'"))['t'];
     $comp_tasks  = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM tasks WHERE status='completed'"))['t'];
     $pend_leaves = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM leaves WHERE status='pending'"))['t'];
@@ -139,17 +138,13 @@ $page_title = "Dashboard";
 
     <!-- Charts -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
-        <div class="timeline-card" style="margin-top:0;min-width:0;">
+        <div class="timeline-card" style="margin-top:0;">
             <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Monthly Attendance</h3>
-            <div style="position:relative;height:280px;width:100%;">
-                <canvas id="adminAttChart"></canvas>
-            </div>
+            <canvas id="adminAttChart"></canvas>
         </div>
-        <div class="timeline-card" style="margin-top:0;min-width:0;">
+        <div class="timeline-card" style="margin-top:0;">
             <h3 style="color:var(--role-accent);display:flex;align-items:center;gap:8px;"><?php echo ems_icon('bar-chart',17); ?> Monthly Leave Requests</h3>
-            <div style="position:relative;height:280px;width:100%;">
-                <canvas id="adminLeaveChart"></canvas>
-            </div>
+            <canvas id="adminLeaveChart"></canvas>
         </div>
     </div>
 
@@ -184,8 +179,8 @@ $page_title = "Dashboard";
 <script>
 const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 document.addEventListener('DOMContentLoaded', function(){
-    new Chart(document.getElementById('adminAttChart'),{type:'line',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.15)',borderColor:'#3b82f6',borderWidth:2,pointBackgroundColor:'#3b82f6',pointRadius:4,tension:0.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:<?php echo $charts_shared_max; ?>,ticks:{stepSize:1}}}}});
-    new Chart(document.getElementById('adminLeaveChart'),{type:'line',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.15)',borderColor:'#ef4444',borderWidth:2,pointBackgroundColor:'#ef4444',pointRadius:4,tension:0.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:<?php echo $charts_shared_max; ?>,ticks:{stepSize:1}}}}});
+    new Chart(document.getElementById('adminAttChart'),{type:'bar',data:{labels:months,datasets:[{label:'Present',data:<?php echo json_encode($att_data);?>,backgroundColor:'rgba(59,130,246,0.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+    new Chart(document.getElementById('adminLeaveChart'),{type:'bar',data:{labels:months,datasets:[{label:'Leaves',data:<?php echo json_encode($leave_data);?>,backgroundColor:'rgba(239,68,68,0.7)',borderColor:'#ef4444',borderWidth:1,borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
 });
 
 // ===== LIVE ATTENDANCE STATUS WIDGET =====

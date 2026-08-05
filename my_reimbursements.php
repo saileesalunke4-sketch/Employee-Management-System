@@ -9,6 +9,13 @@ $emp_result = mysqli_query($conn, "SELECT * FROM employees WHERE user_id='$user_
 $emp = mysqli_fetch_assoc($emp_result);
 $emp_id = $emp['emp_id'];
 $page_title = "Reimbursements";
+
+// BUGFIX (EMS-EMP-006): same fix as my_wfh.php — a session flash message
+// only ever shows once, right after submission, instead of a ?sent=1 URL
+// param that kept showing "waiting for approval" even after the request
+// had already been approved/rejected (e.g. after hitting Back or refresh).
+$flash_message = $_SESSION['reimb_flash'] ?? null;
+unset($_SESSION['reimb_flash']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -28,9 +35,9 @@ $page_title = "Reimbursements";
 
 <div class="section active">
 
-    <?php if(isset($_GET['sent'])): ?>
+    <?php if($flash_message): ?>
         <div class="form-card" style="background:#f0fdf4;border:1px solid #86efac;margin-bottom:16px;">
-            Reimbursement request submitted — waiting for admin approval.
+            <?php echo htmlspecialchars($flash_message); ?>
         </div>
     <?php endif; ?>
 

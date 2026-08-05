@@ -9,6 +9,15 @@ $emp_result = mysqli_query($conn, "SELECT * FROM employees WHERE user_id='$user_
 $emp = mysqli_fetch_assoc($emp_result);
 $emp_id = $emp['emp_id'];
 $page_title = "Work From Home";
+
+// BUGFIX (EMS-EMP-005): this used to show "submitted, waiting for approval"
+// based purely on a ?sent=1 URL parameter — so hitting Back, refreshing, or
+// revisiting that exact URL later (even after the request was long since
+// approved/rejected) kept showing the same stale message. A session-based
+// flash message only ever shows once, right after the redirect that set it,
+// then clears itself immediately — regardless of how the page is revisited.
+$flash_message = $_SESSION['wfh_flash'] ?? null;
+unset($_SESSION['wfh_flash']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -28,9 +37,9 @@ $page_title = "Work From Home";
 
 <div class="section active">
 
-    <?php if(isset($_GET['sent'])): ?>
+    <?php if($flash_message): ?>
         <div class="form-card" style="background:#f0fdf4;border:1px solid #86efac;margin-bottom:16px;">
-            WFH request submitted — waiting for admin approval.
+            <?php echo htmlspecialchars($flash_message); ?>
         </div>
     <?php endif; ?>
 

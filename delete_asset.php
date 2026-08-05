@@ -21,7 +21,9 @@ if(!$asset){
 }
 
 if($asset['status'] === 'assigned'){
-    header("Location: assets.php?msg=inuse");
+    // BUGFIX (EMS-ADM-013): session flash instead of ?msg=inuse
+    $_SESSION['asset_flash'] = ['ok' => false, 'msg' => "Can't delete this asset — it's currently assigned to an employee. Return it first."];
+    header("Location: assets.php");
     exit();
 }
 
@@ -30,6 +32,7 @@ mysqli_query($conn, "DELETE FROM asset_assignments WHERE asset_id=$asset_id"); /
 
 log_activity($conn, 'deleted', 'Asset', $asset['asset_name']);
 
-header("Location: assets.php?msg=deleted");
+$_SESSION['asset_flash'] = ['ok' => true, 'msg' => 'Asset deleted.'];
+header("Location: assets.php");
 exit();
 ?>

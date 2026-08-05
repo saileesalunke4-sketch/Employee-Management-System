@@ -1,23 +1,19 @@
 <?php
-// get_emp_notifications.php — async notifications for the Employee topbar.
 session_start();
-require 'db.php';
 header('Content-Type: application/json');
-
-if(!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'employee'){
-    http_response_code(403);
-    echo json_encode(['error' => 'Unauthorized']);
+if(!isset($_SESSION['user']) || $_SESSION['user']['role'] != 'employee'){
+    echo json_encode(['error' => 'Not logged in']);
     exit();
 }
+require 'db.php';
 
 $user_id = $_SESSION['user']['id'];
-$emp_row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT emp_id FROM employees WHERE user_id='$user_id'"));
-$emp_id  = $emp_row['emp_id'] ?? 0;
+$emp = mysqli_fetch_assoc(mysqli_query($conn, "SELECT emp_id FROM employees WHERE user_id='$user_id'"));
+$emp_id = $emp['emp_id'] ?? 0;
 
-$unread_res   = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM notifications WHERE emp_id='$emp_id' AND is_read=0");
-$unread_count = (int) mysqli_fetch_assoc($unread_res)['cnt'];
+$unread_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM notifications WHERE emp_id='$emp_id' AND for_role='employee' AND is_read=0"))['c'];
 
-$notif_res = mysqli_query($conn, "SELECT type, leave_type, message, reason, created_at, is_read FROM notifications WHERE emp_id='$emp_id' ORDER BY created_at DESC LIMIT 10");
+$notif_res = mysqli_query($conn, "SELECT * FROM notifications WHERE emp_id='$emp_id' AND for_role='employee' ORDER BY created_at DESC LIMIT 20");
 
 $items = [];
 while($n = mysqli_fetch_assoc($notif_res)){
@@ -31,8 +27,6 @@ while($n = mysqli_fetch_assoc($notif_res)){
             $key   = 'task';
             break;
         case 'hr_request_status':
-            // leave_type column holds the actual request type here
-            // (Designation Change / Department Change / Location Change)
             $label = $n['leave_type'];
             $key   = 'hr';
             break;
@@ -56,8 +50,13 @@ while($n = mysqli_fetch_assoc($notif_res)){
             $label = 'Asset Assigned';
             $key   = 'hr';
             break;
+        case 'announcement_posted':
+            // BUGFIX (EMS-SUPADM-020): new case — announcements previously
+            // never generated a notification at all.
+            $label = 'Announcement';
+            $key   = 'hr';
+            break;
         default:
-            // Fallback for any older rows saved before 'type' was tracked
             $label = $n['leave_type'] ?: 'Notification';
             $key   = 'leave';
     }
@@ -71,4 +70,5 @@ while($n = mysqli_fetch_assoc($notif_res)){
     ];
 }
 
-echo json_encode(['unread_count' => $unread_count, 'items' => $items]);
+echo json_encode(['unread_count' => (int)$unread_count, 'items' => $items]);
+?>

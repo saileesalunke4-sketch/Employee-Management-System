@@ -82,6 +82,20 @@ $page_title = "Attendance";
             </tbody>
         </table>
         </div>
+
+        <h3 class="section-title" style="margin-top:28px;">Work From Home Today</h3>
+        <div style="overflow-x:auto;">
+        <table class="emp-table">
+            <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th></tr></thead>
+            <tbody>
+            <?php
+                $wfh=mysqli_query($conn,"SELECT a.*,e.first_name,e.last_name FROM attendance a JOIN employees e ON a.emp_id=e.emp_id WHERE a.status='work_from_home' AND a.date=CURDATE()");
+                if(mysqli_num_rows($wfh)>0){ while($row=mysqli_fetch_assoc($wfh)) echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td></tr>"; }
+                else echo "<tr><td colspan='4' style='text-align:center;color:#9ca3af;'>No WFH employees today</td></tr>";
+            ?>
+            </tbody>
+        </table>
+        </div>
     </div>
 
 </div>
