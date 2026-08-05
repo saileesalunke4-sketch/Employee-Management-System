@@ -24,12 +24,29 @@ $sql = "SELECT e.emp_id, e.first_name, e.last_name, e.designation,
 $res = mysqli_query($conn, $sql);
 
 $employees = [];
+// "status" (kept for backward compatibility with the dashboard widget) is the
+// raw attendance marking: present/late/half_day/work_from_home/not_checked_in.
 $counts = ['present'=>0, 'late'=>0, 'half_day'=>0, 'work_from_home'=>0, 'not_checked_in'=>0];
+
+// "presence" answers the actual question admins ask on the Attendance page:
+// is this person in the office RIGHT NOW, already gone for the day, working
+// from home, or not marked at all — status alone can't tell you that, since
+// someone marked "present" this morning could have checked out hours ago.
+$presence_counts = ['in_office'=>0, 'wfh_active'=>0, 'checked_out'=>0, 'wfh_done'=>0, 'not_checked_in'=>0];
 
 while($row = mysqli_fetch_assoc($res)){
     $status = $row['status'] ?: 'not_checked_in';
     if(!isset($counts[$status])) $counts[$status] = 0;
     $counts[$status]++;
+
+    if($row['status'] === null){
+        $presence = 'not_checked_in';
+    } elseif($row['status'] === 'work_from_home'){
+        $presence = $row['check_out'] ? 'wfh_done' : 'wfh_active';
+    } else {
+        $presence = $row['check_out'] ? 'checked_out' : 'in_office';
+    }
+    $presence_counts[$presence]++;
 
     $employees[] = [
         'name'        => trim($row['first_name'] . ' ' . $row['last_name']),
@@ -37,13 +54,15 @@ while($row = mysqli_fetch_assoc($res)){
         'department'  => $row['dept_name'],
         'check_in'    => $row['check_in'],
         'check_out'   => $row['check_out'],
-        'status'      => $status
+        'status'      => $status,   // how they were marked
+        'presence'    => $presence  // where they are right now
     ];
 }
 
 echo json_encode([
-    'counts'    => $counts,
-    'employees' => $employees,
-    'as_of'     => date('H:i:s')
+    'counts'          => $counts,
+    'presence_counts' => $presence_counts,
+    'employees'       => $employees,
+    'as_of'           => date('H:i:s')
 ]);
 ?>

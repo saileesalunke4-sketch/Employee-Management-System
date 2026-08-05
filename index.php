@@ -75,7 +75,7 @@ if(isset($_SESSION['user'])){
         }
         .logo-wrap { position: relative; z-index: 1; margin-bottom: 34px; animation: fadeInUp 0.5s ease 0.1s both; }
         .logo-wrap .mark { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
-        .logo-wrap .mark img{ width:44px; height:44px; border-radius:12px; object-fit:cover; box-shadow:0 6px 18px rgba(0,0,0,.35); }
+        .logo-wrap .mark img{ height:64px; width:auto; max-width:220px; object-fit:contain; }
         .logo-wrap .mark b{ font-size:19px; font-weight:800; color:#FFFFFF; letter-spacing:-.3px; display:block; }
         .logo-wrap .mark span{ font-size:11px; color:#9AA5E0; font-weight:600; letter-spacing:.6px; text-transform:uppercase; }
         .logo-wrap h1{ font-size: 27px; font-weight: 800; color:#FFFFFF; letter-spacing: -0.5px; line-height:1.3; }
