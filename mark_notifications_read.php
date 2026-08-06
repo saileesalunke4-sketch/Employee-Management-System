@@ -7,8 +7,13 @@ if(!isset($_SESSION['user'])){
     exit();
 }
 
-// Mark all notifications as read
-mysqli_query($conn, "UPDATE notifications SET is_read = 1 WHERE is_read = 0");
+// Mark all read
+// BUGFIX: this had no for_role filter, so it marked EVERY notification in
+// the whole table as read — including ones meant for employees (e.g. an
+// announcement pushed moments earlier) — before the intended recipient
+// ever saw them as unread. Scoped to for_role='admin' (covers super_admin
+// too, since both share the same admin-targeted notifications).
+mysqli_query($conn, "UPDATE notifications SET is_read = 1 WHERE is_read = 0 AND for_role = 'admin'");
 
 // Redirect back to correct dashboard
 $role = $_SESSION['user']['role'];

@@ -67,43 +67,23 @@ $page_title = "Attendance";
     </div>
 
     <div class="form-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-            <h3 class="section-title" style="margin-bottom:0;">🟢 Who's In Office Right Now</h3>
-            <span id="attLastUpdated" style="font-size:11px;color:#9ca3af;"></span>
-        </div>
-        <p style="font-size:12px;color:#888;margin:4px 0 14px;">Live view of every employee's current status — refreshes automatically every 20 seconds.</p>
-
-        <div id="attSummaryRow" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
-
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-            <input type="text" id="attSearchBox" placeholder="🔍 Search employee or department..." style="flex:1;min-width:200px;padding:9px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;">
-            <select id="attFilterSelect" style="padding:9px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;">
-                <option value="all">All</option>
-                <option value="in_office">In Office</option>
-                <option value="wfh_active">WFH (Active)</option>
-                <option value="checked_out">Checked Out</option>
-                <option value="wfh_done">WFH (Done)</option>
-                <option value="not_checked_in">Not Checked-in</option>
-            </select>
-        </div>
-
-        <div style="max-height:420px;overflow-y:auto;">
-        <table class="emp-table" style="width:100%;">
-            <thead><tr><th>Employee</th><th>Department</th><th>Presence</th><th>Marked As</th><th>Check In</th><th>Check Out</th></tr></thead>
-            <tbody id="attStatusBody">
-                <tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px;">Loading...</td></tr>
-            </tbody>
-        </table>
-        </div>
-    </div>
-
-    <div class="form-card">
         <h3 class="section-title">Attendance Records</h3>
 
-        <!-- Month Filter + Download -->
-        <form method="GET" style="display:flex;gap:12px;align-items:flex-end;margin-bottom:20px;">
+        <!-- Month Filter + Work Mode / Status Filter + Download -->
+        <form method="GET" style="display:flex;gap:12px;align-items:flex-end;margin-bottom:20px;flex-wrap:wrap;">
             <div class="field" style="margin:0;"><label>Filter Month</label>
                 <input type="month" name="ts_month" value="<?php echo htmlspecialchars(isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m')); ?>" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;">
+            </div>
+            <div class="field" style="margin:0;"><label>Work Mode / Status</label>
+                <?php $att_filter = $_GET['att_filter'] ?? 'all'; ?>
+                <select name="att_filter" style="padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;">
+                    <option value="all" <?php echo $att_filter==='all'?'selected':''; ?>>All</option>
+                    <option value="wfh" <?php echo $att_filter==='wfh'?'selected':''; ?>>WFH</option>
+                    <option value="wfo" <?php echo $att_filter==='wfo'?'selected':''; ?>>WFO</option>
+                    <option value="late" <?php echo $att_filter==='late'?'selected':''; ?>>Late</option>
+                    <option value="absent" <?php echo $att_filter==='absent'?'selected':''; ?>>Absent</option>
+                    <option value="half_day" <?php echo $att_filter==='half_day'?'selected':''; ?>>Half Day</option>
+                </select>
             </div>
             <button type="submit" class="submit-btn" style="margin:0;padding:8px 20px;">Filter</button>
             <a href="export_attendance.php?ts_month=<?php echo htmlspecialchars(isset($_GET['ts_month'])?$_GET['ts_month']:date('Y-m')); ?>"
@@ -112,21 +92,58 @@ $page_title = "Attendance";
             </a>
         </form>
 
+        <?php
+            // SECURITY: ts_month must match YYYY-MM before it's used in
+            // SQL — it was going straight into the query unvalidated,
+            // so a crafted ts_month value could break out of the quotes.
+            $ts_month = isset($_GET['ts_month']) ? $_GET['ts_month'] : date('Y-m');
+            if(!preg_match('/^\d{4}-\d{2}$/', $ts_month)) $ts_month = date('Y-m');
+            $ts_year  = substr($ts_month,0,4);
+            $ts_mon   = substr($ts_month,5,2);
+
+            // Attendance statistics for the selected month (unaffected by
+            // the Work Mode / Status filter below, so they stay a stable
+            // at-a-glance summary of the whole month).
+            $stat_res = mysqli_query($conn, "SELECT
+                    SUM(status='present') AS present_cnt,
+                    SUM(status='late') AS late_cnt,
+                    SUM(status='half_day') AS half_day_cnt,
+                    SUM(status='absent') AS absent_cnt,
+                    SUM(work_mode='WFH') AS wfh_cnt,
+                    SUM(work_mode='WFO') AS wfo_cnt,
+                    COUNT(*) AS total_cnt
+                FROM attendance WHERE YEAR(date)='$ts_year' AND MONTH(date)='$ts_mon'");
+            $stat = mysqli_fetch_assoc($stat_res);
+        ?>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+            <div style="background:#f3f4f6;color:#374151;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">Total: <?php echo $stat['total_cnt']??0; ?></div>
+            <div style="background:#dcfce7;color:#16a34a;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">Present: <?php echo $stat['present_cnt']??0; ?></div>
+            <div style="background:#fef3c7;color:#d97706;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">Late: <?php echo $stat['late_cnt']??0; ?></div>
+            <div style="background:#fef3c7;color:#d97706;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">Half Day: <?php echo $stat['half_day_cnt']??0; ?></div>
+            <div style="background:#fee2e2;color:#dc2626;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">Absent: <?php echo $stat['absent_cnt']??0; ?></div>
+            <div style="background:#dbeafe;color:#1d4ed8;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">🏠 WFH: <?php echo $stat['wfh_cnt']??0; ?></div>
+            <div style="background:#dcfce7;color:#16a34a;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">🏢 WFO: <?php echo $stat['wfo_cnt']??0; ?></div>
+        </div>
+
         <div style="overflow-x:auto;">
         <table class="emp-table">
-            <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Type</th></tr></thead>
+            <thead><tr><th>Employee</th><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Work Mode</th></tr></thead>
             <tbody>
             <?php
-                // SECURITY: ts_month must match YYYY-MM before it's used in
-                // SQL — it was going straight into the query unvalidated,
-                // so a crafted ts_month value could break out of the quotes.
-                $ts_month = isset($_GET['ts_month']) ? $_GET['ts_month'] : date('Y-m');
-                if(!preg_match('/^\d{4}-\d{2}$/', $ts_month)) $ts_month = date('Y-m');
-                $ts_year  = substr($ts_month,0,4);
-                $ts_mon   = substr($ts_month,5,2);
-                $res=mysqli_query($conn,"SELECT e.first_name,e.last_name,a.date,a.check_in,a.check_out,a.status FROM attendance a JOIN employees e ON a.emp_id=e.emp_id WHERE YEAR(a.date)='$ts_year' AND MONTH(a.date)='$ts_mon' ORDER BY a.date DESC");
+                $where_extra = '';
+                if($att_filter === 'wfh')        $where_extra = " AND a.work_mode='WFH'";
+                elseif($att_filter === 'wfo')     $where_extra = " AND a.work_mode='WFO'";
+                elseif($att_filter === 'late')     $where_extra = " AND a.status='late'";
+                elseif($att_filter === 'absent')   $where_extra = " AND a.status='absent'";
+                elseif($att_filter === 'half_day') $where_extra = " AND a.status='half_day'";
+
+                $res=mysqli_query($conn,"SELECT e.first_name,e.last_name,a.date,a.check_in,a.check_out,a.status,a.work_mode FROM attendance a JOIN employees e ON a.emp_id=e.emp_id WHERE YEAR(a.date)='$ts_year' AND MONTH(a.date)='$ts_mon'{$where_extra} ORDER BY a.date DESC");
+                if(mysqli_num_rows($res) === 0){
+                    echo "<tr><td colspan='6' style='text-align:center;color:#9ca3af;padding:16px;'>No attendance records match this filter.</td></tr>";
+                }
                 while($row=mysqli_fetch_assoc($res)){
-                    $type=($row['status']=='work_from_home')?"<span class='pill blue'>&#127968; WFH</span>":"<span class='pill green'>&#127970; Office</span>";
+                    $wm = $row['work_mode'] ?? 'WFO';
+                    $type=($wm==='WFH')?"<span class='pill blue'>&#127968; WFH</span>":"<span class='pill green'>&#127970; WFO</span>";
                     echo "<tr><td>{$row['first_name']} {$row['last_name']}</td><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td><td>".ucfirst(str_replace('_',' ',$row['status']))."</td><td>{$type}</td></tr>";
                 }
             ?>
@@ -172,77 +189,6 @@ $page_title = "Attendance";
 
 </div>
 </div>
-
-<script>
-// ===== WHO'S IN OFFICE RIGHT NOW — live presence widget =====
-const presenceMeta = {
-    in_office:      { bg:'#dcfce7', color:'#16a34a', label:'🟢 In Office' },
-    wfh_active:     { bg:'#dbeafe', color:'#1d4ed8', label:'🏠 WFH (Active)' },
-    checked_out:    { bg:'#f3f4f6', color:'#6b7280', label:'⚪ Checked Out' },
-    wfh_done:       { bg:'#e0e7ff', color:'#4338ca', label:'🏠 WFH (Done)' },
-    not_checked_in: { bg:'#fee2e2', color:'#dc2626', label:'🔴 Not Checked-in' }
-};
-const statusLabels = { present:'Present', late:'Late', half_day:'Half Day', work_from_home:'Work From Home', not_checked_in:'—' };
-
-let attEmployees = [];
-
-function renderAttStatusBody(){
-    const search = (document.getElementById('attSearchBox').value || '').toLowerCase().trim();
-    const filter = document.getElementById('attFilterSelect').value;
-
-    const filtered = attEmployees.filter(emp => {
-        const matchesSearch = !search || emp.name.toLowerCase().includes(search) || (emp.department||'').toLowerCase().includes(search);
-        const matchesFilter = filter === 'all' || emp.presence === filter;
-        return matchesSearch && matchesFilter;
-    });
-
-    const body = document.getElementById('attStatusBody');
-    if(!filtered.length){
-        body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:20px;">No employees match this search/filter.</td></tr>';
-        return;
-    }
-    body.innerHTML = filtered.map(emp => {
-        const p = presenceMeta[emp.presence] || presenceMeta.not_checked_in;
-        return `<tr>
-            <td>${emp.name}</td>
-            <td>${emp.department || '-'}</td>
-            <td><span style="background:${p.bg};color:${p.color};padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;">${p.label}</span></td>
-            <td>${statusLabels[emp.status] || '-'}</td>
-            <td>${emp.check_in || '-'}</td>
-            <td>${emp.check_out || '-'}</td>
-        </tr>`;
-    }).join('');
-}
-
-function loadAttendanceStatus(){
-    fetch('get_attendance_status.php')
-        .then(r => r.json())
-        .then(data => {
-            if(data.error) return;
-
-            attEmployees = data.employees;
-
-            const pc = data.presence_counts;
-            const summaryHtml = Object.keys(presenceMeta).map(key => {
-                const p = presenceMeta[key];
-                const n = pc[key] || 0;
-                return `<div style="background:${p.bg};color:${p.color};padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">${p.label}: ${n}</div>`;
-            }).join('');
-            document.getElementById('attSummaryRow').innerHTML = summaryHtml;
-
-            renderAttStatusBody();
-            document.getElementById('attLastUpdated').textContent = 'Last updated: ' + data.as_of;
-        })
-        .catch(err => console.error('Attendance status fetch failed', err));
-}
-
-document.getElementById('attSearchBox').addEventListener('input', renderAttStatusBody);
-document.getElementById('attFilterSelect').addEventListener('change', renderAttStatusBody);
-
-loadAttendanceStatus();
-setInterval(loadAttendanceStatus, 20000);
-</script>
-
 <?php include 'common_js.php'; ?>
 </body>
 </html>

@@ -404,6 +404,30 @@ mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `asset_assignments` (
   KEY `emp_id` (`emp_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+// ===== ATTENDANCE WORK MODE (WFH / WFO) =====
+// Adds an explicit work_mode column to attendance, independent of the
+// existing `status` column (present/late/half_day/work_from_home/absent).
+// status keeps deciding present/late/half-day exactly as before; work_mode
+// just records whether that day was worked from home or from office, so
+// it can be filtered/reported on its own.
+// NOTE: outside the schema-ready guard, same reason as activity_log/shifts
+// above — existing deployments that already have logs/.schema_ready would
+// never get this column otherwise.
+$work_mode_col_check = mysqli_query($conn, "SHOW COLUMNS FROM attendance LIKE 'work_mode'");
+if($work_mode_col_check && mysqli_num_rows($work_mode_col_check) == 0){
+    mysqli_query($conn, "ALTER TABLE attendance ADD COLUMN work_mode ENUM('WFH','WFO') NOT NULL DEFAULT 'WFO' AFTER status");
+}
+
+// ===== FORCE PASSWORD CHANGE ON FIRST LOGIN =====
+// New employees are created by an admin with a temporary password (see
+// add_employee.php); this column flags that they still need to set their
+// own. DEFAULT 0 so existing accounts are completely unaffected — only
+// newly created users get flagged going forward.
+$mcp_col_check = mysqli_query($conn, "SHOW COLUMNS FROM users LIKE 'must_change_password'");
+if($mcp_col_check && mysqli_num_rows($mcp_col_check) == 0){
+    mysqli_query($conn, "ALTER TABLE users ADD COLUMN must_change_password TINYINT(1) NOT NULL DEFAULT 0");
+}
+
 // ===== CSRF PROTECTION HELPERS =====
 // Used on approve/reject action links (leave, regularization, HR requests)
 // so a malicious link/page on another site can't trick a logged-in admin's

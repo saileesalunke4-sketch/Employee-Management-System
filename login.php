@@ -31,6 +31,16 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
         $_SESSION['user'] = $user;
 
+        // BUGFIX (Employee-024): new employees log in with the temporary
+        // password an admin set for them in Add Employee — there was no
+        // prompt to set their own. Route them to Change Password first;
+        // existing accounts (must_change_password=0 by default) are
+        // completely unaffected.
+        if(!empty($user['must_change_password'])){
+            header("Location: change_password.php?first=1");
+            exit();
+        }
+
         if($user['role'] == 'admin'){
             header("Location: admin_dashboard.php");
         } elseif($user['role'] == 'super_admin'){

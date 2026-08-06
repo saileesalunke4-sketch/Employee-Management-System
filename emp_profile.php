@@ -77,7 +77,7 @@ $docs = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM employee_documents 
             <div class="form-grid">
                 <div class="field"><label>First Name</label><input type="text" name="first_name" value="<?php echo $emp['first_name'];?>" required></div>
                 <div class="field"><label>Last Name</label><input type="text" name="last_name" value="<?php echo $emp['last_name'];?>" required></div>
-                <div class="field"><label>Contact</label><input type="text" name="contact" value="<?php echo $emp['contact'];?>" required></div>
+                <div class="field"><label>Contact</label><input type="text" name="contact" value="<?php echo $emp['contact'];?>" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" title="Enter exactly 10 digits" required></div>
                 <div class="field"><label>Designation</label><input type="text" name="designation" value="<?php echo $emp['designation'];?>" required></div>
 
                 <!-- BLOOD GROUP DROPDOWN -->

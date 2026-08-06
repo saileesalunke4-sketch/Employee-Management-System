@@ -19,9 +19,11 @@ $emp_id = (int) $emp['emp_id'];
 $today    = date('Y-m-d');
 $now_time = date('H:i:s');
 
-// Optional: employee can still declare Work From Home at check-in time.
-// This is a legitimate manual input (a declaration, not a fake timestamp).
-$is_wfh = isset($_POST['wfh']) && $_POST['wfh'] == '1';
+// Employee's Work Mode selection at check-in time (WFH / WFO).
+// This drives the exact same GPS skip/require behavior the old "wfh"
+// checkbox used to (is_wfh), plus is now saved on the record itself.
+$work_mode = (isset($_POST['work_mode']) && $_POST['work_mode'] === 'WFH') ? 'WFH' : 'WFO';
+$is_wfh = ($work_mode === 'WFH');
 
 // GEO-FENCE CHECK: skip location check entirely if employee marked WFH.
 // Otherwise, employee's browser-reported location must be within
@@ -38,6 +40,18 @@ if(!$is_wfh){
     if($distance > OFFICE_RADIUS_METERS){
         $dist_km = number_format($distance/1000, 2);
         echo "<script>alert('You are ".$dist_km." km away from office. Check-in is only allowed within office premises (or mark Work From Home).'); window.history.back();</script>";
+        exit();
+    }
+}
+
+// BUGFIX (EMS-EMP-011): WFH check-in used to be allowed just by ticking
+// the checkbox — no approved WFH request required, which bypassed the
+// whole approval workflow (see wfh_requests / my_wfh.php / handle_wfh_request.php).
+// Now it requires a matching approved request for today's date.
+if($is_wfh){
+    $wfh_ok = mysqli_query($conn, "SELECT request_id FROM wfh_requests WHERE emp_id=$emp_id AND wfh_date='$today' AND status='approved'");
+    if(mysqli_num_rows($wfh_ok) == 0){
+        echo "<script>alert('WFH check-in requires an approved WFH request for today. Please submit a WFH request from My WFH Requests and wait for Admin/Super Admin approval.'); window.history.back();</script>";
         exit();
     }
 }
@@ -99,8 +113,8 @@ if($status === 'late'){
 
 $is_sunday = (date('N', strtotime($today)) == 7) ? 1 : 0;
 
-$query = "INSERT INTO attendance (emp_id, date, check_in, check_out, status, is_sunday)
-          VALUES ($emp_id, '$today', '$now_time', NULL, '$status', $is_sunday)";
+$query = "INSERT INTO attendance (emp_id, date, check_in, check_out, status, work_mode, is_sunday)
+          VALUES ($emp_id, '$today', '$now_time', NULL, '$status', '$work_mode', $is_sunday)";
 
 if(mysqli_query($conn, $query)){
     echo "<script>alert('Checked in successfully at $now_time.$status_note'); window.location.href='my_attendance.php';</script>";

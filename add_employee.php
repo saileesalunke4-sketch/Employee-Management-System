@@ -38,8 +38,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         echo "<script>alert('Please enter a valid email address.'); window.history.back();</script>";
         exit();
     }
-    if(!preg_match('/^[0-9]{10,15}$/', $contact)){
-        echo "<script>alert('Please enter a valid contact number (digits only, 10-15 digits).'); window.history.back();</script>";
+    // BUGFIX: was '{10,15}' — allowed up to 15 digits through. A contact
+    // number here should be exactly 10 digits.
+    if(!preg_match('/^[0-9]{10}$/', $contact)){
+        echo "<script>alert('Please enter a valid 10-digit contact number (digits only).'); window.history.back();</script>";
         exit();
     }
 
@@ -68,7 +70,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $religion = mysqli_real_escape_string($conn, $_POST['religion']);
     $address = mysqli_real_escape_string($conn, $_POST['address']);
 
-    $user_query = "INSERT INTO users (name, email, password, role) VALUES ('$name', '$email', '$password', '$role')";
+    // BUGFIX (Employee-024): flag this account to be forced through
+    // Change Password on its first login, since the admin just set a
+    // temporary password for them above.
+    $user_query = "INSERT INTO users (name, email, password, role, must_change_password) VALUES ('$name', '$email', '$password', '$role', 1)";
     if(mysqli_query($conn, $user_query)){
         $user_id = mysqli_insert_id($conn);
         $emp_query = "INSERT INTO employees (user_id, first_name, last_name, contact, designation, blood_group, dob, religion, address) VALUES ('$user_id','$first_name','$last_name','$contact','$designation','$blood_group','$dob','$religion','$address')";
@@ -130,7 +135,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
                 <div class="form-grid">
                     <div class="field"><label>First Name</label><input type="text" name="first_name" placeholder="First Name" required></div>
                     <div class="field"><label>Last Name</label><input type="text" name="last_name" placeholder="Last Name" required></div>
-                    <div class="field"><label>Contact</label><input type="text" name="contact" placeholder="Contact Number" required></div>
+                    <div class="field"><label>Contact</label><input type="text" name="contact" placeholder="Contact Number" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" title="Enter exactly 10 digits" required></div>
                     <div class="field"><label>Designation</label><input type="text" name="designation" placeholder="Designation" required></div>
                     <div class="field"><label>Blood Group</label>
                         <select name="blood_group">

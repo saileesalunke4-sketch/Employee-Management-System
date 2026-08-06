@@ -49,14 +49,16 @@ $page_title = "My Attendance";
             <!-- Not checked in yet -->
             <form action="save_attendance.php" method="POST" id="checkinForm">
                 <div class="field" style="margin-bottom:14px;">
-                    <label><input type="checkbox" name="wfh" id="wfhCheckbox" value="1" style="width:auto;margin-right:6px;">Working From Home today</label>
+                    <label style="display:block;margin-bottom:6px;font-weight:600;">Work Mode</label>
+                    <label style="margin-right:18px;font-weight:400;"><input type="radio" name="work_mode" id="wfoRadio" value="WFO" checked style="width:auto;margin-right:6px;">Work From Office (WFO)</label>
+                    <label style="font-weight:400;"><input type="radio" name="work_mode" id="wfhRadio" value="WFH" style="width:auto;margin-right:6px;">Work From Home (WFH)</label>
                 </div>
                 <input type="hidden" name="lat" id="checkinLat">
                 <input type="hidden" name="lng" id="checkinLng">
                 <div id="locStatusIn" style="font-size:12px;color:#d97706;margin-bottom:10px;">📍 Detecting your location...</div>
                 <button type="submit" class="submit-btn" id="checkinBtn" disabled>Check In Now</button>
             </form>
-            <p style="font-size:12px;color:#888;margin-top:10px;">Time is captured automatically from the server when you check in. Check-in needs to happen from within office premises (unless marked WFH).</p>
+            <p style="font-size:12px;color:#888;margin-top:10px;">Time is captured automatically from the server when you check in. Work From Office check-in needs to happen from within office premises; Work From Home skips the location check but requires an <a href="my_wfh.php" style="color:#1d4ed8;font-weight:600;">approved WFH request</a> for today's date.</p>
 
         <?php elseif($today_att && !$today_att['check_out']): ?>
             <!-- Checked in, not checked out -->
@@ -141,21 +143,25 @@ $page_title = "My Attendance";
         }, { enableHighAccuracy: true, timeout: 10000 });
     }
 
-    var wfhCheckbox = document.getElementById('wfhCheckbox');
+    var wfhRadio    = document.getElementById('wfhRadio');
+    var wfoRadio    = document.getElementById('wfoRadio');
     var checkinBtn  = document.getElementById('checkinBtn');
     var locStatusIn = document.getElementById('locStatusIn');
 
-    if(wfhCheckbox){
-        wfhCheckbox.addEventListener('change', function(){
-            if(this.checked){
-                // WFH ticked: location not required
-                if(locStatusIn){ locStatusIn.innerHTML = '🏠 Work From Home — location check skipped.'; locStatusIn.style.color = '#1d4ed8'; }
-                if(checkinBtn) checkinBtn.disabled = false;
-            } else {
-                captureLocation('checkinLat','checkinLng','locStatusIn','checkinBtn');
-            }
-        });
-        // Try capturing location right away for the default (non-WFH) case
+    function onWorkModeChange(){
+        if(wfhRadio && wfhRadio.checked){
+            // WFH selected: location not required
+            if(locStatusIn){ locStatusIn.innerHTML = '🏠 Work From Home — location check skipped.'; locStatusIn.style.color = '#1d4ed8'; }
+            if(checkinBtn) checkinBtn.disabled = false;
+        } else {
+            captureLocation('checkinLat','checkinLng','locStatusIn','checkinBtn');
+        }
+    }
+
+    if(wfhRadio && wfoRadio){
+        wfhRadio.addEventListener('change', onWorkModeChange);
+        wfoRadio.addEventListener('change', onWorkModeChange);
+        // Try capturing location right away for the default (WFO) case
         captureLocation('checkinLat','checkinLng','locStatusIn','checkinBtn');
     }
 
@@ -221,7 +227,7 @@ $page_title = "My Attendance";
         <h3 class="section-title">All My Attendance Records</h3>
         <div style="overflow-x:auto;">
         <table class="emp-table">
-            <thead><tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Hours</th><th>Overtime</th><th>Sunday</th></tr></thead>
+            <thead><tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Status</th><th>Work Mode</th><th>Hours</th><th>Overtime</th><th>Sunday</th></tr></thead>
             <tbody>
             <?php
                 $res=mysqli_query($conn,"SELECT * FROM attendance WHERE emp_id='$emp_id' ORDER BY date DESC");
@@ -230,8 +236,13 @@ $page_title = "My Attendance";
                     if($row['check_in']&&$row['check_out']){ $in=strtotime($row['check_in']); $out=strtotime($row['check_out']); if($out>$in) $hrs=($out-$in)/3600; }
                     $st_map=['present'=>'approved','late'=>'pending','half_day'=>'pending','work_from_home'=>'approved','absent'=>'rejected'];
                     $pill=$st_map[$row['status']]??'pending';
+                    $wm = $row['work_mode'] ?? 'WFO';
+                    $wm_badge = ($wm === 'WFH')
+                        ? "<span class='pill blue'>&#127968; WFH</span>"
+                        : "<span class='pill green'>&#127970; WFO</span>";
                     echo "<tr><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td>
                     <td><span class='status-pill $pill'>".ucfirst(str_replace('_',' ',$row['status']))."</span></td>
+                    <td>{$wm_badge}</td>
                     <td>".($hrs>0?number_format($hrs,1)." hrs":"-")."</td>
                     <td>".($row['overtime_hours']>0?"<span style='color:#d97706;font-weight:600;'>".$row['overtime_hours']." hrs</span>":"-")."</td>
                     <td>".($row['is_sunday']?"<span style='color:#db2777;font-weight:600;'>✓ Sunday</span>":"-")."</td></tr>";

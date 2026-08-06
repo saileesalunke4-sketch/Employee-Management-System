@@ -40,6 +40,11 @@ $page_title = "Change Password";
                 Password changed successfully.
             </div>
         <?php endif; ?>
+        <?php if(isset($_GET['first'])): ?>
+            <div style="background:#fffbeb;border:1px solid #fcd34d;color:#92400e;padding:12px 16px;border-radius:10px;margin-bottom:14px;font-size:13px;">
+                Welcome! For security, please set your own password before continuing. Use the temporary password you were given as your Current Password.
+            </div>
+        <?php endif; ?>
 
         <form action="save_password_change.php" method="POST">
             <div class="field"><label>Current Password</label><input type="password" name="current_password" required></div>

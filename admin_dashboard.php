@@ -55,7 +55,12 @@ $page_title = "Dashboard";
 <div class="section active">
 
     <?php
-    $total_emp   = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM users WHERE role='employee'"))['t'];
+        // BUGFIX: was counting FROM users WHERE role='employee' — if any
+        // employee's linked user record ever drifts out of sync with role
+        // 'employee' (e.g. after a role change), this undercounts real
+        // employees vs. the `employees` table itself. Count the actual
+        // employees table instead — it's the authoritative employee registry.
+        $total_emp   = mysqli_fetch_assoc(mysqli_query($conn,"SELECT COUNT(*) as t FROM employees"))['t'];
     // BUGFIX (EMS-DASH-016): this used to only count status='present', so
     // anyone who checked in Late, Half-Day, or was on approved WFH wasn't
     // counted as "present today" at all, even though they clearly showed up
@@ -124,13 +129,27 @@ $page_title = "Dashboard";
             <span id="attLastUpdated" style="font-size:11px;color:#9ca3af;"></span>
         </div>
 
-        <div id="attSummaryRow" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
+        <div id="attSummaryRow" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;"></div>
+
+        <!-- Attendance filters -->
+        <div id="attFilterRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+            <button type="button" class="att-filter-btn active" data-filter="all">All</button>
+            <button type="button" class="att-filter-btn" data-filter="wfh">WFH</button>
+            <button type="button" class="att-filter-btn" data-filter="wfo">WFO</button>
+            <button type="button" class="att-filter-btn" data-filter="late">Late</button>
+            <button type="button" class="att-filter-btn" data-filter="absent">Absent</button>
+            <button type="button" class="att-filter-btn" data-filter="half_day">Half Day</button>
+        </div>
+        <style>
+        .att-filter-btn{border:1px solid #d1d5db;background:#fff;color:#374151;padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;}
+        .att-filter-btn.active{background:#1d4ed8;border-color:#1d4ed8;color:#fff;}
+        </style>
 
         <div style="max-height:340px;overflow-y:auto;">
             <table class="emp-table" style="width:100%;">
-                <thead><tr><th>Employee</th><th>Department</th><th>Status</th><th>Check In</th></tr></thead>
+                <thead><tr><th>Employee</th><th>Department</th><th>Status</th><th>Work Mode</th><th>Check In</th></tr></thead>
                 <tbody id="attStatusBody">
-                    <tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:20px;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:20px;">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -189,39 +208,83 @@ const attStatusColors = {
     late:            { bg:'#fef3c7', color:'#d97706', label:'Late' },
     half_day:        { bg:'#fef3c7', color:'#d97706', label:'Half Day' },
     work_from_home:  { bg:'#dbeafe', color:'#1d4ed8', label:'WFH' },
+    absent:          { bg:'#fee2e2', color:'#dc2626', label:'Absent' },
     not_checked_in:  { bg:'#fee2e2', color:'#dc2626', label:'Not Checked-in' }
 };
+const workModeColors = {
+    WFH: { bg:'#dbeafe', color:'#1d4ed8', label:'🏠 WFH' },
+    WFO: { bg:'#dcfce7', color:'#16a34a', label:'🏢 WFO' }
+};
+
+let lastAttendanceData = null; // kept in memory so filter clicks don't need a re-fetch
+let currentAttFilter = 'all';
+
+// BUGFIX/ENHANCEMENT: filters (All/WFH/WFO/Late/Absent/Half Day) run against
+// the same data already fetched by loadAttendanceStatus(), so clicking a
+// filter is instant and doesn't hit the server again.
+function attMatchesFilter(emp, filter){
+    if(filter === 'all') return true;
+    if(filter === 'wfh') return emp.work_mode === 'WFH';
+    if(filter === 'wfo') return emp.work_mode === 'WFO';
+    if(filter === 'late') return emp.status === 'late';
+    if(filter === 'half_day') return emp.status === 'half_day';
+    if(filter === 'absent') return emp.status === 'not_checked_in' || emp.status === 'absent';
+    return true;
+}
+
+function renderAttendanceRows(){
+    if(!lastAttendanceData) return;
+    const body = document.getElementById('attStatusBody');
+    const filtered = lastAttendanceData.employees.filter(emp => attMatchesFilter(emp, currentAttFilter));
+    if(!filtered.length){
+        body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:20px;">No employees match this filter.</td></tr>';
+        return;
+    }
+    body.innerHTML = filtered.map(emp => {
+        const c  = attStatusColors[emp.status] || attStatusColors.not_checked_in;
+        const wm = emp.work_mode ? workModeColors[emp.work_mode] : null;
+        const wmHtml = wm
+            ? `<span style="background:${wm.bg};color:${wm.color};padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;">${wm.label}</span>`
+            : '<span style="color:#9ca3af;">-</span>';
+        return `<tr>
+            <td>${emp.name}</td>
+            <td>${emp.department || '-'}</td>
+            <td><span style="background:${c.bg};color:${c.color};padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;">${c.label}</span></td>
+            <td>${wmHtml}</td>
+            <td>${emp.check_in || '-'}</td>
+        </tr>`;
+    }).join('');
+}
+
+document.querySelectorAll('.att-filter-btn').forEach(btn => {
+    btn.addEventListener('click', function(){
+        document.querySelectorAll('.att-filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentAttFilter = this.dataset.filter;
+        renderAttendanceRows();
+    });
+});
 
 function loadAttendanceStatus(){
     fetch('get_attendance_status.php')
         .then(r => r.json())
         .then(data => {
             if(data.error) return;
+            lastAttendanceData = data;
 
-            // Summary pills
+            // Summary pills: existing status counts, plus a WFH/WFO split
             const counts = data.counts;
-            const summaryHtml = Object.keys(attStatusColors).map(key => {
+            const wmCounts = data.work_mode_counts || {WFH:0, WFO:0};
+            let summaryHtml = Object.keys(attStatusColors).map(key => {
                 const c = attStatusColors[key];
                 const n = counts[key] || 0;
                 return `<div style="background:${c.bg};color:${c.color};padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">${c.label}: ${n}</div>`;
             }).join('');
+            summaryHtml += `<div style="background:${workModeColors.WFH.bg};color:${workModeColors.WFH.color};padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">${workModeColors.WFH.label}: ${wmCounts.WFH || 0}</div>`;
+            summaryHtml += `<div style="background:${workModeColors.WFO.bg};color:${workModeColors.WFO.color};padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;">${workModeColors.WFO.label}: ${wmCounts.WFO || 0}</div>`;
             document.getElementById('attSummaryRow').innerHTML = summaryHtml;
 
-            // Employee rows
-            const body = document.getElementById('attStatusBody');
-            if(!data.employees.length){
-                body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:20px;">No employees found.</td></tr>';
-            } else {
-                body.innerHTML = data.employees.map(emp => {
-                    const c = attStatusColors[emp.status] || attStatusColors.not_checked_in;
-                    return `<tr>
-                        <td>${emp.name}</td>
-                        <td>${emp.department || '-'}</td>
-                        <td><span style="background:${c.bg};color:${c.color};padding:3px 12px;border-radius:20px;font-size:12px;font-weight:600;">${c.label}</span></td>
-                        <td>${emp.check_in || '-'}</td>
-                    </tr>`;
-                }).join('');
-            }
+            renderAttendanceRows();
 
             document.getElementById('attLastUpdated').textContent = 'Last updated: ' + data.as_of;
         })

@@ -49,8 +49,13 @@ try {
         $ex_res   = mysqli_query($conn, "SELECT * FROM attendance WHERE emp_id=$emp_id AND date='$att_date'");
         $existing = $ex_res ? mysqli_fetch_assoc($ex_res) : null;
 
+        // Derive work_mode from the requested status so regularized records
+        // stay consistent with the new work_mode column (WFH when the
+        // requested status itself is Work From Home, otherwise WFO).
+        $work_mode = ($status === 'work_from_home') ? 'WFH' : 'WFO';
+
         if($existing){
-            $set_parts = ["status='$status'"];
+            $set_parts = ["status='$status'", "work_mode='$work_mode'"];
             if($check_in)  $set_parts[] = "check_in='".mysqli_real_escape_string($conn,$check_in)."'";
             if($check_out) $set_parts[] = "check_out='".mysqli_real_escape_string($conn,$check_out)."'";
             $set_sql = implode(', ', $set_parts);
@@ -59,8 +64,8 @@ try {
             $ci = $check_in  ? "'".mysqli_real_escape_string($conn,$check_in)."'"  : "NULL";
             $co = $check_out ? "'".mysqli_real_escape_string($conn,$check_out)."'" : "NULL";
             $is_sunday = (date('N', strtotime($att_date)) == 7) ? 1 : 0;
-            mysqli_query($conn, "INSERT INTO attendance (emp_id, date, check_in, check_out, status, is_sunday)
-                                  VALUES ($emp_id, '$att_date', $ci, $co, '$status', $is_sunday)");
+            mysqli_query($conn, "INSERT INTO attendance (emp_id, date, check_in, check_out, status, work_mode, is_sunday)
+                                  VALUES ($emp_id, '$att_date', $ci, $co, '$status', '$work_mode', $is_sunday)");
         }
     }
 

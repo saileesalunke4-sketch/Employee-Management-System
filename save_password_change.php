@@ -26,7 +26,10 @@ if(!$user || !password_verify($current_password, $user['password'])){
 }
 
 $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
-mysqli_query($conn, "UPDATE users SET password='$new_hash' WHERE id=$user_id");
+// BUGFIX (Employee-024): clear the forced-change flag on success so the
+// user isn't sent back here again on their next login.
+mysqli_query($conn, "UPDATE users SET password='$new_hash', must_change_password=0 WHERE id=$user_id");
+$_SESSION['user']['must_change_password'] = 0;
 
 header("Location: change_password.php?ok=1");
 exit();

@@ -14,6 +14,7 @@ $nav_groups = [
     ],
     'Operations' => [
         ['sa_attendance.php','sa_attendance.php','clock','Attendance'],
+        ['shifts.php','shifts.php','clock','Shifts'],
         ['sa_leaves.php','sa_leaves.php','leaf','Leaves'],
         ['leave_calendar.php','leave_calendar.php','calendar','Leave Calendar'],
         ['sa_holidays.php','sa_holidays.php','flag','Holiday Calendar'],
@@ -22,12 +23,17 @@ $nav_groups = [
         ['revenue.php','revenue.php','bar-chart','Monthly Revenue'],
         ['performance.php','performance.php','target','Performance'],
         ['reimbursements.php','reimbursements.php','tag','Reimbursements'],
+        ['wfh_requests.php','wfh_requests.php','check-circle','WFH Requests'],
+        ['assets.php','assets.php','folder','Assets'],
     ],
     'Company' => [
         ['admin_hr_requests.php','admin_hr_requests.php','inbox','HR Process Requests'],
+        ['manage_hr_queries.php','manage_hr_queries.php','inbox','HR Queries'],
         ['announcements.php','announcements.php','megaphone','Announcements'],
         ['sa_rules.php','sa_rules.php','shield','Rules & Regulations'],
         ['employee_report.php','employee_report.php','file-text','Employee Report'],
+        ['admin_activity_log.php','admin_activity_log.php','bar-chart','Activity Log'],
+        ['directory.php','directory.php','users','Employee Directory'],
     ],
 ];
 

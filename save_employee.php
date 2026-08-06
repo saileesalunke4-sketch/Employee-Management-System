@@ -17,14 +17,37 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $plain_pass  = $_POST['password']; // save for welcome mail
     $password    = password_hash($plain_pass, PASSWORD_DEFAULT);
     $role        = in_array($_POST['role'], ['employee','admin','super_admin'], true) ? $_POST['role'] : 'employee';
-    $first_name  = mysqli_real_escape_string($conn, $_POST['first_name']);
-    $last_name   = mysqli_real_escape_string($conn, $_POST['last_name']);
-    $contact     = mysqli_real_escape_string($conn, $_POST['contact']);
+    $first_name  = trim($_POST['first_name'] ?? '');
+    $last_name   = trim($_POST['last_name'] ?? '');
+    $contact     = trim($_POST['contact'] ?? '');
     $designation = mysqli_real_escape_string($conn, $_POST['designation']);
     $blood_group = mysqli_real_escape_string($conn, $_POST['blood_group']);
     $dob         = mysqli_real_escape_string($conn, $_POST['dob']);
     $religion    = mysqli_real_escape_string($conn, $_POST['religion']);
     $address     = mysqli_real_escape_string($conn, $_POST['address']);
+
+    // BUGFIX: same validation gap as add_employee.php / update_profile.php —
+    // Name and Contact had no format check at all before being saved.
+    $name_pattern = "/^[a-zA-Z\s.'-]{2,100}$/";
+    if($first_name === '' || !preg_match($name_pattern, $first_name)){
+        echo "<script>alert('Please enter a valid First Name (letters only, no numbers or symbols).'); window.history.back();</script>";
+        exit();
+    }
+    if($last_name === '' || !preg_match($name_pattern, $last_name)){
+        echo "<script>alert('Please enter a valid Last Name (letters only, no numbers or symbols).'); window.history.back();</script>";
+        exit();
+    }
+    if(!preg_match('/^[0-9]{10}$/', $contact)){
+        echo "<script>alert('Please enter a valid 10-digit contact number (digits only).'); window.history.back();</script>";
+        exit();
+    }
+    if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
+        echo "<script>alert('Please enter a valid email address.'); window.history.back();</script>";
+        exit();
+    }
+    $first_name  = mysqli_real_escape_string($conn, $first_name);
+    $last_name   = mysqli_real_escape_string($conn, $last_name);
+    $contact     = mysqli_real_escape_string($conn, $contact);
 
     // Check email exists
     $check = mysqli_query($conn, "SELECT id FROM users WHERE email='$email'");
@@ -34,8 +57,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     }
 
     // Save to users table
-    $user_query = "INSERT INTO users (name, email, password, role)
-                   VALUES ('$name', '$email', '$password', '$role')";
+    // BUGFIX (Employee-024): flag for forced Change Password on first login,
+    // consistent with add_employee.php.
+    $user_query = "INSERT INTO users (name, email, password, role, must_change_password)
+                   VALUES ('$name', '$email', '$password', '$role', 1)";
 
     if(mysqli_query($conn, $user_query)){
         $user_id = mysqli_insert_id($conn);

@@ -52,8 +52,8 @@ try {
         $existing_att = mysqli_fetch_assoc(mysqli_query($conn, "SELECT emp_id FROM attendance WHERE emp_id=$emp_id AND date='$wfh_date'"));
         if(!$existing_att){
             $is_sunday = (date('N', strtotime($wfh_date)) == 7) ? 1 : 0;
-            mysqli_query($conn, "INSERT INTO attendance (emp_id, date, check_in, check_out, status, is_sunday)
-                                  VALUES ($emp_id, '$wfh_date', NULL, NULL, 'work_from_home', $is_sunday)");
+            mysqli_query($conn, "INSERT INTO attendance (emp_id, date, check_in, check_out, status, work_mode, is_sunday)
+                                  VALUES ($emp_id, '$wfh_date', NULL, NULL, 'work_from_home', 'WFH', $is_sunday)");
         }
     }
 

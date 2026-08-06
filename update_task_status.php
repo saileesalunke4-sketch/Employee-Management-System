@@ -34,7 +34,7 @@ if(mysqli_num_rows($check) == 0){
 
 $query = "UPDATE tasks SET status='$status' WHERE task_id='$task_id' AND emp_id='$emp_id'";
 if(mysqli_query($conn, $query)){
-    echo "<script>alert('Task status updated successfully!'); window.location.href='emp_dashboard.php';</script>";
+    echo "<script>alert('Task status updated successfully!'); window.location.href='my_tasks.php';</script>";
 } else {
     echo "<script>alert('Failed to update status!'); window.history.back();</script>";
 }
