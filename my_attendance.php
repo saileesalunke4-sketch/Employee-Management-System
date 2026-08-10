@@ -55,6 +55,7 @@ $page_title = "My Attendance";
                 </div>
                 <input type="hidden" name="lat" id="checkinLat">
                 <input type="hidden" name="lng" id="checkinLng">
+                <input type="hidden" name="accuracy" id="checkinAccuracy">
                 <div id="locStatusIn" style="font-size:12px;color:#d97706;margin-bottom:10px;">📍 Detecting your location...</div>
                 <button type="submit" class="submit-btn" id="checkinBtn" disabled>Check In Now</button>
             </form>
@@ -69,6 +70,7 @@ $page_title = "My Attendance";
             <form action="save_checkout.php" method="POST" id="checkoutForm">
                 <input type="hidden" name="lat" id="checkoutLat">
                 <input type="hidden" name="lng" id="checkoutLng">
+                <input type="hidden" name="accuracy" id="checkoutAccuracy">
                 <?php if($today_att['status'] !== 'work_from_home'): ?>
                 <div id="locStatusOut" style="font-size:12px;color:#d97706;margin-bottom:10px;">📍 Detecting your location...</div>
                 <?php endif; ?>
@@ -101,9 +103,19 @@ $page_title = "My Attendance";
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
+    // ACCURACY THRESHOLD: browsers report an "accuracy" radius (in meters)
+    // alongside every location fix. GPS-equipped phones typically report
+    // 5-50m; laptops without GPS fall back to WiFi/IP-based positioning,
+    // which can be off by hundreds of meters to several kilometers while
+    // still (misleadingly) reporting itself as "close" to some point. A
+    // 200m office radius can't be trusted against a reading that's itself
+    // uncertain by more than that, so we flag it instead of accepting it
+    // as gospel.
+    var ACCURACY_WARN_METERS = 150;
+
     // Capture browser geolocation, populate hidden fields, and show whether
     // the detected location falls inside or outside the office radius.
-    function captureLocation(latFieldId, lngFieldId, statusId, btnId){
+    function captureLocation(latFieldId, lngFieldId, accFieldId, statusId, btnId){
         var statusEl = document.getElementById(statusId);
         var btnEl = document.getElementById(btnId);
         if(!navigator.geolocation){
@@ -116,13 +128,23 @@ $page_title = "My Attendance";
         }
         navigator.geolocation.getCurrentPosition(function(pos){
             var lat = pos.coords.latitude, lng = pos.coords.longitude;
+            var accuracy = pos.coords.accuracy || 99999;
             document.getElementById(latFieldId).value = lat;
             document.getElementById(lngFieldId).value = lng;
+            var accField = document.getElementById(accFieldId);
+            if(accField) accField.value = accuracy;
 
             var dist = distanceMeters(lat, lng, OFFICE_LAT, OFFICE_LNG);
             if(statusEl){
-                if(dist <= OFFICE_RADIUS){
-                    statusEl.innerHTML = '✅ You are at office premises (' + Math.round(dist) + ' m from office).';
+                if(accuracy > ACCURACY_WARN_METERS){
+                    // Reading exists but is too imprecise (typically a
+                    // laptop on WiFi-only positioning) to trust against a
+                    // tight office radius — don't claim "at office" off a
+                    // fix this uncertain.
+                    statusEl.innerHTML = '⚠️ Your location could only be detected to within ±' + Math.round(accuracy) + 'm accuracy — too imprecise to verify office proximity reliably. If you\'re on a laptop, try enabling Windows/Mac Location Services or use a phone with GPS; otherwise mark Work From Home.';
+                    statusEl.style.color = '#d97706';
+                } else if(dist <= OFFICE_RADIUS){
+                    statusEl.innerHTML = '✅ You are at office premises (' + Math.round(dist) + ' m from office, accuracy ±' + Math.round(accuracy) + 'm).';
                     statusEl.style.color = '#16a34a';
                 } else {
                     var distKm = (dist/1000).toFixed(2);
@@ -154,7 +176,7 @@ $page_title = "My Attendance";
             if(locStatusIn){ locStatusIn.innerHTML = '🏠 Work From Home — location check skipped.'; locStatusIn.style.color = '#1d4ed8'; }
             if(checkinBtn) checkinBtn.disabled = false;
         } else {
-            captureLocation('checkinLat','checkinLng','locStatusIn','checkinBtn');
+            captureLocation('checkinLat','checkinLng','checkinAccuracy','locStatusIn','checkinBtn');
         }
     }
 
@@ -162,11 +184,11 @@ $page_title = "My Attendance";
         wfhRadio.addEventListener('change', onWorkModeChange);
         wfoRadio.addEventListener('change', onWorkModeChange);
         // Try capturing location right away for the default (WFO) case
-        captureLocation('checkinLat','checkinLng','locStatusIn','checkinBtn');
+        captureLocation('checkinLat','checkinLng','checkinAccuracy','locStatusIn','checkinBtn');
     }
 
     if(document.getElementById('checkoutForm') && document.getElementById('locStatusOut')){
-        captureLocation('checkoutLat','checkoutLng','locStatusOut','checkoutBtn');
+        captureLocation('checkoutLat','checkoutLng','checkoutAccuracy','locStatusOut','checkoutBtn');
     }
     </script>
     <div class="form-card" style="margin-top:20px;">

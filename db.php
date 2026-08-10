@@ -73,6 +73,13 @@ define('OFFICE_LAT', 21.1458);   // <-- replace with your office latitude
 define('OFFICE_LNG', 79.0882);   // <-- replace with your office longitude
 define('OFFICE_RADIUS_METERS', 200); // allowed distance from office (in meters)
 
+// A browser-reported location comes with its own accuracy radius (meters).
+// Laptops without GPS hardware fall back to WiFi/IP-based positioning,
+// which can report itself as "close" to a point while actually being far
+// off — too uncertain to trust against a tight office radius. Readings
+// less precise than this are rejected rather than silently accepted.
+define('ACCURACY_WARN_METERS', 150);
+
 // Haversine formula: distance in meters between two lat/lng points
 function getDistanceMeters($lat1, $lon1, $lat2, $lon2){
     $earthRadius = 6371000; // meters

@@ -35,6 +35,17 @@ if(!$is_wfh){
     }
     $lat = (float) $_POST['lat'];
     $lng = (float) $_POST['lng'];
+    // ACCURACY CHECK: a browser-reported location comes with an accuracy
+    // radius (meters). A laptop without GPS falling back to WiFi/IP-based
+    // positioning can report itself as being "close" to the office while
+    // actually being tens of km away and off by more than the office
+    // radius itself — a reading that uncertain can't be trusted for a
+    // 200m geofence. Reject rather than silently accept it as "at office".
+    $accuracy = isset($_POST['accuracy']) && $_POST['accuracy'] !== '' ? (float) $_POST['accuracy'] : null;
+    if($accuracy !== null && $accuracy > ACCURACY_WARN_METERS){
+        echo "<script>alert('Your location could only be detected to within ±".round($accuracy)."m accuracy — too imprecise to verify office proximity. If you are on a laptop, enable Location Services (Windows/Mac) or use a phone with GPS, or mark Work From Home.'); window.history.back();</script>";
+        exit();
+    }
     $distance = getDistanceMeters($lat, $lng, OFFICE_LAT, OFFICE_LNG);
 
     if($distance > OFFICE_RADIUS_METERS){
