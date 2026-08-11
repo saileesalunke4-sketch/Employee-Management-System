@@ -43,8 +43,16 @@ unset($_SESSION['shift_flash']);
         <form action="save_shift.php" method="POST">
             <div class="form-grid">
                 <div class="field"><label>Shift Name</label><input type="text" name="shift_name" placeholder="e.g. Morning Shift, Night Shift" required></div>
-                <div class="field"><label>Start Time</label><input type="time" name="start_time" required></div>
-                <div class="field"><label>End Time</label><input type="time" name="end_time" required></div>
+                <div class="field">
+                    <label>Start Time</label>
+                    <input type="time" name="start_time" id="shiftStartTime" required oninput="updateAmPmPreview('shiftStartTime','startTimePreview')">
+                    <div id="startTimePreview" style="font-size:11.5px;color:#0F766E;font-weight:600;margin-top:4px;">&nbsp;</div>
+                </div>
+                <div class="field">
+                    <label>End Time</label>
+                    <input type="time" name="end_time" id="shiftEndTime" required oninput="updateAmPmPreview('shiftEndTime','endTimePreview')">
+                    <div id="endTimePreview" style="font-size:11.5px;color:#0F766E;font-weight:600;margin-top:4px;">&nbsp;</div>
+                </div>
                 <div class="field"><label>Grace Period (minutes)</label><input type="number" name="grace_minutes" value="15" min="0" max="120" required></div>
                 <div class="field"><label>Half-Day Cutoff (minutes after start)</label><input type="number" name="half_day_after_minutes" value="180" min="30" max="600" required></div>
             </div>
@@ -52,6 +60,26 @@ unset($_SESSION['shift_flash']);
                 Example: a shift starting at 09:00 with a 15-min grace and a 180-min half-day cutoff means:
                 check-in by 09:15 → Present, 09:15–12:00 → Late, after 12:00 → Half Day, after the shift's end time → self check-in is closed for the day.
             </p>
+            <script>
+            // BUGFIX (EMS-011): the native time input's AM/PM display depends
+            // entirely on the browser/OS locale — many locales (including
+            // most non-US ones) show it in 24-hour format with no AM/PM at
+            // all, making it easy to enter a shift 12 hours off from what
+            // was intended. This shows an explicit, always-visible 12-hour
+            // readout next to each field so there's never ambiguity.
+            function updateAmPmPreview(inputId, previewId){
+                var val = document.getElementById(inputId).value; // "HH:MM" 24-hour
+                var preview = document.getElementById(previewId);
+                if(!val){ preview.innerHTML = '&nbsp;'; return; }
+                var parts = val.split(':');
+                var h = parseInt(parts[0], 10);
+                var m = parts[1];
+                var ampm = h >= 12 ? 'PM' : 'AM';
+                var h12 = h % 12;
+                if(h12 === 0) h12 = 12;
+                preview.textContent = h12 + ':' + m + ' ' + ampm;
+            }
+            </script>
             <button type="submit" class="submit-btn">Add Shift</button>
         </form>
     </div>

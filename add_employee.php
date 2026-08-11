@@ -57,6 +57,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         exit();
     }
 
+    // BUGFIX (EMS-005): only email was checked for duplicates, so the same
+    // person's details (same name/contact) could be added again as long as
+    // a different email was used. Contact number should be unique per
+    // employee too.
+    $contact_check = mysqli_real_escape_string($conn, $contact);
+    $existing_contact = mysqli_fetch_assoc(mysqli_query($conn, "SELECT emp_id FROM employees WHERE contact='$contact_check'"));
+    if($existing_contact){
+        echo "<script>alert('An employee with this contact number already exists.'); window.history.back();</script>";
+        exit();
+    }
+
     $name = mysqli_real_escape_string($conn, $name);
     $email = mysqli_real_escape_string($conn, $email);
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
@@ -83,11 +94,23 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             $employee_code = 'EMP' . str_pad($new_emp_id, 4, '0', STR_PAD_LEFT);
             mysqli_query($conn, "UPDATE employees SET employee_code='$employee_code' WHERE emp_id=$new_emp_id");
 
-            $success = "Employee added successfully! Employee ID: $employee_code";
+            // BUGFIX (EMS-006): falling through to render the same page with
+            // $success set meant the success message reappeared on every
+            // browser refresh (the browser just resubmits the POST) — and
+            // worse, a refresh would silently run this whole insert again,
+            // creating a duplicate employee (EMS-005). Redirecting to a
+            // fresh GET request after success fixes both: refreshing the
+            // resulting page just reloads it, no resubmission possible.
+            header("Location: add_employee.php?success=1&code=" . urlencode($employee_code));
+            exit();
         }
     } else {
         $error = "Email already exists!";
     }
+}
+
+if(isset($_GET['success']) && $_GET['success'] == '1'){
+    $success = "Employee added successfully! Employee ID: " . htmlspecialchars($_GET['code'] ?? '');
 }
 ?>
 <?php $page_title = "Add New Employee"; ?>

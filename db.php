@@ -65,12 +65,9 @@ function sendEMSMail($to_email, $to_name, $subject, $body){
     }
 }
 
-// ===== GEO-FENCE CONFIG (Attendance) =====
-// TODO: Replace with YOUR office's actual coordinates.
-// How to get them: open Google Maps -> right-click on your office location
-// -> click the lat,lng shown at top (e.g. "20.9463, 78.9797") -> copy here.
-define('OFFICE_LAT', 21.1458);   // <-- replace with your office latitude
-define('OFFICE_LNG', 79.0882);   // <-- replace with your office longitude
+
+define('OFFICE_LAT',17.320221642122643);   // <-- replace with your office latitude
+define('OFFICE_LNG',76.84761154518559);   // <-- replace with your office longitude
 define('OFFICE_RADIUS_METERS', 200); // allowed distance from office (in meters)
 
 // A browser-reported location comes with its own accuracy radius (meters).
@@ -96,7 +93,9 @@ function getDistanceMeters($lat1, $lon1, $lat2, $lon2){
 // Used consistently everywhere (apply form, balance tracker, records table)
 // so the "days deducted" figure always matches across the whole app.
 function getLeaveDaysWithSandwich($from_date, $to_date){
-    $cal_days = (strtotime($to_date) - strtotime($from_date)) / 86400 + 1;
+    $from_ts = strtotime($from_date);
+    $to_ts   = strtotime($to_date);
+    $cal_days = ($to_ts - $from_ts) / 86400 + 1;
 
     // BUGFIX: sandwich policy only makes sense for a multi-day range — a
     // single day off that happens to fall on a Monday isn't "sandwiching"
@@ -107,18 +106,37 @@ function getLeaveDaysWithSandwich($from_date, $to_date){
         return $cal_days;
     }
 
-    $from_day = date('N', strtotime($from_date)); // 1=Mon ... 5=Fri, 7=Sun
-    $to_day   = date('N', strtotime($to_date));
+    $from_day = date('N', $from_ts); // 1=Mon ... 5=Fri, 7=Sun
+    $to_day   = date('N', $to_ts);
 
-    $sandwich_days = 0;
-    if($from_day == 5 && $to_day == 1){
-        $sandwich_days = 0; // Fri->Mon: weekend already inside the range
-    } elseif($from_day == 5){
-        $sandwich_days = 2; // starts Friday -> Sat+Sun added
-    } elseif($to_day == 1){
-        $sandwich_days = 1; // ends Monday -> Sun added
+    // BUGFIX (BUG-004): the sandwich charge only applies when the leave
+    // deliberately bridges a weekend by starting on Friday and/or ending
+    // on Monday — that is the specific pattern this policy exists to
+    // discourage. Every other date range used to fall straight through to
+    // a plain calendar-day count, which meant an ordinary leave that
+    // simply happened to include a Sunday (e.g. Sat-Tue) got charged for
+    // that Sunday too, instead of it being excluded as a weekly off.
+    if($from_day == 5 || $to_day == 1){
+        $sandwich_days = 0;
+        if($from_day == 5 && $to_day == 1){
+            $sandwich_days = 0; // Fri->Mon: weekend already inside the range
+        } elseif($from_day == 5){
+            $sandwich_days = 2; // starts Friday -> Sat+Sun added
+        } elseif($to_day == 1){
+            $sandwich_days = 1; // ends Monday -> Sun added
+        }
+        return $cal_days + $sandwich_days;
     }
-    return $cal_days + $sandwich_days;
+
+    // Not a sandwich pattern: exclude Sunday (the configured weekly off)
+    // from the count instead of charging every calendar day.
+    $working_days = 0;
+    for($ts = $from_ts; $ts <= $to_ts; $ts += 86400){
+        if(date('N', $ts) != 7){ // 7 = Sunday
+            $working_days++;
+        }
+    }
+    return $working_days;
 }
 
 // Half-day aware wrapper — used wherever a leave *record* (with its

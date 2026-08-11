@@ -129,3 +129,6 @@ $page_title = "Leaves";
 
 </div>
 </div>
+<?php include 'common_js.php'; ?>
+</body>
+</html>

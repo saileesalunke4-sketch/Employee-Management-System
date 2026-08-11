@@ -52,8 +52,16 @@ try {
         $existing_att = mysqli_fetch_assoc(mysqli_query($conn, "SELECT emp_id FROM attendance WHERE emp_id=$emp_id AND date='$wfh_date'"));
         if(!$existing_att){
             $is_sunday = (date('N', strtotime($wfh_date)) == 7) ? 1 : 0;
+            // BUGFIX (BUG-002): check_in used to be left NULL for an
+            // auto-created WFH record. If the employee later checked out
+            // that day, the attendance record ended up with a populated
+            // check_out but a permanently blank check_in ("Check In: ,
+            // Check Out: 14:31:37"). Stamp check_in with the approval time
+            // (or, for a same-day approval, the current time) so the
+            // record always has a valid check-in from the moment it exists.
+            $wfh_check_in = ($wfh_date === date('Y-m-d')) ? date('H:i:s') : '09:00:00';
             mysqli_query($conn, "INSERT INTO attendance (emp_id, date, check_in, check_out, status, work_mode, is_sunday)
-                                  VALUES ($emp_id, '$wfh_date', NULL, NULL, 'work_from_home', 'WFH', $is_sunday)");
+                                  VALUES ($emp_id, '$wfh_date', '$wfh_check_in', NULL, 'work_from_home', 'WFH', $is_sunday)");
         }
     }
 

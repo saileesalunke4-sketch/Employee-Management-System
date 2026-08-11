@@ -265,7 +265,7 @@ $page_title = "My Attendance";
                     echo "<tr><td>{$row['date']}</td><td>{$row['check_in']}</td><td>{$row['check_out']}</td>
                     <td><span class='status-pill $pill'>".ucfirst(str_replace('_',' ',$row['status']))."</span></td>
                     <td>{$wm_badge}</td>
-                    <td>".($hrs>0?number_format($hrs,1)." hrs":"-")."</td>
+                    <td>".($hrs>0?number_format($hrs,2)." hrs":"-")."</td>
                     <td>".($row['overtime_hours']>0?"<span style='color:#d97706;font-weight:600;'>".$row['overtime_hours']." hrs</span>":"-")."</td>
                     <td>".($row['is_sunday']?"<span style='color:#db2777;font-weight:600;'>✓ Sunday</span>":"-")."</td></tr>";
                 }
