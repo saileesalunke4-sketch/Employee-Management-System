@@ -29,8 +29,11 @@ $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
 // BUGFIX (Employee-024): clear the forced-change flag on success so the
 // user isn't sent back here again on their next login.
 mysqli_query($conn, "UPDATE users SET password='$new_hash', must_change_password=0 WHERE id=$user_id");
-$_SESSION['user']['must_change_password'] = 0;
 
-header("Location: change_password.php?ok=1");
+// Auto-logout after a password change: destroy the session immediately so
+// the user (and anyone else on a shared device) must log back in with the
+// new password rather than continuing to browse on the old session.
+session_destroy();
+header("Location: index.php?pwchanged=1");
 exit();
 ?>

@@ -75,7 +75,7 @@ if(isset($_SESSION['user'])){
         }
         .logo-wrap { position: relative; z-index: 1; margin-bottom: 34px; animation: fadeInUp 0.5s ease 0.1s both; }
         .logo-wrap .mark { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
-        .logo-wrap .mark img{ height:64px; width:auto; max-width:220px; object-fit:contain; }
+        .logo-wrap .mark img{ width:44px; height:44px; border-radius:12px; object-fit:cover; box-shadow:0 6px 18px rgba(0,0,0,.35); }
         .logo-wrap .mark b{ font-size:19px; font-weight:800; color:#FFFFFF; letter-spacing:-.3px; display:block; }
         .logo-wrap .mark span{ font-size:11px; color:#9AA5E0; font-weight:600; letter-spacing:.6px; text-transform:uppercase; }
         .logo-wrap h1{ font-size: 27px; font-weight: 800; color:#FFFFFF; letter-spacing: -0.5px; line-height:1.3; }
@@ -126,6 +126,10 @@ if(isset($_SESSION['user'])){
         .inp-wrap .inp-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #9AA1AC; display:flex; }
         .inp-wrap input:focus ~ .inp-icon,
         .inp-wrap:focus-within .inp-icon { color:#4F46E5; }
+        /* Show/hide password toggle */
+        #passwordField { padding-right: 42px; }
+        .inp-wrap .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #9AA1AC; }
+        .inp-wrap .pw-toggle:hover { color: #4F46E5; }
         .forgot-row { text-align: right; margin-bottom: 22px; margin-top: -6px; }
         .forgot-row a { font-size: 12px; color: #4F46E5; text-decoration: none; font-weight: 600; }
         .forgot-row a:hover { text-decoration: underline; }
@@ -210,6 +214,8 @@ if(isset($_SESSION['user'])){
             <div class="error-box">Too many failed attempts. Account temporarily locked &mdash; please try again in <?php echo (int)($_GET['minutes'] ?? 15); ?> minute(s).</div>
         <?php elseif(isset($_GET['error'])): ?>
             <div class="error-box">Invalid email or password. Please try again.</div>
+        <?php elseif(isset($_GET['pwchanged'])): ?>
+            <div class="error-box" style="background:#f0fdf4;border-color:#86efac;color:#16a34a;">Password changed successfully. Please sign in again with your new password.</div>
         <?php endif; ?>
 
         <form action="login.php" method="POST" id="loginForm">
@@ -225,6 +231,9 @@ if(isset($_SESSION['user'])){
                 <div class="inp-wrap">
                     <span class="inp-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10.5" width="15" height="10" rx="2.2"/><path d="M7.5 10.5V7.2a4.5 4.5 0 0 1 9 0v3.3"/></svg></span>
                     <input type="password" name="password" id="passwordField" placeholder="Enter your password" required>
+                    <span class="pw-toggle" id="pwToggle" onclick="togglePasswordVisibility()" title="Show/hide password" role="button" tabindex="0" style="cursor:pointer;padding:0 4px;display:flex;align-items:center;">
+                        <svg id="pwEyeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </span>
                 </div>
             </div>
             <div class="forgot-row">
@@ -234,6 +243,21 @@ if(isset($_SESSION['user'])){
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             </button>
         </form>
+        <script>
+        // Show/hide password toggle (login page)
+        function togglePasswordVisibility(){
+            var field = document.getElementById('passwordField');
+            var icon  = document.getElementById('pwEyeIcon');
+            if(field.type === 'password'){
+                field.type = 'text';
+                // switch to "eye-off" icon while password is visible
+                icon.innerHTML = '<path d="M3 3l18 18"/><path d="M10.6 5.1A9.9 9.9 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.5 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7a10 10 0 0 0 3.4-.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>';
+            } else {
+                field.type = 'password';
+                icon.innerHTML = '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+            }
+        }
+        </script>
 
         <p class="bottom-note">&copy; <?php echo date('Y'); ?> Aller Technologies Pvt. Ltd. All rights reserved.</p>
         <div class="bottom-links">

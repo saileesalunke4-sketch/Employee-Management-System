@@ -25,10 +25,12 @@ $now_time = date('H:i:s');
 $work_mode = (isset($_POST['work_mode']) && $_POST['work_mode'] === 'WFH') ? 'WFH' : 'WFO';
 $is_wfh = ($work_mode === 'WFH');
 
-// GEO-FENCE CHECK: skip location check entirely if employee marked WFH.
-// Otherwise, employee's browser-reported location must be within
-// OFFICE_RADIUS_METERS of the office coordinates.
-if(!$is_wfh){
+// GEO-FENCE CHECK: skip location check entirely if employee marked WFH,
+// or if this request is confirmed to be coming from the office's own
+// static IP (see OFFICE_STATIC_IPS in db.php) — that's a GPS-independent
+// confirmation that doesn't depend on the browser/laptop's WiFi location
+// accuracy at all.
+if(!$is_wfh && !isOfficeIp()){
     if(!isset($_POST['lat']) || !isset($_POST['lng']) || $_POST['lat']==='' || $_POST['lng']===''){
         echo "<script>alert('Location not detected. Please allow location access in your browser and try again.'); window.history.back();</script>";
         exit();

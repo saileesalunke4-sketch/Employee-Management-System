@@ -26,12 +26,14 @@ if(!$att){
 
 $attendance_id = (int) $att['attendance_id'];
 
-// GEO-FENCE CHECK: skip if today was marked Work From Home, otherwise
-// employee's browser location must be within office radius to check out.
+// GEO-FENCE CHECK: skip if today was marked Work From Home, or if this
+// request is confirmed to be from the office's own static IP (see
+// OFFICE_STATIC_IPS in db.php) — otherwise employee's browser location
+// must be within office radius to check out.
 // (Now driven by the work_mode column instead of the status column, since
 // work_mode is the dedicated field for this — they're always set together
 // at check-in, so behavior is unchanged.)
-if($att['work_mode'] !== 'WFH'){
+if($att['work_mode'] !== 'WFH' && !isOfficeIp()){
     if(!isset($_POST['lat']) || !isset($_POST['lng']) || $_POST['lat']==='' || $_POST['lng']===''){
         echo "<script>alert('Location not detected. Please allow location access in your browser and try again.'); window.history.back();</script>";
         exit();

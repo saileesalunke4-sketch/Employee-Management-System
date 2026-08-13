@@ -32,6 +32,23 @@ html {
     color-scheme: light;
 }
 
+/* BUGFIX: some browser/OS combinations still render <select>/<option>
+   with poor contrast even with color-scheme:light set (the dropdown LIST
+   in particular can ignore it) — e.g. the Regularize page's Status
+   dropdown showing near-invisible option text. Setting explicit
+   foreground/background site-wide on every select and option guarantees
+   readable contrast everywhere, regardless of browser/OS quirks.
+   !important because a more specific dark-theme rule (.field select —
+   white text on a near-transparent background, meant for dark-background
+   contexts) was still overriding the plain element selector above and
+   winning on pages like Regularize that use bare .field wrappers instead
+   of .form-card, leaving the closed dropdown's own text unreadable even
+   though the option list itself was fixed. */
+select, select option {
+    color: #1a1a2e !important;
+    background-color: #fff !important;
+}
+
 /* ===== Login Page ===== */
 .login-wrapper {
     display: flex;
@@ -1066,4 +1083,3 @@ html, body{ background: var(--canvas); }
     .sidebar-toggle-mobile{ display:flex; }
     .app-topbar{ padding:0 14px; }
 }
-

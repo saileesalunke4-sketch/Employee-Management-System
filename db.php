@@ -65,9 +65,12 @@ function sendEMSMail($to_email, $to_name, $subject, $body){
     }
 }
 
-
-define('OFFICE_LAT',17.320221642122643);   // <-- replace with your office latitude
-define('OFFICE_LNG',76.84761154518559);   // <-- replace with your office longitude
+// ===== GEO-FENCE CONFIG (Attendance) =====
+// TODO: Replace with YOUR office's actual coordinates.
+// How to get them: open Google Maps -> right-click on your office location
+// -> click the lat,lng shown at top (e.g. "20.9463, 78.9797") -> copy here.
+define('OFFICE_LAT', 21.1458);   // <-- replace with your office latitude
+define('OFFICE_LNG', 79.0882);   // <-- replace with your office longitude
 define('OFFICE_RADIUS_METERS', 200); // allowed distance from office (in meters)
 
 // A browser-reported location comes with its own accuracy radius (meters).
@@ -76,6 +79,43 @@ define('OFFICE_RADIUS_METERS', 200); // allowed distance from office (in meters)
 // off — too uncertain to trust against a tight office radius. Readings
 // less precise than this are rejected rather than silently accepted.
 define('ACCURACY_WARN_METERS', 150);
+
+// ===== OFFICE IP WHITELIST (Attendance) =====
+// GPS/WiFi-based location can be genuinely wrong on laptops connected to
+// office WiFi — the WiFi router's location in Google/Microsoft's location
+// database can be mis-registered, causing a "confidently wrong" reading
+// that even passes the accuracy check above. If your office has a STATIC
+// public IP (ask your ISP), listing it here gives a second, GPS-independent
+// way to confirm "at office": a check-in from this exact IP is treated as
+// verified regardless of what GPS/WiFi location says.
+// Leave the array empty to disable this and rely on GPS/WiFi location only.
+// How to find your office's static public IP: from a computer on the
+// office network, search "what is my ip" in a browser — if the same IP
+// shows up every time (check again after a few hours), it's static.
+define('OFFICE_STATIC_IPS', [
+    '192.168.1.1', // <-- replace with your office's actual static public IP
+    
+]);
+
+// True if the current request's IP matches a configured office static IP.
+function isOfficeIp(){
+    $ips = OFFICE_STATIC_IPS;
+    if(empty($ips)) return false;
+    $remote_ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    // A request can arrive via a proxy/load balancer; check the
+    // X-Forwarded-For header too (first IP in the list is the original
+    // client), but only ever use it to ADD a match, never to override a
+    // direct REMOTE_ADDR match.
+    $candidates = [$remote_ip];
+    if(!empty($_SERVER['HTTP_X_FORWARDED_FOR'])){
+        $forwarded = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $candidates[] = trim($forwarded[0]);
+    }
+    foreach($candidates as $ip){
+        if($ip !== '' && in_array($ip, $ips, true)) return true;
+    }
+    return false;
+}
 
 // Haversine formula: distance in meters between two lat/lng points
 function getDistanceMeters($lat1, $lon1, $lat2, $lon2){
