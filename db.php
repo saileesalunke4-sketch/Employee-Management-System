@@ -69,8 +69,8 @@ function sendEMSMail($to_email, $to_name, $subject, $body){
 // TODO: Replace with YOUR office's actual coordinates.
 // How to get them: open Google Maps -> right-click on your office location
 // -> click the lat,lng shown at top (e.g. "20.9463, 78.9797") -> copy here.
-define('OFFICE_LAT', 21.1458);   // <-- replace with your office latitude
-define('OFFICE_LNG', 79.0882);   // <-- replace with your office longitude
+define('OFFICE_LAT', 17.33658462155366);   // <-- replace with your office latitude
+define('OFFICE_LNG', 76.83706267116416);   // <-- replace with your office longitude
 define('OFFICE_RADIUS_METERS', 200); // allowed distance from office (in meters)
 
 // A browser-reported location comes with its own accuracy radius (meters).
@@ -93,8 +93,7 @@ define('ACCURACY_WARN_METERS', 150);
 // office network, search "what is my ip" in a browser — if the same IP
 // shows up every time (check again after a few hours), it's static.
 define('OFFICE_STATIC_IPS', [
-    '192.168.1.1', // <-- replace with your office's actual static public IP
-    
+    "122.171.18.149" // 'YOUR_OFFICE_STATIC_IP_HERE', // e.g. '103.21.58.10' — uncomment and fill in
 ]);
 
 // True if the current request's IP matches a configured office static IP.

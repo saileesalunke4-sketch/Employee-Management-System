@@ -37,11 +37,11 @@ $att = mysqli_fetch_assoc($att_res);
 
         <div class="field">
             <label>Update Status</label>
-            <select name="status">
-                <option value="present" <?php echo ($att['status']=='present')?'selected':''; ?>>Present</option>
-                <option value="late" <?php echo ($att['status']=='late')?'selected':''; ?>>Late</option>
-                <option value="half_day" <?php echo ($att['status']=='half_day')?'selected':''; ?>>Half Day</option>
-                <option value="work_from_home" <?php echo ($att['status']=='work_from_home')?'selected':''; ?>>Work From Home</option>
+            <select name="status" style="color:#1a1a2e;background:#fff;color-scheme:light;">
+                <option value="present" style="color:#1a1a2e;background:#fff;" <?php echo ($att['status']=='present')?'selected':''; ?>>Present</option>
+                <option value="late" style="color:#1a1a2e;background:#fff;" <?php echo ($att['status']=='late')?'selected':''; ?>>Late</option>
+                <option value="half_day" style="color:#1a1a2e;background:#fff;" <?php echo ($att['status']=='half_day')?'selected':''; ?>>Half Day</option>
+                <option value="work_from_home" style="color:#1a1a2e;background:#fff;" <?php echo ($att['status']=='work_from_home')?'selected':''; ?>>Work From Home</option>
             </select>
         </div>
 
