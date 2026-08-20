@@ -62,17 +62,30 @@ $page_title = "Leaves";
                     $sandwich_label = '';
                     if ($cal_days <= 1) {
                         // single day — no sandwich possible
+                        $total_days = $cal_days;
                     } elseif ($from_day == 5 && $to_day == 1) {
                         $sandwich_days = 0; // weekend already inside range
                         $sandwich_label = 'Fri–Mon (Weekend Included)';
+                        $total_days = $cal_days + $sandwich_days;
                     } elseif ($from_day == 5) {
                         $sandwich_days = 2;
                         $sandwich_label = '+2 (Sat & Sun)';
+                        $total_days = $cal_days + $sandwich_days;
                     } elseif ($to_day == 1) {
                         $sandwich_days = 1;
                         $sandwich_label = '+1 (Sun)';
+                        $total_days = $cal_days + $sandwich_days;
+                    } else {
+                        // BUGFIX: not a sandwich pattern — exclude Sunday
+                        // (weekly off) from the count instead of charging
+                        // every calendar day, matching db.php's
+                        // getLeaveDaysWithSandwich() so this display always
+                        // agrees with what the employee's own page shows.
+                        $total_days = 0;
+                        for($ts = strtotime($row['from_date']); $ts <= strtotime($row['to_date']); $ts += 86400){
+                            if(date('N', $ts) != 7) $total_days++;
+                        }
                     }
-                    $total_days = $cal_days + $sandwich_days;
                     if(!empty($row['is_half_day'])) $total_days = 0.5;
 
                     $pc = ['approved'=>'green','rejected'=>'red','pending'=>'yellow','cancelled'=>'gray'][$row['status']] ?? 'yellow';

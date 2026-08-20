@@ -74,8 +74,15 @@ if(isset($_SESSION['user'])){
             bottom: -50px; left: -50px; animation: ambientDrift 14s ease-in-out infinite 3s;
         }
         .logo-wrap { position: relative; z-index: 1; margin-bottom: 34px; animation: fadeInUp 0.5s ease 0.1s both; }
-        .logo-wrap .mark { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
-        .logo-wrap .mark img{ width:44px; height:44px; border-radius:12px; object-fit:cover; box-shadow:0 6px 18px rgba(0,0,0,.35); }
+        .logo-wrap .mark { display:flex; align-items:center; gap:4px; margin-bottom:18px; }
+        /* BUGFIX: object-fit:cover was cropping the logo into its 44x44
+           box, showing only a cropped sliver instead of the full mark.
+           object-fit:contain shows the whole logo, letterboxed inside the
+           same box — no layout change, just clearer/complete. Size
+           increased 44px -> 52px; gap reduced 12px -> 4px by the same 8px
+           so the "Aller EMS" text next to it stays at the exact same
+           position — nothing else on the page shifts. */
+        .logo-wrap .mark img{ width:52px; height:52px; border-radius:14px; object-fit:contain; box-shadow:0 6px 18px rgba(0,0,0,.35); }
         .logo-wrap .mark b{ font-size:19px; font-weight:800; color:#FFFFFF; letter-spacing:-.3px; display:block; }
         .logo-wrap .mark span{ font-size:11px; color:#9AA5E0; font-weight:600; letter-spacing:.6px; text-transform:uppercase; }
         .logo-wrap h1{ font-size: 27px; font-weight: 800; color:#FFFFFF; letter-spacing: -0.5px; line-height:1.3; }

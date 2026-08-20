@@ -36,6 +36,33 @@ $page_title = "My Tasks";
 
 <div class="section active">
 
+    <!-- BUGFIX (BUG-005): a project assigned to an employee via
+         Admin/Super Admin > Projects was never shown anywhere on the
+         employee side — Projects and Tasks are separate tables with no
+         link between them in the UI. Added here so an assigned project
+         is actually visible to the employee it was assigned to. -->
+    <?php
+        $proj_res = mysqli_query($conn, "SELECT p.*, d.dept_name FROM projects p LEFT JOIN departments d ON p.dept_id=d.dept_id WHERE p.assigned_emp_id='$emp_id' ORDER BY p.target_date ASC");
+        if($proj_res && mysqli_num_rows($proj_res) > 0){
+    ?>
+    <div class="form-card">
+        <h3 class="section-title">My Assigned Projects</h3>
+        <table class="emp-table">
+            <thead><tr><th>Project Name</th><th>Description</th><th>Department</th><th>Start Date</th><th>Target Date</th><th>Status</th></tr></thead>
+            <tbody>
+            <?php
+                $proj_pill = ['ongoing'=>'in_progress','completed'=>'completed','on_hold'=>'pending'];
+                while($p = mysqli_fetch_assoc($proj_res)){
+                    $pill = $proj_pill[$p['status']] ?? 'pending';
+                    echo "<tr><td><b>{$p['project_name']}</b></td><td>{$p['description']}</td><td>".($p['dept_name']??'-')."</td><td>{$p['start_date']}</td><td>{$p['target_date']}</td>
+                    <td><span class='status-pill {$pill}'>".ucfirst(str_replace('_',' ',$p['status']))."</span></td></tr>";
+                }
+            ?>
+            </tbody>
+        </table>
+    </div>
+    <?php } ?>
+
     <div class="form-card">
         <h3 class="section-title">My Tasks</h3>
         <form method="GET" style="max-width:340px;margin-bottom:14px;">

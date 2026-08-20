@@ -13,8 +13,18 @@ if(empty($_POST)){
     exit();
 }
 
-$dept_name = mysqli_real_escape_string($conn, $_POST['dept_name']);
+$dept_name = mysqli_real_escape_string($conn, trim($_POST['dept_name'] ?? ''));
 $dept_head = mysqli_real_escape_string($conn, $_POST['dept_head']);
+
+// BUGFIX (BUG-003): no duplicate-name check existed at all — a department
+// could always be created again with a name that already exists (whether
+// submitted via the Add Department button or by pressing Enter in the
+// field). Case-insensitive compare so "hr" and "HR" are still caught.
+$existing_dept = mysqli_fetch_assoc(mysqli_query($conn, "SELECT dept_id FROM departments WHERE LOWER(dept_name)=LOWER('$dept_name')"));
+if($existing_dept){
+    echo "<script>alert('Department already exists.'); window.location.href='departments.php';</script>";
+    exit();
+}
 
 $query = "INSERT INTO departments (dept_name, dept_head) VALUES ('$dept_name', '$dept_head')";
 

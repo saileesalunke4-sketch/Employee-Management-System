@@ -177,16 +177,24 @@ function calculateDays() {
     let sandwichDays = 0;
     let sandwichMsg  = '';
 
-    if (fromDay === 5 && toDay === 1) {
-        // Friday to Monday — entire weekend in between
-        sandwichDays = 0; // already included in calDays
-        sandwichMsg = '⚠️ Leave covers <strong>Friday to Monday</strong> — weekend days are included in deduction (Sandwich Policy)<br>';
-    } else if (fromDay === 5) {
-        sandwichDays = 2;
-        sandwichMsg = '⚠️ Leave starts on <strong>Friday</strong> — Saturday & Sunday also counted (Sandwich Policy)<br>';
-    } else if (toDay === 1) {
-        sandwichDays = 1;
-        sandwichMsg = '⚠️ Leave ends on <strong>Monday</strong> — Sunday also counted (Sandwich Policy)<br>';
+    // BUGFIX (BUG-001): this ran the Friday/Monday sandwich check even for
+    // a single-day request (from === to) — so applying for just Friday
+    // (fromDay===5) always added +2 "weekend" days on top of the 1 actual
+    // day, showing "3 days" and a misleading Sandwich Policy warning for a
+    // leave that doesn't touch a weekend at all. The policy only makes
+    // sense for a multi-day range that actually bridges a weekend.
+    if (calDays > 1) {
+        if (fromDay === 5 && toDay === 1) {
+            // Friday to Monday — entire weekend in between
+            sandwichDays = 0; // already included in calDays
+            sandwichMsg = '⚠️ Leave covers <strong>Friday to Monday</strong> — weekend days are included in deduction (Sandwich Policy)<br>';
+        } else if (fromDay === 5) {
+            sandwichDays = 2;
+            sandwichMsg = '⚠️ Leave starts on <strong>Friday</strong> — Saturday & Sunday also counted (Sandwich Policy)<br>';
+        } else if (toDay === 1) {
+            sandwichDays = 1;
+            sandwichMsg = '⚠️ Leave ends on <strong>Monday</strong> — Sunday also counted (Sandwich Policy)<br>';
+        }
     }
 
     const totalDays = calDays + sandwichDays;

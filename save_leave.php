@@ -26,6 +26,18 @@ $from_date  = mysqli_real_escape_string($conn, $from_date);
 $to_date    = mysqli_real_escape_string($conn, $to_date);
 $reason     = mysqli_real_escape_string($conn, $_POST['reason']);
 
+// BUGFIX (BUG-002): the system had no check at all for an employee
+// applying leave again on a date range that overlaps an existing Pending
+// or Approved request of theirs — silently allowing duplicate/overlapping
+// applications for the same date(s).
+$overlap_check = mysqli_query($conn, "SELECT leave_id FROM leaves
+    WHERE emp_id='$emp_id' AND status IN ('pending','approved')
+    AND from_date <= '$to_date' AND to_date >= '$from_date'");
+if(mysqli_num_rows($overlap_check) > 0){
+    echo "<script>alert('Leave has already been applied for this date (or an overlapping date range is Pending/Approved).'); window.history.back();</script>";
+    exit();
+}
+
 // ===== HALF-DAY LEAVE =====
 // Only valid for a single-day request — a half-day across a multi-day
 // range doesn't mean anything, so silently ignore the checkbox if the
