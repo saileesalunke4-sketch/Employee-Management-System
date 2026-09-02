@@ -30,6 +30,16 @@ $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
 // user isn't sent back here again on their next login.
 mysqli_query($conn, "UPDATE users SET password='$new_hash', must_change_password=0 WHERE id=$user_id");
 
+// Security notification email: lets the account owner know their password
+// was changed, so they can act immediately (e.g. contact Admin) if they
+// didn't do it themselves.
+$user_info = mysqli_fetch_assoc(mysqli_query($conn, "SELECT name, email FROM users WHERE id=$user_id"));
+if($user_info){
+    $subject = "Your EMS password was changed";
+    $body = "Hi {$user_info['name']},<br><br>This is a confirmation that your Employee Management System password was changed on " . date('d M Y, h:i A') . ".<br><br>If you did not make this change, please contact your Admin/Super Admin immediately.<br><br>— EMS Security Notice";
+    sendEMSMail($user_info['email'], $user_info['name'], $subject, $body);
+}
+
 // Auto-logout after a password change: destroy the session immediately so
 // the user (and anyone else on a shared device) must log back in with the
 // new password rather than continuing to browse on the old session.

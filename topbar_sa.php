@@ -66,6 +66,19 @@ $sa_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM use
         });
     }
 
+    // Maps a notification's `type` to the page a super admin should land
+    // on when they click it. Falls back to the dashboard for any type not
+    // explicitly listed (e.g. a future new notification type).
+    function notifTypeToUrl(type){
+        var map = {
+            'leave':        'sa_leaves.php',
+            'wfh_status':   'wfh_requests.php',
+            'reimbursement_status': 'reimbursements.php',
+            'task_completion': 'sa_tasks.php'
+        };
+        return map[type] || 'super_admin_dashboard.php';
+    }
+
     function renderNotifications(data){
         var badge = document.getElementById('notifBadge');
         var list  = document.getElementById('notifList');
@@ -88,8 +101,9 @@ $sa_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM use
 
         list.innerHTML = data.items.map(function(n){
             var isNew = n.is_read == 0;
+            var url = notifTypeToUrl(n.type);
             return '' +
-                '<div class="notif-item ' + (isNew ? 'notif-new' : '') + '">' +
+                '<div class="notif-item ' + (isNew ? 'notif-new' : '') + '" onclick=\'window.location.href=' + JSON.stringify(url) + '\' style="cursor:pointer;" title="Click to open">' +
                     '<div class="notif-icon"><?php echo str_replace("'","\\'",ems_icon("inbox",15)); ?></div>' +
                     '<div class="notif-text"><strong>' + escapeHtml(n.emp_name) + '</strong> &mdash; <span class="notif-type">' + escapeHtml(n.leave_type) + '</span><br>' +
                     '<small><?php echo str_replace("'","\\'",ems_icon("calendar",11)); ?> ' + escapeHtml(n.from_date) + ' to ' + escapeHtml(n.to_date) + '</small></div>' +

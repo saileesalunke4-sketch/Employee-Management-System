@@ -24,4 +24,14 @@ define('SMTP_FROM_NAME', 'EMS - Your Company Name');
 // --- AI HR Assistant (Gemini) ---
 // Get a free key at https://aistudio.google.com/apikey
 define('GEMINI_API_KEY', 'your_gemini_api_key_here');
+
+
+// --- SMS Gateway (for Login OTP / 2-Step Verification) ---
+// Fill these in once you've picked a provider and they've given you API
+// access + an approved SMS template. Until SMS_GATEWAY_API_KEY is filled
+// in, login OTP is sent by EMAIL ONLY — SMS is skipped automatically, so
+// the feature still works without this.
+define('SMS_GATEWAY_API_KEY', '');       // e.g. your MSG91/Twilio/Fast2SMS auth key
+define('SMS_GATEWAY_API_URL', '');       // the exact API endpoint your provider gave you
+define('SMS_GATEWAY_SENDER_ID', '');     // your approved DLT sender ID, if applicable
 ?>

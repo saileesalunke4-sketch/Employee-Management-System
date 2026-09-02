@@ -42,7 +42,12 @@ $page_title = "My Tasks";
          link between them in the UI. Added here so an assigned project
          is actually visible to the employee it was assigned to. -->
     <?php
-        $proj_res = mysqli_query($conn, "SELECT p.*, d.dept_name FROM projects p LEFT JOIN departments d ON p.dept_id=d.dept_id WHERE p.assigned_emp_id='$emp_id' ORDER BY p.target_date ASC");
+        // BUGFIX: a project can now be assigned to multiple employees via
+        // project_assignments — query through that instead of the old
+        // single assigned_emp_id column, so this employee sees every
+        // project they're assigned to, not just ones where they happened
+        // to be the sole/first assignee.
+        $proj_res = mysqli_query($conn, "SELECT p.*, d.dept_name FROM projects p JOIN project_assignments pa ON p.project_id=pa.project_id LEFT JOIN departments d ON p.dept_id=d.dept_id WHERE pa.emp_id='$emp_id' ORDER BY p.target_date ASC");
         if($proj_res && mysqli_num_rows($proj_res) > 0){
     ?>
     <div class="form-card">

@@ -27,7 +27,7 @@ if($emp_id <= 0 || !in_array($rtype, ['Department Change','Designation Change','
 
 try {
     // Fetch employee + current values (for the history log)
-    $emp_res = mysqli_query($conn, "SELECT e.*, d.dept_name FROM employees e LEFT JOIN departments d ON e.dept_id=d.dept_id WHERE e.emp_id=$emp_id");
+    $emp_res = mysqli_query($conn, "SELECT e.*, d.dept_name, u.email FROM employees e LEFT JOIN departments d ON e.dept_id=d.dept_id JOIN users u ON e.user_id=u.id WHERE e.emp_id=$emp_id");
     $emp = $emp_res ? mysqli_fetch_assoc($emp_res) : null;
     if(!$emp){
         echo "<script>alert('Employee not found.'); window.location.href='$redirect';</script>";
@@ -81,6 +81,13 @@ try {
 
     mysqli_query($conn, "INSERT INTO notifications (emp_id, emp_name, leave_type, from_date, to_date, reason, message, type, for_role, is_read)
                           VALUES ($emp_id, '$emp_name_esc', '$rtype_esc', '$today', '$today', '$reason_esc', '$msg', 'hr_request_status', 'employee', 0)");
+
+    // BUGFIX: a role/department/location/designation change by Admin/Super
+    // Admin only ever showed an in-app notification — no email, unlike
+    // Leave/Task/Salary which do.
+    if(!empty($emp['email'])){
+        sendEMSMail($emp['email'], $emp_full_name, "Your $rtype Has Been Updated", "Hi " . htmlspecialchars($emp_full_name) . ",<br><br>✅ Your $rtype has been updated by $role_label to: <b>" . htmlspecialchars($requested_value) . "</b>.<br><br>— EMS Notification");
+    }
 
     log_activity($conn, 'approved', $rtype, "$emp_full_name", "Changed from '$current_value' to '$requested_value'");
 

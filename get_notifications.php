@@ -23,7 +23,7 @@ if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'], ['admin','s
 $unread_res   = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM notifications WHERE is_read=0 AND for_role='admin'");
 $unread_count = (int) mysqli_fetch_assoc($unread_res)['cnt'];
 
-$all_notif = mysqli_query($conn, "SELECT emp_name, leave_type, from_date, to_date, reason, is_read FROM notifications WHERE for_role='admin' ORDER BY created_at DESC LIMIT 15");
+$all_notif = mysqli_query($conn, "SELECT emp_name, leave_type, from_date, to_date, reason, type, is_read FROM notifications WHERE for_role='admin' ORDER BY created_at DESC LIMIT 15");
 
 $items = [];
 while($n = mysqli_fetch_assoc($all_notif)){
@@ -33,6 +33,7 @@ while($n = mysqli_fetch_assoc($all_notif)){
         'from_date'  => $n['from_date'],
         'to_date'    => $n['to_date'],
         'reason'     => $n['reason'],
+        'type'       => $n['type'], // used to route a click to the right module page
         'is_read'    => (int) $n['is_read'],
     ];
 }

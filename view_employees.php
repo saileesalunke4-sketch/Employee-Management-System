@@ -5,14 +5,15 @@ if(!isset($_SESSION['user']) || !in_array($_SESSION['user']['role'],['admin','su
 }
 require 'db.php';
 $role = $_SESSION['user']['role'];
-$page_title = "View Employees";
+$csrf_tok = csrf_token();
+$page_title = "Manage Employees";
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>View Employees - EMS</title>
+<title>Manage Employees - EMS</title>
 <link rel="stylesheet" href="style.css">
 <?php include 'common_styles.php'; ?>
 </head>
@@ -48,11 +49,11 @@ $page_title = "View Employees";
         </div>
         <div style="overflow-x:auto;">
         <table class="emp-table">
-            <thead><tr><th>Employee ID</th><th>Name</th><th>Email</th><th>Designation</th><th>Contact</th><th>Role</th><th>Department</th><th>Shift</th></tr></thead>
+            <thead><tr><th>Employee ID</th><th>Name</th><th>Email</th><th>Designation</th><th>Contact</th><th>Role</th><th>Department</th><th>Shift</th><th>Action</th></tr></thead>
             <tbody>
             <?php
                 $search_q = trim($_GET['q'] ?? '');
-                $sql = "SELECT u.id,u.name,u.email,u.role,e.designation,e.contact,e.emp_id,e.dept_id,e.shift_id,e.employee_code FROM users u LEFT JOIN employees e ON u.id=e.user_id WHERE u.role='employee'";
+                $sql = "SELECT u.id,u.name,u.email,u.role,e.designation,e.contact,e.emp_id,e.dept_id,e.shift_id,e.employee_code FROM users u LEFT JOIN employees e ON u.id=e.user_id WHERE u.role='employee' AND (e.status IS NULL OR e.status='active')";
                 if($search_q !== ''){
                     $esc = mysqli_real_escape_string($conn, $search_q);
                     $sql .= " AND (u.name LIKE '%{$esc}%' OR u.email LIKE '%{$esc}%' OR e.designation LIKE '%{$esc}%' OR e.employee_code LIKE '%{$esc}%')";
@@ -100,6 +101,13 @@ $page_title = "View Employees";
                                 </select>
                                 <button type='submit' style='padding:5px 10px;background:#1a3a6e;color:white;border:none;border-radius:6px;font-size:12px;cursor:pointer;'>Assign</button>
                             </form>
+                        </td>
+                        <td>
+                            <a href='delete_employee.php?id={$row['id']}&csrf={$csrf_tok}'
+                               onclick=\"return confirm('Remove {$row['name']}? This disables their login and removes them from this list. Their historical attendance/leave/salary/task records are kept for record-keeping.');\"
+                               style='display:inline-block;padding:5px 12px;background:#dc2626;color:white;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;'>
+                               Remove
+                            </a>
                         </td>
                     </tr>";
                 }

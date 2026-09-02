@@ -63,6 +63,7 @@ while($n = mysqli_fetch_assoc($notif_res)){
     $items[] = [
         'type_label' => $label,
         'type_key'   => $key,
+        'type'       => $n['type'], // raw type, used to route a click to the right module page
         'message'    => $n['message'] ?: $n['reason'],
         'date'       => date('d M Y', strtotime($n['created_at'])),
         'is_read'    => (int) $n['is_read'],

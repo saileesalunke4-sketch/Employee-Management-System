@@ -29,9 +29,15 @@ mysqli_query($conn, "UPDATE tasks SET status='completed' WHERE task_id='$task_id
 // Insert notification for admin
 $task_name = mysqli_real_escape_string($conn, $task['task_name']);
 $msg       = mysqli_real_escape_string($conn, "Task completed by $emp_name: $task_name");
+// BUGFIX: 'task_completion' was being inserted into the leave_type column
+// instead of the type column (and for_role wasn't set at all, though it
+// happened to default to 'admin' anyway) — meaning this notification's
+// actual `type` was left at its schema default ('leave'), which would
+// have made a task-completion notification incorrectly route to the
+// Leaves page instead of Tasks when clicked.
 mysqli_query($conn, "INSERT INTO notifications 
-    (emp_id, emp_name, leave_type, from_date, to_date, reason, is_read)
-    VALUES ('$emp_id','$emp_name','task_completion',CURDATE(),CURDATE(),'$msg',0)");
+    (emp_id, emp_name, leave_type, from_date, to_date, reason, type, for_role, is_read)
+    VALUES ('$emp_id','$emp_name','Task Completed',CURDATE(),CURDATE(),'$msg','task_completion','admin',0)");
 
 echo "<script>alert('Admin notified of task completion!'); window.location.href='emp_dashboard.php';</script>";
 ?>

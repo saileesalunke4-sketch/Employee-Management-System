@@ -86,6 +86,23 @@ $emp_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM us
             return;
         }
 
+        // Maps a notification's `type` to the page the employee should
+        // land on when they click it. Falls back to the dashboard for any
+        // type not explicitly listed (e.g. a future new notification type).
+        function notifTypeToUrl(type){
+            var map = {
+                'announcement_posted':    'announcements.php',
+                'asset_status':           'my_assets.php',
+                'hr_request_status':      'emp_profile.php',
+                'regularization_status':  'my_attendance.php',
+                'reimbursement_status':   'my_reimbursements.php',
+                'wfh_status':             'my_wfh.php',
+                'leave_status':           'my_leaves.php',
+                'task':                   'my_tasks.php'
+            };
+            return map[type] || 'emp_dashboard.php';
+        }
+
         list.innerHTML = data.items.map(function(n){
             var isNew = n.is_read == 0;
             var icons = {
@@ -95,8 +112,9 @@ $emp_photo = mysqli_fetch_assoc(mysqli_query($conn,"SELECT profile_photo FROM us
                 regularization: '<?php echo str_replace("'","\\'",ems_icon("clock",15)); ?>'
             };
             var icon = icons[n.type_key] || icons.leave;
+            var url = notifTypeToUrl(n.type);
             return '' +
-                '<div class="notif-item ' + (isNew ? 'notif-new' : '') + '">' +
+                '<div class="notif-item ' + (isNew ? 'notif-new' : '') + '" onclick=\'window.location.href=' + JSON.stringify(url) + '\' style="cursor:pointer;" title="Click to open">' +
                     '<div class="notif-icon">' + icon + '</div>' +
                     '<div class="notif-text"><span class="notif-type">' + escapeHtml(n.type_label) + '</span><br>' +
                     '<small>' + escapeHtml(n.message) + '</small><br>' +

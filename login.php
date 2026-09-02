@@ -1,5 +1,12 @@
 <?php
-session_start();
+// BUGFIX: this used to call session_start() bare, before db.php's
+// production error-handling config (which hides raw PHP warnings from
+// users) even loads. On a server where the configured session save
+// path isn't writable, this dumped a raw "session_start(): open(...)
+// Permission denied" warning straight onto the page for every user to
+// see. Suppressed here with @, matching the same session_start() call
+// in db.php, which already does this for the same reason.
+@session_start();
 require 'db.php';
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
@@ -21,33 +28,34 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     }
 
     if($user && password_verify($password, $user['password'])){
+        // SECURITY: block login for a deactivated employee account (see
+        // delete_employee.php) — password_verify would otherwise still
+        // pass with their old password until it happens to have been
+        // randomized, so this check is the actual, reliable gate.
+        if($user['role'] === 'employee'){
+            $emp_status = mysqli_fetch_assoc(mysqli_query($conn, "SELECT status FROM employees WHERE user_id='{$user['id']}'"));
+            if($emp_status && $emp_status['status'] === 'inactive'){
+                header("Location: index.php?error=1");
+                exit();
+            }
+        }
+
         // Successful login — reset any failed-attempt tracking
         mysqli_query($conn, "UPDATE users SET failed_login_attempts=0, lockout_until=NULL WHERE id='{$user['id']}'");
 
-        // SECURITY: regenerate the session ID on login (prevents session
-        // fixation — an attacker who set a session ID before login can no
-        // longer reuse it afterwards).
+        // SECURITY: regenerate the session ID as soon as the password is
+        // confirmed correct (prevents session fixation), even though full
+        // login isn't granted yet — that only happens after OTP succeeds.
         session_regenerate_id(true);
 
-        $_SESSION['user'] = $user;
-
-        // BUGFIX (Employee-024): new employees log in with the temporary
-        // password an admin set for them in Add Employee — there was no
-        // prompt to set their own. Route them to Change Password first;
-        // existing accounts (must_change_password=0 by default) are
-        // completely unaffected.
-        if(!empty($user['must_change_password'])){
-            header("Location: change_password.php?first=1");
-            exit();
-        }
-
-        if($user['role'] == 'admin'){
-            header("Location: admin_dashboard.php");
-        } elseif($user['role'] == 'super_admin'){
-            header("Location: super_admin_dashboard.php");
-        } else {
-            header("Location: emp_dashboard.php");
-        }
+        // ===== LOGIN OTP / 2-STEP VERIFICATION =====
+        // Password is correct, but $_SESSION['user'] is NOT set yet — the
+        // account only becomes fully logged in once the OTP is verified
+        // (see verify_otp_submit.php). Only a minimal "pending" marker is
+        // stored here, not the full user row.
+        $_SESSION['otp_pending_user_id'] = (int) $user['id'];
+        generateAndSendOtp($conn, $user);
+        header("Location: verify_otp.php");
         exit();
     } else {
         // Wrong password (or no such user) — track failed attempts only

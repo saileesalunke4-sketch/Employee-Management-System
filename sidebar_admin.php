@@ -10,7 +10,7 @@ $nav_groups = [
     ],
     'Employees' => [
         ['add_employee.php','add_employee.php','user-plus','Add Employee'],
-        ['view_employees.php','view_employees.php','users','View Employees'],
+        ['view_employees.php','view_employees.php','users','Manage Employees'],
         ['departments.php','departments.php','building','Departments'],
         ['org_chart.php','org_chart.php','sitemap','Organization Chart'],
     ],

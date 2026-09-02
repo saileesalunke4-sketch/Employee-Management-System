@@ -80,6 +80,24 @@ define('OFFICE_RADIUS_METERS', 200); // allowed distance from office (in meters)
 // less precise than this are rejected rather than silently accepted.
 define('ACCURACY_WARN_METERS', 150);
 
+// ===== EMPLOYEE DEACTIVATION (safe alternative to deleting an employee) =====
+// The employees table has FOREIGN KEY constraints from attendance, leaves,
+// salary, tasks, daily_logs, emp_performance, and projects — none of them
+// with ON DELETE CASCADE. A true DELETE of an employee row would fail with
+// a foreign key error for any employee with real history (which is nearly
+// all of them), and cascading the delete across all of those tables would
+// destroy payroll/attendance/audit history that has legal/compliance
+// value. This column lets Admin/Super Admin remove an employee's access
+// and hide them from active lists — safely, reversibly, and without
+// touching any historical record — instead.
+// NOTE: outside the schema-ready guard, same reason as other additions
+// above — existing deployments that already have logs/.schema_ready would
+// never get this column otherwise.
+$emp_status_col_check = mysqli_query($conn, "SHOW COLUMNS FROM employees LIKE 'status'");
+if($emp_status_col_check && mysqli_num_rows($emp_status_col_check) == 0){
+    mysqli_query($conn, "ALTER TABLE employees ADD COLUMN status ENUM('active','inactive') NOT NULL DEFAULT 'active'");
+}
+
 // ===== OFFICE IP WHITELIST (Attendance) =====
 // GPS/WiFi-based location can be genuinely wrong on laptops connected to
 // office WiFi — the WiFi router's location in Google/Microsoft's location
@@ -93,7 +111,8 @@ define('ACCURACY_WARN_METERS', 150);
 // office network, search "what is my ip" in a browser — if the same IP
 // shows up every time (check again after a few hours), it's static.
 define('OFFICE_STATIC_IPS', [
-    "122.171.18.149" // 'YOUR_OFFICE_STATIC_IP_HERE', // e.g. '103.21.58.10' — uncomment and fill in
+    "122.171.18.149","122.171.21.168"
+    // 'YOUR_OFFICE_STATIC_IP_HERE', // e.g. '103.21.58.10' — uncomment and fill in
 ]);
 
 // True if the current request's IP matches a configured office static IP.
@@ -490,6 +509,184 @@ if($work_mode_col_check && mysqli_num_rows($work_mode_col_check) == 0){
 $mcp_col_check = mysqli_query($conn, "SHOW COLUMNS FROM users LIKE 'must_change_password'");
 if($mcp_col_check && mysqli_num_rows($mcp_col_check) == 0){
     mysqli_query($conn, "ALTER TABLE users ADD COLUMN must_change_password TINYINT(1) NOT NULL DEFAULT 0");
+}
+
+// ===== MULTIPLE EMPLOYEES PER PROJECT =====
+// projects.assigned_emp_id only ever allowed ONE employee per project. This
+// junction table allows any number of employees to be assigned to the same
+// project, without removing the old column (so nothing that reads it
+// directly breaks) — new assignments are recorded here going forward.
+// NOTE: outside the schema-ready guard, same reason as other additions
+// above — existing deployments that already have logs/.schema_ready would
+// never get this table otherwise.
+mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `project_assignments` (
+  `assignment_id` INT NOT NULL AUTO_INCREMENT,
+  `project_id` INT NOT NULL,
+  `emp_id` INT NOT NULL,
+  `assigned_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`assignment_id`),
+  UNIQUE KEY `project_emp` (`project_id`,`emp_id`),
+  KEY `project_id` (`project_id`),
+  KEY `emp_id` (`emp_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+// Backfill: carry every existing single assigned_emp_id into the new
+// table so projects created before this change still show their employee.
+mysqli_query($conn, "INSERT IGNORE INTO project_assignments (project_id, emp_id)
+                      SELECT project_id, assigned_emp_id FROM projects WHERE assigned_emp_id IS NOT NULL");
+
+// ===== LOGIN OTP / 2-STEP VERIFICATION =====
+// After a correct email+password, the user must also enter a one-time
+// code sent to their email (and SMS, once a gateway is configured) before
+// their session is actually created. See login.php, verify_otp.php,
+// verify_otp_submit.php, resend_otp.php.
+// NOTE: outside the schema-ready guard, same reason as other additions
+// above — existing deployments that already have logs/.schema_ready would
+// never get this table otherwise.
+mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `login_otps` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `user_id` INT NOT NULL,
+  `otp_code` VARCHAR(10) NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `attempts` INT NOT NULL DEFAULT 0,
+  `verified` TINYINT(1) NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+define('OTP_EXPIRY_MINUTES', 10);
+define('OTP_MAX_ATTEMPTS', 5);
+define('OTP_RESEND_COOLDOWN_SECONDS', 60);
+
+// Sends a login OTP via SMS using Aller's own SMS panel (sms.aller.in),
+// a GET-request based API. Returns true/false. Safe to call even before
+// SMS_GATEWAY_USERNAME/API_KEY are filled in — it just skips silently
+// (email OTP still works either way).
+function sendSmsOtp($phone, $otp)
+{
+    if (
+        !defined('SMS_GATEWAY_USERNAME') ||
+        SMS_GATEWAY_USERNAME === '' ||
+        !defined('SMS_GATEWAY_API_KEY') ||
+        SMS_GATEWAY_API_KEY === ''
+    ) {
+        file_put_contents(
+            __DIR__ . '/sms_debug.txt',
+            "ERROR: Username or API key is missing.\n",
+            FILE_APPEND
+        );
+
+        return false;
+    }
+
+    $message = "Your Aller EMS login OTP is $otp. Valid for "
+             . OTP_EXPIRY_MINUTES
+             . " minutes. Do not share this code.";
+
+    $url = SMS_GATEWAY_API_URL . '?' . http_build_query([
+        'username'   => SMS_GATEWAY_USERNAME,
+        'apikey'     => SMS_GATEWAY_API_KEY,
+        'apirequest' => 'Text',
+        'sender'     => defined('SMS_GATEWAY_SENDER_ID')
+                         ? SMS_GATEWAY_SENDER_ID
+                         : 'AALLER',
+        'mobile'     => $phone,
+        'message'      => $message,
+        'route'      => 'TRANS',
+        'TemplateID'  => SMS_GATEWAY_TEMPLATE_ID,
+    ]);
+
+    file_put_contents(
+    __DIR__ . '/sms_debug.txt',
+    "FINAL URL: " . $url . PHP_EOL,
+    FILE_APPEND
+);
+
+$url = trim($url);
+
+file_put_contents(
+    __DIR__ . '/sms_debug.txt',
+    "URL LENGTH: " . strlen($url) . PHP_EOL .
+    "URL HEX: " . bin2hex($url) . PHP_EOL .
+    "FINAL URL: " . $url . PHP_EOL,
+    FILE_APPEND
+);
+
+
+
+    $ch = curl_init($url);
+
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 20,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+    ]);
+
+    $response = curl_exec($ch);
+
+    $curl_error = curl_error($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    curl_close($ch);
+
+    // Save SMS API response for debugging
+    $debug = "============================\n";
+    $debug .= "TIME: " . date('Y-m-d H:i:s') . "\n";
+    $debug .= "PHONE: " . $phone . "\n";
+    $debug .= "HTTP CODE: " . $http_code . "\n";
+    $debug .= "RESPONSE: " . (string)$response . "\n";
+    $debug .= "CURL ERROR: " . $curl_error . "\n";
+    $debug .= "============================\n";
+
+    file_put_contents(
+        __DIR__ . '/sms_debug.txt',
+        $debug,
+        FILE_APPEND
+    );
+
+    if ($response === false || $curl_error !== '') {
+        return false;
+    }
+
+    $decoded = json_decode($response, true);
+
+    if (
+        is_array($decoded) &&
+        isset($decoded['status']) &&
+        strtolower($decoded['status']) === 'error'
+    ) {
+        return false;
+    }
+
+    return true;
+}
+// Generates a fresh OTP for $user, stores it, and sends it by email (always)
+// and SMS (if the employee has a contact number and a gateway is configured).
+// Returns the OTP row's expiry timestamp (for display) — the code itself is
+// never returned to the caller, since it should only ever leave this
+// function via email/SMS, not be echoed/logged anywhere.
+function generateAndSendOtp($conn, $user){
+    $otp_code  = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $expires_at = date('Y-m-d H:i:s', time() + OTP_EXPIRY_MINUTES * 60);
+    $user_id = (int) $user['id'];
+
+    mysqli_query($conn, "INSERT INTO login_otps (user_id, otp_code, expires_at) VALUES ($user_id, '$otp_code', '$expires_at')");
+
+    $subject = "Your Aller EMS Login Code";
+    $body = "Hi " . htmlspecialchars($user['name']) . ",<br><br>Your one-time login code is:<br><br>"
+          . "<div style='font-size:28px;font-weight:700;letter-spacing:4px;'>$otp_code</div><br>"
+          . "This code expires in " . OTP_EXPIRY_MINUTES . " minutes. If you didn't try to log in, you can ignore this email.<br><br>— Aller Technologies EMS";
+    sendEMSMail($user['email'], $user['name'], $subject, $body);
+
+    // Also try SMS if this account has a phone number on file (employees
+    // only — admin/super_admin accounts aren't required to have one).
+    $phone_row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT contact FROM employees WHERE user_id=$user_id"));
+    if($phone_row && !empty($phone_row['contact'])){
+        sendSmsOtp($phone_row['contact'], $otp_code);
+    }
+
+    return $expires_at;
 }
 
 // ===== CSRF PROTECTION HELPERS =====

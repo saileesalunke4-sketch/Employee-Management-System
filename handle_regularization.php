@@ -74,7 +74,7 @@ try {
     // Notify the employee (reusing the notifications table; leave_type/from_date/to_date
     // are required columns there, so we repurpose them for this notification's context)
     $emp_id_notif   = (int) $req['emp_id'];
-    $emp_row_res    = mysqli_query($conn, "SELECT first_name,last_name FROM employees WHERE emp_id=$emp_id_notif");
+    $emp_row_res    = mysqli_query($conn, "SELECT e.first_name,e.last_name,u.email FROM employees e JOIN users u ON e.user_id=u.id WHERE e.emp_id=$emp_id_notif");
     $emp_row        = $emp_row_res ? mysqli_fetch_assoc($emp_row_res) : null;
     $emp_full_name  = $emp_row ? trim($emp_row['first_name'].' '.$emp_row['last_name']) : 'Employee';
     $emp_name_notif = mysqli_real_escape_string($conn, $emp_full_name);
@@ -84,6 +84,12 @@ try {
 
     mysqli_query($conn, "INSERT INTO notifications (emp_id, emp_name, leave_type, from_date, to_date, reason, message, type, for_role, is_read)
                           VALUES ('$emp_id_notif', '$emp_name_notif', 'Regularization', '$att_date_notif', '$att_date_notif', '$msg', '$msg', 'regularization_status', 'employee', 0)");
+
+    // BUGFIX: regularization approval/rejection only ever showed an
+    // in-app notification — no email, unlike Leave/Task/Salary which do.
+    if($emp_row && !empty($emp_row['email'])){
+        sendEMSMail($emp_row['email'], $emp_full_name, "Attendance Regularization " . ucfirst($action), "Hi " . htmlspecialchars($emp_full_name) . ",<br><br>$icon Your attendance regularization request for {$req['att_date']} has been <b>" . ucfirst($action) . "</b>.<br><br>— EMS Notification");
+    }
 
     log_activity($conn, $action, 'Attendance Regularization', "$emp_full_name — {$req['att_date']}");
 

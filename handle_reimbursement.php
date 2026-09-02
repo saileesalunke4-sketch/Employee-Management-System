@@ -42,7 +42,7 @@ $emp_id = (int) $req['emp_id'];
 mysqli_query($conn, "UPDATE reimbursement_requests SET status='$action', reviewed_by=$reviewer_id WHERE request_id=$request_id");
 
 // Notify the employee
-$emp_row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT first_name,last_name FROM employees WHERE emp_id=$emp_id"));
+$emp_row = mysqli_fetch_assoc(mysqli_query($conn, "SELECT e.first_name,e.last_name,u.email FROM employees e JOIN users u ON e.user_id=u.id WHERE e.emp_id=$emp_id"));
 $emp_full_name = $emp_row ? trim($emp_row['first_name'].' '.$emp_row['last_name']) : 'Employee';
 $emp_name_esc  = mysqli_real_escape_string($conn, $emp_full_name);
 $icon = $action === 'approved' ? '✅' : '❌';
@@ -51,6 +51,12 @@ $today = date('Y-m-d');
 
 mysqli_query($conn, "INSERT INTO notifications (emp_id, emp_name, leave_type, from_date, to_date, reason, message, type, for_role, is_read)
                       VALUES ($emp_id, '$emp_name_esc', 'Reimbursement', '$today', '$today', '$msg', '$msg', 'reimbursement_status', 'employee', 0)");
+
+// BUGFIX: reimbursement approval/rejection only ever showed an in-app
+// notification — no email, unlike Leave/Task/Salary which do.
+if($emp_row && !empty($emp_row['email'])){
+    sendEMSMail($emp_row['email'], $emp_full_name, "Reimbursement Request " . ucfirst($action), "Hi " . htmlspecialchars($emp_full_name) . ",<br><br>$icon Your reimbursement request for {$req['category']} (₹" . number_format($req['amount'],2) . ") has been <b>" . ucfirst($action) . "</b>.<br><br>— EMS Notification");
+}
 
 log_activity($conn, $action, 'Reimbursement Request', $emp_full_name, "{$req['category']} — ₹".number_format($req['amount'],2));
 

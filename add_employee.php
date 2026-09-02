@@ -70,7 +70,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
     $name = mysqli_real_escape_string($conn, $name);
     $email = mysqli_real_escape_string($conn, $email);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $plain_password = $_POST['password']; // kept for the welcome email; only the hash below is stored
+    $password = password_hash($plain_password, PASSWORD_DEFAULT);
     $role = in_array($_POST['role'], ['employee','admin','super_admin'], true) ? $_POST['role'] : 'employee';
     $first_name = mysqli_real_escape_string($conn, $first_name);
     $last_name = mysqli_real_escape_string($conn, $last_name);
@@ -93,6 +94,21 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
             $new_emp_id = mysqli_insert_id($conn);
             $employee_code = 'EMP' . str_pad($new_emp_id, 4, '0', STR_PAD_LEFT);
             mysqli_query($conn, "UPDATE employees SET employee_code='$employee_code' WHERE emp_id=$new_emp_id");
+
+            // BUGFIX: a new employee was never actually told their login
+            // email/password anywhere — must_change_password forces them
+            // to change it on first login, but they had no way to even
+            // perform that first login without the admin telling them
+            // manually through some other channel.
+            $welcome_subject = "Welcome to Aller Technologies EMS — Your Login Details";
+            $welcome_body = "Hi " . htmlspecialchars($first_name) . ",<br><br>"
+                . "Your account has been created on the Employee Management System.<br><br>"
+                . "<b>Employee ID:</b> $employee_code<br>"
+                . "<b>Login Email:</b> " . htmlspecialchars($_POST['email']) . "<br>"
+                . "<b>Temporary Password:</b> " . htmlspecialchars($plain_password) . "<br><br>"
+                . "For security, you will be asked to set your own password the first time you log in.<br><br>"
+                . "— Aller Technologies EMS";
+            sendEMSMail($_POST['email'], $first_name, $welcome_subject, $welcome_body);
 
             // BUGFIX (EMS-006): falling through to render the same page with
             // $success set meant the success message reappeared on every
@@ -144,7 +160,28 @@ if(isset($_GET['success']) && $_GET['success'] == '1'){
                 <div class="form-grid">
                     <div class="field"><label>Full Name</label><input type="text" name="name" placeholder="Full Name" required></div>
                     <div class="field"><label>Email</label><input type="email" name="email" placeholder="Email" required></div>
-                    <div class="field"><label>Password</label><input type="password" name="password" placeholder="Password" required></div>
+                    <div class="field">
+                        <label>Password</label>
+                        <div style="position:relative;">
+                            <input type="password" name="password" id="addEmpPwField" placeholder="Password" required style="padding-right:42px;">
+                            <span onclick="toggleAddEmpPw()" title="Show/hide password" role="button" tabindex="0" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#9aa1ac;display:flex;">
+                                <svg id="addEmpPwEye" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </span>
+                        </div>
+                    </div>
+                    <script>
+                    function toggleAddEmpPw(){
+                        var field = document.getElementById('addEmpPwField');
+                        var icon  = document.getElementById('addEmpPwEye');
+                        if(field.type === 'password'){
+                            field.type = 'text';
+                            icon.innerHTML = '<path d="M3 3l18 18"/><path d="M10.6 5.1A9.9 9.9 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.5 6.6C3.7 8.4 2 12 2 12s3.6 7 10 7a10 10 0 0 0 3.4-.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>';
+                        } else {
+                            field.type = 'password';
+                            icon.innerHTML = '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+                        }
+                    }
+                    </script>
                     <div class="field"><label>Role</label>
                         <select name="role">
                             <option value="employee">Employee</option>

@@ -163,7 +163,7 @@ mysqli_query($conn,"CREATE TABLE IF NOT EXISTS `performance` (`perf_id` INT NOT 
                 <div class="hero-name">Hi <?php echo htmlspecialchars($_SESSION['user']['name']); ?></div>
                 <div class="hero-sub">Full visibility across <?php echo $sa_total_emp; ?> employees, org-wide</div>
                 <div class="hero-actions">
-                    <a href="#" onclick="showSection('employees',document.querySelector('[onclick*=employees]'));return false;" class="hero-btn solid"><?php echo ems_icon('users',15); ?> Manage Employees</a>
+                    <a href="#" onclick="showSection('employees',document.querySelector('[onclick*=employees]'));return false;" class="hero-btn solid"><?php echo ems_icon('users',15); ?> View Employees</a>
                     <a href="departments.php" class="hero-btn"><?php echo ems_icon('building',15); ?> Departments</a>
                     <a href="announcements.php" class="hero-btn"><?php echo ems_icon('megaphone',15); ?> Announcements</a>
                 </div>
